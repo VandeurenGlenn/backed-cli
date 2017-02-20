@@ -1,0 +1,6 @@
+export default {
+  "src": "src/backed-cli",
+  "dest": "dist/backed-cli.js",
+  "format": "es",
+  "sourceMap": true
+}
