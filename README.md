@@ -9,7 +9,7 @@ $ npm install --save backed-cli
 
 ## Usage
 
-- Create a 'backed.json' file in your projects root [example](https://githug.com/vandeurenglenn/backed-cli/config/backed.json)
+- Create a 'backed.json' file in your projects root [example](https://github.com/vandeurenglenn/backed-cli/config/backed.json)
 
 Soon
 
