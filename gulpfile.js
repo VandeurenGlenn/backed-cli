@@ -16,7 +16,6 @@ var del = require('del');
 var merge = require('merge-stream');
 
 let cache;
-let cliCache;
 
 task('static', () => {
   return src('**/*.js')
@@ -71,18 +70,18 @@ task('coveralls', series('test', 'coveralls:after'));
 
 task('rollup:run', () => {
   return rollup.rollup({
-    entry: 'src/backed-cli.js',
+    entry: 'src/backed.js',
      // Use the previous bundle as starting point.
-    cache: cliCache
+    cache: cache
   }).then(bundle => {
     var result = bundle.generate({
       format: 'iife',
-      moduleName: 'backedCli',
+      moduleName: 'backed',
       plugins: [json(), babel()]
     });
      // Cache our bundle for later use (optional)
     cache = bundle;
-    fs.writeFileSync('.tmp/backed-cli.js', result.code);
+    fs.writeFileSync('.tmp/backed.js', result.code);
   });
 });
 
@@ -92,18 +91,18 @@ task('rollup:before', cb => {
 });
 
 task('rollup:after', () => {
-  var string = fs.readFileSync('.tmp/backed-cli.js').toString();
+  var string = fs.readFileSync('.tmp/backed.js').toString();
   string = string.replace('(function', `#!/usr/bin/env node
 (function`);
-  fs.unlinkSync('.tmp/backed-cli.js');
-  fs.writeFileSync('.tmp/backed-cli.js', string);
-  var cli = src('.tmp/backed-cli.js').pipe(dest('bin'));
+  fs.unlinkSync('.tmp/backed.js');
+  fs.writeFileSync('.tmp/backed.js', string);
+  var cli = src('.tmp/backed.js').pipe(dest('bin'));
 
   return merge(cli);
 });
 
 task('clean', cb => {
-  del.sync(['.tmp/', 'bin/', 'lib/']);
+  del.sync(['.tmp/', 'bin/']);
   cb();
 });
 
