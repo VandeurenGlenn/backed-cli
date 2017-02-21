@@ -1,6 +1,6 @@
 process.title = 'backed';
 const commander = require('commander');
-const {version} = require('package.json');
+const {version} = require('./../package.json');
 
 import builder from './builder.js';
 
