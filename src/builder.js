@@ -2,21 +2,25 @@
 const {rollup} = require('rollup');
 const json = require('rollup-plugin-json');
 const babel = require('rollup-plugin-babel');
+const rootPath = process.cwd();
 let cache;
 
 const importConfig = () => {
   let config;
   try {
-    config = require('backed.json');
+    config = require(`${rootPath}\\backed.json`);
     return config;
   } catch (error) {
-    return console.warn('Backed::backed.json not found, checkout https://github.com/basicelements/backed-cli for more info');
+    console.warn('Backed::backed.json not found, checkout https://github.com/basicelements/backed-cli for more info');
+    return undefined;
   }
 };
 
 const backedBuilder = () => {
   const config = importConfig();
-
+  if (config === undefined) {
+    return;
+  }
   return rollup({
     entry: config.src,
     // Use the previous bundle as starting point.
