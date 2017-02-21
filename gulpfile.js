@@ -109,5 +109,5 @@ task('clean', cb => {
 task('rollup', series('rollup:before', 'rollup:run', 'rollup:after'));
 
 task('build', series('clean', 'rollup'));
-task('prepublish', series('nsp'));
+task('prepublish', series('nsp', 'build'));
 task('default', series('static', 'test', 'coveralls'));
