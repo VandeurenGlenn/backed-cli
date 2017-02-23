@@ -60,7 +60,6 @@ export default class Server {
     ));
 
     // TODO: Add option to override index
-    console.log(__dirname.replace('bin', 'node_modules/backed-client/dist/index.html'));
     app.use('/', express.static(__dirname.replace('bin', 'node_modules\\backed-client\\dist')));
 
       // serve backed
