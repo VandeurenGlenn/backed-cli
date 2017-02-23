@@ -4,14 +4,24 @@
 ## Installation
 
 ```sh
-$ npm install --save backed-cli
+$ npm install --save --global backed-cli
 ```
 
 ## Usage
 
 - Create a 'backed.json' file in your projects root [example](https://github.com/vandeurenglenn/backed-cli/config/backed.json)
 
-Soon
+### Commands
+
+#### Build[--build, -b]
+```sh
+  backed --build
+```
+
+#### Serve[--serve, -s]
+```sh
+  backed --serve
+```
 
 ## License
 
