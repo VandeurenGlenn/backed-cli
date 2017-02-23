@@ -93,8 +93,16 @@ export default class Server {
     app.use(&apos;/demo&apos;, express.static(
       this.appLocation(server.demo, &apos;demo&apos;)));
 
-    app.use(&apos;/&apos;, express.static(
-      this.appLocation(server.index, &apos;html&apos;, true)));
+    app.use(&apos;/package.json&apos;, express.static(
+      this.appLocation(&apos;package.json&apos;)
+    ));
+
+    app.use(&apos;/bower.json&apos;, express.static(
+      this.appLocation(&apos;bower.json&apos;)
+    ));
+
+    // TODO: Add option to override index
+    app.use(&apos;/&apos;, express.static(__dirname.replace(&apos;bin&apos;, &apos;node_modules\\backed-client\\dist&apos;)));
 
       // serve backed
     app.use(&apos;/backed/docs&apos;, express.static(
