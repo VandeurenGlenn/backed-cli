@@ -1,0 +1,29 @@
+{
+  "coverage": "60%",
+  "expectCount": 10,
+  "actualCount": 6,
+  "files": {
+    "src/config.js": {
+      "expectCount": 6,
+      "actualCount": 4,
+      "undocumentLines": [
+        2,
+        3
+      ]
+    },
+    "src/server.js": {
+      "expectCount": 3,
+      "actualCount": 2,
+      "undocumentLines": [
+        25
+      ]
+    },
+    "src/builder.js": {
+      "expectCount": 1,
+      "actualCount": 0,
+      "undocumentLines": [
+        7
+      ]
+    }
+  }
+}
