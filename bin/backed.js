@@ -7,28 +7,31 @@ const json = require('rollup-plugin-json');
 const babel = require('rollup-plugin-babel');
 let cache;
 
-const backedBuilder$1 = config => {
-  console.log(`${config.name}::build starting`);
-  return rollup({
-    entry: config.src,
+class Builder {
+  build(config) {
+    rollup({
+      entry: `${process.cwd()}/${config.src}`,
     // Use the previous bundle as starting point.
-    cache: cache
-  }).then(bundle => {
+      cache: cache
+    }).then(bundle => {
     // Cache our bundle for later use (optional)
-    cache = bundle;
-
-    bundle.write({
-      format: config.format || 'es',
-      sourceMap: config.sourceMap || true,
-      plugins: [
-        json(),
-        babel()
-      ],
-      dest: config.dest
+      cache = bundle;
+      bundle.write({
+        format: config.format,
+        moduleName: config.moduleName,
+        sourceMap: config.sourceMap,
+        plugins: [
+          json(),
+          babel(config.babel || {})
+        ],
+        dest: `${process.cwd()}/${config.dest}`
+      }).catch(err => {
+        console.error(err);
+      });
+      console.log(`${config.name}::build finished`);
     });
-    console.log(`${config.name}::build finished`);
-  });
-};
+  }
+}
 
 const express = require('express');
 
@@ -91,7 +94,6 @@ class Server {
     ));
 
     // TODO: Add option to override index
-    console.log(__dirname.replace('bin', 'node_modules/backed-client/dist/index.html'));
     app.use('/', express.static(__dirname.replace('bin', 'node_modules\\backed-client\\dist')));
 
       // serve backed
@@ -133,7 +135,7 @@ class Config {
   constructor() {
     let config = this.importConfig();
     const name = this.importPackageName();
-    this.updateConfig(config, name);
+    return this.updateConfig(config, name);
   }
 
   /**
@@ -173,10 +175,13 @@ class Config {
    */
   updateConfig(config, name) {
     config.name = config.name || name;
+    config.format = config.format || 'es';
+    config.sourceMap = config.sourceMap || true;
     config.server = config.server || {};
     config.server.elementLocation =
       config.server.elementLocation || `${config.name}.js`;
     global.config = config;
+    return config;
   }
 }
 
@@ -184,7 +189,7 @@ process.title = 'backed';
 const commander = require('commander');
 const {version} = require('./../package.json');
 
-new Config();
+const config = new Config();
 
 const hasConfig = () => {
   if (global.config === undefined) {
@@ -204,12 +209,13 @@ let serve = commander.serve;
 
 if (build) {
   if (hasConfig()) {
-    backedBuilder$1(global.config);
+    const builder = new Builder(config);
+    builder.build(config);
   }
 } else if (serve) {
   if (hasConfig()) {
     const server = new Server();
-    server.serve(global.config.server, global.config.name);
+    server.serve(config.server, config.name);
   }
 }
 
