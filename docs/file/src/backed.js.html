@@ -32,9 +32,9 @@
 <nav class="navigation" data-ice="nav"><div>
   <ul>
     
-  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/config.js~Config.html">Config</a></span></span></li>
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~Builder.html">Builder</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/config.js~Config.html">Config</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/server.js~Server.html">Server</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-backedBuilder">backedBuilder</a></span></span></li>
 </ul>
 </div>
 </nav>
@@ -44,10 +44,10 @@
 const commander = require(&apos;commander&apos;);
 const {version} = require(&apos;./../package.json&apos;);
 
-import builder from &apos;./builder.js&apos;;
+import Builder from &apos;./builder.js&apos;;
 import Server from &apos;./server.js&apos;;
 import Config from &apos;./config.js&apos;;
-new Config();
+const config = new Config();
 
 const hasConfig = () =&gt; {
   if (global.config === undefined) {
@@ -67,12 +67,13 @@ let serve = commander.serve;
 
 if (build) {
   if (hasConfig()) {
-    builder(global.config);
+    const builder = new Builder(config);
+    builder.build(config);
   }
 } else if (serve) {
   if (hasConfig()) {
     const server = new Server();
-    server.serve(global.config.server, global.config.name);
+    server.serve(config.server, config.name);
   }
 }
 </code></pre>

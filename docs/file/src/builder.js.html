@@ -32,9 +32,9 @@
 <nav class="navigation" data-ice="nav"><div>
   <ul>
     
-  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/config.js~Config.html">Config</a></span></span></li>
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~Builder.html">Builder</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/config.js~Config.html">Config</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/server.js~Server.html">Server</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-backedBuilder">backedBuilder</a></span></span></li>
 </ul>
 </div>
 </nav>
@@ -46,29 +46,31 @@ const json = require(&apos;rollup-plugin-json&apos;);
 const babel = require(&apos;rollup-plugin-babel&apos;);
 let cache;
 
-const backedBuilder = config =&gt; {
-  console.log(`${config.name}::build starting`);
-  return rollup({
-    entry: config.src,
+export default class Builder {
+  build(config) {
+    rollup({
+      entry: `${process.cwd()}/${config.src}`,
     // Use the previous bundle as starting point.
-    cache: cache
-  }).then(bundle =&gt; {
+      cache: cache
+    }).then(bundle =&gt; {
     // Cache our bundle for later use (optional)
-    cache = bundle;
-
-    bundle.write({
-      format: config.format || &apos;es&apos;,
-      sourceMap: config.sourceMap || true,
-      plugins: [
-        json(),
-        babel()
-      ],
-      dest: config.dest
+      cache = bundle;
+      bundle.write({
+        format: config.format,
+        moduleName: config.moduleName,
+        sourceMap: config.sourceMap,
+        plugins: [
+          json(),
+          babel(config.babel || {})
+        ],
+        dest: `${process.cwd()}/${config.dest}`
+      }).catch(err =&gt; {
+        console.error(err);
+      });
+      console.log(`${config.name}::build finished`);
     });
-    console.log(`${config.name}::build finished`);
-  });
-};
-export default backedBuilder;
+  }
+}
 </code></pre>
 
 </div>

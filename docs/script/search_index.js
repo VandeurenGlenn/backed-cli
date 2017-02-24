@@ -1,5 +1,11 @@
 window.esdocSearchIndex = [
   [
+    "backed-cli/src/builder.js~builder",
+    "class/src/builder.js~Builder.html",
+    "<span>Builder</span> <span class=\"search-result-import-path\">backed-cli/src/builder.js</span>",
+    "class"
+  ],
+  [
     "backed-cli/src/config.js~config",
     "class/src/config.js~Config.html",
     "<span>Config</span> <span class=\"search-result-import-path\">backed-cli/src/config.js</span>",
@@ -10,12 +16,6 @@ window.esdocSearchIndex = [
     "class/src/server.js~Server.html",
     "<span>Server</span> <span class=\"search-result-import-path\">backed-cli/src/server.js</span>",
     "class"
-  ],
-  [
-    "backed-cli/src/builder.js~backedbuilder",
-    "function/index.html#static-function-backedBuilder",
-    "<span>backedBuilder</span> <span class=\"search-result-import-path\">backed-cli/src/builder.js</span>",
-    "function"
   ],
   [
     "builtinexternal/ecmascriptexternal.js~array",
@@ -358,6 +358,12 @@ window.esdocSearchIndex = [
     "file/src/builder.js.html",
     "src/builder.js",
     "file"
+  ],
+  [
+    "src/builder.js~builder#build",
+    "class/src/builder.js~Builder.html#instance-method-build",
+    "src/builder.js~Builder#build",
+    "method"
   ],
   [
     "src/config.js",
