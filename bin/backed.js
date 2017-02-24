@@ -131,6 +131,8 @@ class Server {
   }
 }
 
+const {readFileSync} = require('fs');
+
 class Config {
   constructor() {
     let config = this.importConfig();
@@ -165,8 +167,7 @@ class Config {
    * @return {string} name from 'package.json'
    */
   importPackageName() {
-    const {name} = this.require('package.json');
-    return name;
+    return JSON.parse(readFileSync(`${process.cwd()}/package.json`)).name;
   }
 
   /**
