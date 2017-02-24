@@ -3,7 +3,7 @@ export default class Config {
   constructor() {
     let config = this.importConfig();
     const name = this.importPackageName();
-    this.updateConfig(config, name);
+    return this.updateConfig(config, name);
   }
 
   /**
@@ -43,9 +43,12 @@ export default class Config {
    */
   updateConfig(config, name) {
     config.name = config.name || name;
+    config.format = config.format || 'es';
+    config.sourceMap = config.sourceMap || true;
     config.server = config.server || {};
     config.server.elementLocation =
       config.server.elementLocation || `${config.name}.js`;
     global.config = config;
+    return config;
   }
 }

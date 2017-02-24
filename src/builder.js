@@ -4,26 +4,28 @@ const json = require('rollup-plugin-json');
 const babel = require('rollup-plugin-babel');
 let cache;
 
-const backedBuilder = config => {
-  console.log(`${config.name}::build starting`);
-  return rollup({
-    entry: config.src,
+export default class Builder {
+  build(config) {
+    rollup({
+      entry: `${process.cwd()}/${config.src}`,
     // Use the previous bundle as starting point.
-    cache: cache
-  }).then(bundle => {
+      cache: cache
+    }).then(bundle => {
     // Cache our bundle for later use (optional)
-    cache = bundle;
-
-    bundle.write({
-      format: config.format || 'es',
-      sourceMap: config.sourceMap || true,
-      plugins: [
-        json(),
-        babel()
-      ],
-      dest: config.dest
+      cache = bundle;
+      bundle.write({
+        format: config.format,
+        moduleName: config.moduleName,
+        sourceMap: config.sourceMap,
+        plugins: [
+          json(),
+          babel(config.babel || {})
+        ],
+        dest: `${process.cwd()}/${config.dest}`
+      }).catch(err => {
+        console.error(err);
+      });
+      console.log(`${config.name}::build finished`);
     });
-    console.log(`${config.name}::build finished`);
-  });
-};
-export default backedBuilder;
+  }
+}

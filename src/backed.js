@@ -2,10 +2,10 @@ process.title = 'backed';
 const commander = require('commander');
 const {version} = require('./../package.json');
 
-import builder from './builder.js';
+import Builder from './builder.js';
 import Server from './server.js';
 import Config from './config.js';
-new Config();
+const config = new Config();
 
 const hasConfig = () => {
   if (global.config === undefined) {
@@ -25,11 +25,12 @@ let serve = commander.serve;
 
 if (build) {
   if (hasConfig()) {
-    builder(global.config);
+    const builder = new Builder(config);
+    builder.build(config);
   }
 } else if (serve) {
   if (hasConfig()) {
     const server = new Server();
-    server.serve(global.config.server, global.config.name);
+    server.serve(config.server, config.name);
   }
 }
