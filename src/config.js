@@ -1,4 +1,6 @@
 'use strict';
+const {readFileSync} = require('fs');
+
 export default class Config {
   constructor() {
     let config = this.importConfig();
@@ -33,8 +35,7 @@ export default class Config {
    * @return {string} name from 'package.json'
    */
   importPackageName() {
-    const {name} = this.require('package.json');
-    return name;
+    return JSON.parse(readFileSync(`${process.cwd()}/package.json`)).name;
   }
 
   /**
