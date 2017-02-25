@@ -366,6 +366,12 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/builder.js~builder#bundle",
+    "class/src/builder.js~Builder.html#instance-method-bundle",
+    "src/builder.js~Builder#bundle",
+    "method"
+  ],
+  [
     "src/config.js",
     "file/src/config.js.html",
     "src/config.js",

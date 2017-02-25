@@ -48,6 +48,29 @@ let cache;
 
 export default class Builder {
   build(config) {
+    if (config.format &amp;&amp; typeof config.format === &apos;object&apos;) {
+      const formats = config.format;
+      for (let format of formats) {
+        let dest = config.dest;
+        if (format !== &apos;iffe&apos;) {
+          switch (format) {
+            case &apos;cjs&apos;:
+              dest = dest.replace(&apos;.js&apos;, &apos;-node.js&apos;);
+              break;
+            case &apos;es&apos;:
+            case &apos;amd&apos;:
+              dest = dest.replace(&apos;.js&apos;, `-${format}.js`);
+              break;
+          }
+        }
+        this.bundle(config, dest, format);
+      }
+    } else {
+      this.bundle(config, config.dest, config.format);
+    }
+  }
+
+  bundle(config, dest, format) {
     rollup({
       entry: `${process.cwd()}/${config.src}`,
     // Use the previous bundle as starting point.
@@ -56,14 +79,14 @@ export default class Builder {
     // Cache our bundle for later use (optional)
       cache = bundle;
       bundle.write({
-        format: config.format,
+        format: format,
         moduleName: config.moduleName,
         sourceMap: config.sourceMap,
         plugins: [
           json(),
           babel(config.babel || {})
         ],
-        dest: `${process.cwd()}/${config.dest}`
+        dest: `${process.cwd()}/${dest}`
       }).catch(err =&gt; {
         console.error(err);
       });
