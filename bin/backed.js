@@ -12,26 +12,26 @@ class Builder {
     if (config.format && typeof config.format === 'object') {
       const formats = config.format;
       for (let format of formats) {
-        this.bundle(config, format);
+        let dest = config.dest;
+        if (format !== 'iffe') {
+          switch (format) {
+            case 'cjs':
+              dest = dest.replace('.js', '-node.js');
+              break;
+            case 'es':
+            case 'amd':
+              dest = dest.replace('.js', `-${format}.js`);
+              break;
+          }
+        }
+        this.bundle(config, dest, format);
       }
     } else {
-      this.bundle(config, config.format);
+      this.bundle(config, config.dest, config.format);
     }
   }
 
-  bundle(config, format) {
-    let dest = config.dest;
-    if (format !== 'iffe') {
-      switch (format) {
-        case 'cjs':
-          dest = dest.replace('.js', '-node.js');
-          break;
-        case 'es':
-        case 'amd':
-          dest = dest.replace('.js', `-${format}.js`);
-          break;
-      }
-    }
+  bundle(config, dest, format) {
     rollup({
       entry: `${process.cwd()}/${config.src}`,
     // Use the previous bundle as starting point.
