@@ -77,7 +77,7 @@ export default class Config {
    * @return {string} name from &apos;package.json&apos;
    */
   importPackageName() {
-    return readFileSync(`${process.cwd()}/package.json`);
+    return JSON.parse(readFileSync(`${process.cwd()}/package.json`)).name;
   }
 
   /**
