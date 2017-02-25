@@ -27,17 +27,15 @@ let build = commander.build;
 let copy = commander.build || commander.copy;
 let serve = commander.serve;
 
-if (build) {
-  if (hasConfig()) {
+if (hasConfig()) {
+  if (build) {
     const builder = new Builder(config);
     builder.build(config);
   }
-}
-if (copy) {
-  utils.copySources(config.sources);
-}
-if (serve) {
-  if (hasConfig()) {
+  if (copy) {
+    utils.copySources(config.sources);
+  }
+  if (serve) {
     const server = new Server();
     server.serve(config.server, config.name);
   }
