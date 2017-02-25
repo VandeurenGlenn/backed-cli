@@ -209,11 +209,82 @@ class Config {
   }
 }
 
+const {readFile, writeFile, mkdir} = require('fs');
+const glob$1 = require('glob');
+
+var Utils = class {
+  copySources(sources) {
+    return new Promise((resolve, reject) => {
+      if (sources) {
+        const base = sources.dest;
+        for (let src of sources.src) {
+          glob$1(src, (err, files) => {
+            if (err) {
+              reject(err);
+            }
+            let promises = [];
+            for (let file of files) {
+              const dest = sources.dest += file;
+              promises.push(this.copy(file, dest));
+            }
+            Promise.all(promises).then(() => {
+              resolve();
+            });
+          });
+        }
+      } else {
+        resolve();
+      }
+    });
+  }
+
+  copy(path, dest) {
+    return new Promise(resolve => {
+      this.read({src: path, dest: dest}).then(source => {
+        this.write(source).then(() => {
+          resolve();
+        });
+      });
+    });
+  }
+
+  read(source) {
+    return new Promise((resolve, reject) => {
+      readFile(source.src, (err, data) => {
+        if (err) {
+          reject(err);
+        }
+        source.data = data;
+        resolve(source);
+      });
+    });
+  }
+
+  write(source) {
+    console.log(source);
+    return new Promise((resolve, reject) => {
+      writeFile(source.dest, source.data, err => {
+        if (err) {
+          const dest = source.dest.replace(/\/(?:.(?!\/))+$/, '');
+          mkdir(dest, () => {
+            this.write(source).then(() => {
+              resolve();
+            });
+          });
+          reject(err);
+        }
+        resolve();
+      });
+    });
+  }
+};
+
 process.title = 'backed';
 const commander = require('commander');
 const {version} = require('./../package.json');
 
 const config = new Config();
+const utils = new Utils();
 
 const hasConfig = () => {
   if (global.config === undefined) {
@@ -226,18 +297,22 @@ commander
   .version(version)
   .option('-b, --build', 'build your app/component')
   .option('-s, --serve', 'serve your app/component')
+  .option('-c, --copy', 'copy files from your app/component src folder to it distribution folder')
   .parse(process.argv);
 
 let build = commander.build;
+let copy = commander.build || commander.copy;
 let serve = commander.serve;
 
-if (build) {
-  if (hasConfig()) {
+if (hasConfig()) {
+  if (build) {
     const builder = new Builder(config);
     builder.build(config);
   }
-} else if (serve) {
-  if (hasConfig()) {
+  if (copy) {
+    utils.copySources(config.sources);
+  }
+  if (serve) {
     const server = new Server();
     server.serve(config.server, config.name);
   }
