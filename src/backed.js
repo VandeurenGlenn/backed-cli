@@ -5,7 +5,9 @@ const {version} = require('./../package.json');
 import Builder from './builder.js';
 import Server from './server.js';
 import Config from './config.js';
+import Utils from './utils.js';
 const config = new Config();
+const utils = new Utils();
 
 const hasConfig = () => {
   if (global.config === undefined) {
@@ -18,9 +20,11 @@ commander
   .version(version)
   .option('-b, --build', 'build your app/component')
   .option('-s, --serve', 'serve your app/component')
+  .option('-c, --copy', 'copy files from your app/component src folder to it distribution folder')
   .parse(process.argv);
 
 let build = commander.build;
+let copy = commander.build || commander.copy;
 let serve = commander.serve;
 
 if (build) {
@@ -28,7 +32,11 @@ if (build) {
     const builder = new Builder(config);
     builder.build(config);
   }
-} else if (serve) {
+}
+if (copy) {
+  utils.copySources(config.sources);
+}
+if (serve) {
   if (hasConfig()) {
     const server = new Server();
     server.serve(config.server, config.name);
