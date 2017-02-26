@@ -18,6 +18,12 @@ window.esdocSearchIndex = [
     "class"
   ],
   [
+    "backed-cli/src/utils.js~utils",
+    "class/src/utils.js~utils.html",
+    "<span>utils</span> <span class=\"search-result-import-path\">backed-cli/src/utils.js</span>",
+    "class"
+  ],
+  [
     "builtinexternal/ecmascriptexternal.js~array",
     "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array",
     "BuiltinExternal/ECMAScriptExternal.js~Array",
@@ -423,6 +429,36 @@ window.esdocSearchIndex = [
     "src/server.js~server#serve",
     "class/src/server.js~Server.html#instance-method-serve",
     "src/server.js~Server#serve",
+    "method"
+  ],
+  [
+    "src/utils.js",
+    "file/src/utils.js.html",
+    "src/utils.js",
+    "file"
+  ],
+  [
+    "src/utils.js~utils#copy",
+    "class/src/utils.js~utils.html#instance-method-copy",
+    "src/utils.js~utils#copy",
+    "method"
+  ],
+  [
+    "src/utils.js~utils#copysources",
+    "class/src/utils.js~utils.html#instance-method-copySources",
+    "src/utils.js~utils#copySources",
+    "method"
+  ],
+  [
+    "src/utils.js~utils#read",
+    "class/src/utils.js~utils.html#instance-method-read",
+    "src/utils.js~utils#read",
+    "method"
+  ],
+  [
+    "src/utils.js~utils#write",
+    "class/src/utils.js~utils.html#instance-method-write",
+    "src/utils.js~utils#write",
     "method"
   ]
 ]
