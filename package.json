@@ -10,7 +10,8 @@
   },
   "preferGlobal": true,
   "files": [
-    "bin"
+    "bin",
+    "docs"
   ],
   "bin": {
     "backed": "./bin/backed.js"
