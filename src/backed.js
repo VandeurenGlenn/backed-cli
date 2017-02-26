@@ -33,7 +33,9 @@ if (hasConfig()) {
     builder.build(config);
   }
   if (copy) {
-    utils.copySources(config.sources);
+    utils.copySources(config.sources).then(() => {
+      console.log(`${config.name}::copy finished`);
+    });
   }
   if (serve) {
     const server = new Server();
