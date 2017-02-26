@@ -213,18 +213,21 @@ const {readFile, writeFile, mkdir} = require('fs');
 const glob$1 = require('glob');
 
 var Utils = class {
+  /**
+   * @param {object} sources {src: ["some/glob/exp"], dest: "some/dest"}
+   */
   copySources(sources) {
     return new Promise((resolve, reject) => {
       if (sources) {
-        const base = sources.dest;
         for (let src of sources.src) {
-          glob$1(src, (err, files) => {
+          glob$1(String(src), (err, files) => {
             if (err) {
               reject(err);
             }
             let promises = [];
             for (let file of files) {
-              const dest = sources.dest += file;
+              const base = file.replace(/\/(?:.(?!\/))+$/, '');
+              const dest = sources.dest += file.replace(base, '');
               promises.push(this.copy(file, dest));
             }
             Promise.all(promises).then(() => {
@@ -238,9 +241,14 @@ var Utils = class {
     });
   }
 
-  copy(path, dest) {
+  /**
+   * @param {string} src "some/src/path"
+   * @param {string} dest "some/dest/path"
+   */
+  copy(src, dest) {
     return new Promise(resolve => {
-      this.read({src: path, dest: dest}).then(source => {
+      // TODO: decide to clean dest dir or not
+      this.read({src: src, dest: dest}).then(source => {
         this.write(source).then(() => {
           resolve();
         });
@@ -248,6 +256,9 @@ var Utils = class {
     });
   }
 
+  /**
+   * @param {object} source {src: "some/src/path", dest: "some/dest/path"}
+   */
   read(source) {
     return new Promise((resolve, reject) => {
       readFile(source.src, (err, data) => {
@@ -260,20 +271,32 @@ var Utils = class {
     });
   }
 
+  /**
+   * @param {object} source {src: "some/src/path", dest: "some/dest/path"}
+   */
   write(source) {
-    console.log(source);
     return new Promise((resolve, reject) => {
       writeFile(source.dest, source.data, err => {
         if (err) {
           const dest = source.dest.replace(/\/(?:.(?!\/))+$/, '');
-          mkdir(dest, () => {
-            this.write(source).then(() => {
-              resolve();
+          const paths = dest.split('/');
+          let prepath = '';
+          for (let path of paths) {
+            prepath += `${path}/`;
+            mkdir(prepath, err => {
+              if (err) {
+                if (err.code !== 'EEXIST') {
+                  reject(err);
+                }
+              }
             });
+          }
+          this.write(source).then(() => {
+            resolve();
           });
-          reject(err);
+        } else {
+          resolve();
         }
-        resolve();
       });
     });
   }
@@ -310,7 +333,9 @@ if (hasConfig()) {
     builder.build(config);
   }
   if (copy) {
-    utils.copySources(config.sources);
+    utils.copySources(config.sources).then(() => {
+      console.log(`${config.name}::copy finished`);
+    });
   }
   if (serve) {
     const server = new Server();
