@@ -54,7 +54,7 @@
       "mocha": true
     }
   },
-  "repository": "VandeurenGlenn/backed-cli",
+  "repository": "https://github.com/VandeurenGlenn/backed-cli",
   "scripts": {
     "prepublish": "gulp prepublish && esdoc",
     "test": "gulp"
