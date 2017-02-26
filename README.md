@@ -4,7 +4,7 @@
 ## Installation
 
 ```sh
-$ npm install --save --global backed-cli
+$ npm install --global backed-cli
 ```
 
 ## Usage
