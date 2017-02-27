@@ -108,6 +108,9 @@ class Server {
     app.use('/demo', express.static(
       this.appLocation(server.demo, 'demo')));
 
+    app.use('/docs', express.static(
+      this.appLocation(server.docs, 'docs')));
+
     app.use('/package.json', express.static(
       this.appLocation('package.json')
     ));
