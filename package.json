@@ -1,6 +1,6 @@
 {
   "name": "backed-cli",
-  "version": "0.1.5",
+  "version": "0.1.6-alpha.2",
   "description": "The official command line interface for Backed",
   "homepage": "https://github.com/vandeurenglenn/backed-cli",
   "author": {
@@ -10,8 +10,8 @@
   },
   "preferGlobal": true,
   "files": [
-    "bin",
-    "docs"
+    "bin/**/*",
+    "docs/**/*"
   ],
   "bin": {
     "backed": "./bin/backed.js"
