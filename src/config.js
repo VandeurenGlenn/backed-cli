@@ -4,7 +4,7 @@ const {readFileSync} = require('fs');
 export default class Config {
   constructor() {
     let config = this.importConfig();
-    const name = this.importPackageName();
+    const name = this.importPackageName() || this.importBowerName();
     return this.updateConfig(config, name);
   }
 
@@ -36,6 +36,13 @@ export default class Config {
    */
   importPackageName() {
     return JSON.parse(readFileSync(`${process.cwd()}/package.json`)).name;
+  }
+
+  /**
+   * @return {string} name from 'package.json'
+   */
+  importBowerName() {
+    return JSON.parse(readFileSync(`${process.cwd()}/bower.json`)).name;
   }
 
   /**

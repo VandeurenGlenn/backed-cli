@@ -107,7 +107,7 @@
           ],
           dest: `${process.cwd()}/${config.dest}`
         });
-        logger.succes(`${config.name}::build finished`);
+        logger.succes(`${global.config.name}::build finished`);
       }).catch(err => {
         logger.error(err);
       });

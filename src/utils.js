@@ -1,34 +1,44 @@
 'use strict';
-const {readFile, writeFile, mkdir} = require('fs');
-const glob = require('glob');
+const {writeFile, mkdir} = require('fs');
+const vinylRead = require('vinyl-read');
+const path = require('path');
+import logger from './logger.js';
 
 export default class {
   /**
    * @param {object} sources {src: ["some/glob/exp"], dest: "some/dest"}
    */
   copySources(sources) {
-    return new Promise((resolve, reject) => {
-      if (sources) {
-        for (let src of sources.src) {
-          glob(String(src), (err, files) => {
-            if (err) {
-              reject(err);
-            }
-            let promises = [];
-            for (let file of files) {
-              const base = file.replace(/\/(?:.(?!\/))+$/, '');
-              const dest = sources.dest += file.replace(base, '');
-              promises.push(this.copy(file, dest));
-            }
-            Promise.all(promises).then(() => {
-              resolve();
-            });
-          });
-        }
-      } else {
-        resolve();
+    if (sources) {
+      let promises = [];
+      for (let source of sources) {
+        promises.push(this.copy(source.src, source.dest));
       }
-    });
+      return Promise.all(promises).then(() => {
+        logger.succes(`${global.config.name}::copy finished`);
+      });
+    }
+    return;
+  }
+
+  /**
+   * returns a destination using [vinyl](https://github.com/gulpjs/vinyl) info
+   */
+  destinationFromFile(file) {
+    let dest = file.path;
+    dest = dest.replace(`${file.cwd}\\`, '');
+    dest = dest.split(path.sep);
+    if (dest.length > 1) {
+      dest[0] = file.dest;
+    } else {
+      dest[1] = dest[0];
+      dest[0] = dest;
+    }
+    let index = dest.length - 1;
+    if (path.extname(dest[index]) !== '' || dest[index].match(/\B\W(.*)/g)) {
+      file.dest = dest.toString().replace(/,/g, '/');
+      return file;
+    }
   }
 
   /**
@@ -37,9 +47,16 @@ export default class {
    */
   copy(src, dest) {
     return new Promise(resolve => {
-      // TODO: decide to clean dest dir or not
-      this.read({src: src, dest: dest}).then(source => {
-        this.write(source).then(() => {
+      let promises = [];
+      vinylRead(src, {
+        cwd: process.cwd()
+      }).then(files => {
+        for (let file of files) {
+          file.dest = dest;
+            // console.log(through);
+          promises.push(this.write(this.destinationFromFile(file)));
+        }
+        Promise.all(promises).then(() => {
           resolve();
         });
       });
@@ -47,47 +64,42 @@ export default class {
   }
 
   /**
-   * @param {object} source {src: "some/src/path", dest: "some/dest/path"}
+   * @param {object} file {src: "some/src/path", dest: "some/dest/path"}
    */
-  read(source) {
+  write(file) {
     return new Promise((resolve, reject) => {
-      readFile(source.src, (err, data) => {
-        if (err) {
-          reject(err);
-        }
-        source.data = data;
-        resolve(source);
-      });
-    });
-  }
-
-  /**
-   * @param {object} source {src: "some/src/path", dest: "some/dest/path"}
-   */
-  write(source) {
-    return new Promise((resolve, reject) => {
-      writeFile(source.dest, source.data, err => {
-        if (err) {
-          const dest = source.dest.replace(/\/(?:.(?!\/))+$/, '');
-          const paths = dest.split('/');
-          let prepath = '';
-          for (let path of paths) {
-            prepath += `${path}/`;
-            mkdir(prepath, err => {
-              if (err) {
-                if (err.code !== 'EEXIST') {
-                  reject(err);
+      if (file) {
+        writeFile(file.dest, file.contents, err => {
+          if (err) {
+            if (global.debug) {
+              logger.warn(
+                  `subdirectory(s)::not existing
+                  Backed will now try to create ${file.dest}`
+                );
+            }
+            const dest = file.dest.replace(/\/(?:.(?!\/))+$/, '');
+            const paths = dest.split('/');
+            let prepath = '';
+            for (let path of paths) {
+              prepath += `${path}/`;
+              mkdir(prepath, err => {
+                if (err) {
+                  if (err.code !== 'EEXIST') {
+                    reject(err);
+                  }
                 }
-              }
+              });
+            }
+            this.write(file).then(() => {
+              resolve();
             });
-          }
-          this.write(source).then(() => {
+          } else {
             resolve();
-          });
-        } else {
-          resolve();
-        }
-      });
+          }
+        });
+      } else {
+        resolve();
+      }
     });
   }
 }

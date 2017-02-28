@@ -26,7 +26,6 @@ export default class Server {
 
 /**
  * @param {object} server - configuration
- * @param {string} name - name of the element
  * @param {string} server.entry path to where your build is located
  * @param {string} server.path src path of the component
  * @param {string} server.bowerPath path to bower_components
@@ -35,7 +34,7 @@ export default class Server {
  * @param {string} server.demo path to the demo
  * @param {string} server.index path to your index.html file we serve a helper/docs index by default
  */
-  serve(server, name) {
+  serve(server) {
     app.use('/bower_components', express.static(
       this.appLocation(server.bowerPath, 'bower_components')));
 
@@ -78,7 +77,7 @@ export default class Server {
       if (error) {
         return console.warn(error);
       }
-      console.log(`${name}::serving app from ${server.entry}`);
+      console.log(`${global.config.name}::serving app from ${server.entry}`);
     });
   }
 
