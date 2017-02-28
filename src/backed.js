@@ -6,6 +6,7 @@ import Builder from './builder.js';
 import Server from './server.js';
 import Config from './config.js';
 import Utils from './utils.js';
+import logger from './logger.js';
 const config = new Config();
 const utils = new Utils();
 
@@ -34,7 +35,7 @@ if (hasConfig()) {
   }
   if (copy) {
     utils.copySources(config.sources).then(() => {
-      console.log(`${config.name}::copy finished`);
+      logger.success(`${config.name}::copy finished`);
     });
   }
   if (serve) {

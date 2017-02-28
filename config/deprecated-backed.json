@@ -1,10 +1,6 @@
 {
-  "bundles": [
-    {
-      "src": "src/backed-cli",
-      "dest": "dist/backed-cli.js"
-    }
-  ],
+  "src": "src/backed-cli",
+  "dest": "dist/backed-cli.js",
   "format": "es",
   "sourceMap": true,
   "sources": {
