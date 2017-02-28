@@ -2,58 +2,143 @@
 (function () {
 'use strict';
 
+const chalk = require('chalk');
+class Logger {
+  _chalk(text, color = 'white') {
+    return chalk[color](text);
+  }
+
+  log(text) {
+    console.log(this._chalk(text));
+  }
+
+  warn(text) {
+    console.warn(this._chalk(text, 'yellow'));
+  }
+
+  error(text) {
+    console.error(this._chalk(text, 'red'));
+  }
+
+  succes(text) {
+    console.log(this._chalk(text, 'cyan'));
+  }
+
+}
+var logger = new Logger();
+
 const {rollup} = require('rollup');
-const json = require('rollup-plugin-json');
-const babel = require('rollup-plugin-babel');
-let cache;
+  const json = require('rollup-plugin-json');
+  const _babel = require('rollup-plugin-babel');
+  let cache;
 
-class Builder {
-  build(config) {
-    if (config.format && typeof config.format === 'object') {
-      const formats = config.format;
-      for (let format of formats) {
-        let dest = config.dest;
-        if (format !== 'iffe') {
-          switch (format) {
-            case 'cjs':
-              dest = dest.replace('.js', '-node.js');
-              break;
-            case 'es':
-            case 'amd':
-              dest = dest.replace('.js', `-${format}.js`);
-              break;
+  class Builder {
+    build(config) {
+      if (config.src) {
+        logger.warn(`Deprecated::[visit](https://github.com/vandeurenglenn/backed-cli#README) to learn more or take a look at the [example](https://github.com/vandeurenglenn/backed-cli/config/backed.json)`);
+        this.handleFormats(config).then(through => {
+          this.bundle(through);
+        });
+      } else {
+        this.promiseBundles(config).then(bundles => {
+          for (let bundle of bundles) {
+            this.bundle(bundle);
           }
-        }
-        this.bundle(config, dest, format);
+        }).catch(err => {
+          logger.error(err);
+        });
       }
-    } else {
-      this.bundle(config, config.dest, config.format);
     }
-  }
 
-  bundle(config, dest, format) {
-    rollup({
-      entry: `${process.cwd()}/${config.src}`,
-    // Use the previous bundle as starting point.
-      cache: cache
-    }).then(bundle => {
-    // Cache our bundle for later use (optional)
-      cache = bundle;
-      bundle.write({
-        format: format,
-        moduleName: config.moduleName,
-        sourceMap: config.sourceMap,
-        plugins: [
-          json(),
-          babel(config.babel || {})
-        ],
-        dest: `${process.cwd()}/${dest}`
-      }).catch(err => {
-        console.error(err);
+    handleFormats(config) {
+      return new Promise((resolve, reject) => {
+        try {
+          if (config.format && typeof config.format !== 'string') {
+            for (let format of config.format) {
+              let dest = config.dest;
+              if (format !== 'iife') {
+                switch (format) {
+                  case 'cjs':
+                    dest = dest.replace('.js', '-node.js');
+                    break;
+                  case 'es':
+                  case 'amd':
+                    dest = dest.replace('.js', `-${format}.js`);
+                    break;
+                  default:
+                    break;
+                  // do nothing
+                }
+              }
+              config.dest = dest;
+              config.format = format;
+              resolve(config);
+            }
+          } else {
+            resolve(config);
+          }
+        } catch (err) {
+          reject(err);
+        }
       });
-      console.log(`${config.name}::build finished`);
-    });
-  }
+    }
+
+    promiseBundles(config) {
+      return new Promise((resolve, reject) => {
+        let bundles = [];
+        try {
+          for (let bundle of config.bundles) {
+            bundle.name = bundle.babel || config.name;
+            bundle.babel = bundle.babel || config.babel;
+            bundle.format = bundle.format || config.format || 'es';
+            bundles.push(this.handleFormats(bundle));
+          }
+
+          Promise.all(bundles).then(bundles => {
+            resolve(bundles);
+          });
+        } catch (err) {
+          reject(err);
+        }
+      });
+    }
+
+  /**
+   * @param {object} config
+   * @param {string} config.src path/to/js
+   * @param {string} config.dest destination to write to
+   * @param {string} config.format format to build ['es', 'iife', 'amd', 'cjs']
+   * @param {string} config.name the name of your element/app
+   * @param {string} config.moduleName the moduleName for your element/app (not needed for es & cjs)
+   * @param {boolean} config.sourceMap Wether or not to build sourceMaps defaults to 'true'
+   * @param {object} config.babel babel configuration [see](http://babeljs.io/docs/usage/babelrc/)
+   */
+    bundle(config = {src: null, dest: 'bundle.js', format: 'iife', name: null, babel: {}, moduleName: null, sourceMap: true}) {
+      rollup({
+        entry: `${process.cwd()}/${config.src}`,
+        // Use the previous bundle as starting point.
+        onwarn: warning => {
+          logger.warn(warning);
+        },
+        cache: cache
+      }).then(bundle => {
+      // Cache our bundle for later use (optional)
+        cache = bundle;
+        bundle.write({
+          format: config.format,
+          moduleName: config.moduleName,
+          sourceMap: config.sourceMap,
+          plugins: [
+            json(),
+            _babel(config.babel)
+          ],
+          dest: `${process.cwd()}/${config.dest}`
+        });
+        logger.succes(`${config.name}::build finished`);
+      }).catch(err => {
+        logger.error(err);
+      });
+    }
 }
 
 const express = require('express');
@@ -162,8 +247,7 @@ const {readFileSync} = require('fs');
 class Config {
   constructor() {
     let config = this.importConfig();
-    const name = this.importPackageName();
-    return this.updateConfig(config, name);
+    return this.updateConfig(config);
   }
 
   /**
@@ -192,16 +276,33 @@ class Config {
   /**
    * @return {string} name from 'package.json'
    */
-  importPackageName() {
-    return JSON.parse(readFileSync(`${process.cwd()}/package.json`)).name;
+  importNpmName() {
+    try {
+      return JSON.parse(readFileSync(`${process.cwd()}/package.json`)).name;
+    } catch (err) {
+      console.warn('no package.json file found');
+      return null;
+    }
+  }
+
+  /**
+   * @return {string} name from 'bower.json'
+   */
+  importBowerName() {
+    try {
+      return JSON.parse(readFileSync(`${process.cwd()}/bower.json`)).name;
+    } catch (err) {
+      console.warn('no bower.json file found');
+      return null;
+    }
   }
 
   /**
    * @param {object} config - the config to be updated
-   * @param {string} name - the name of the element, component, etc
+   * @param {string} name - the name of the element, component, etc (will read from package.json or bower.json when not defined)
    */
-  updateConfig(config, name) {
-    config.name = config.name || name;
+  updateConfig(config) {
+    config.name = config.name || this.importNpmName() || this.importBowerName();
     config.format = config.format || 'es';
     config.sourceMap = config.sourceMap || true;
     config.server = config.server || {};
@@ -337,7 +438,7 @@ if (hasConfig()) {
   }
   if (copy) {
     utils.copySources(config.sources).then(() => {
-      console.log(`${config.name}::copy finished`);
+      logger.success(`${config.name}::copy finished`);
     });
   }
   if (serve) {
