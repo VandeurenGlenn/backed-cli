@@ -34,8 +34,10 @@
     
   <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~Builder.html">Builder</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/config.js~Config.html">Config</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/logger.js~Logger.html">Logger</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/server.js~Server.html">Server</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/utils.js~utils.html">utils</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-logger">logger</a></span></span></li>
 </ul>
 </div>
 </nav>
@@ -49,6 +51,7 @@ import Builder from &apos;./builder.js&apos;;
 import Server from &apos;./server.js&apos;;
 import Config from &apos;./config.js&apos;;
 import Utils from &apos;./utils.js&apos;;
+import logger from &apos;./logger.js&apos;;
 const config = new Config();
 const utils = new Utils();
 
@@ -77,7 +80,7 @@ if (hasConfig()) {
   }
   if (copy) {
     utils.copySources(config.sources).then(() =&gt; {
-      console.log(`${config.name}::copy finished`);
+      logger.success(`${config.name}::copy finished`);
     });
   }
   if (serve) {

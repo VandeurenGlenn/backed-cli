@@ -34,66 +34,129 @@
     
   <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~Builder.html">Builder</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/config.js~Config.html">Config</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/logger.js~Logger.html">Logger</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/server.js~Server.html">Server</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/utils.js~utils.html">utils</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-logger">logger</a></span></span></li>
 </ul>
 </div>
 </nav>
 
 <div class="content" data-ice="content"><h1 data-ice="title">src/builder.js</h1>
-<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">&apos;use strict&apos;;
-const {rollup} = require(&apos;rollup&apos;);
-const json = require(&apos;rollup-plugin-json&apos;);
-const babel = require(&apos;rollup-plugin-babel&apos;);
-let cache;
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">  &apos;use strict&apos;;
+  const {rollup} = require(&apos;rollup&apos;);
+  const json = require(&apos;rollup-plugin-json&apos;);
+  const _babel = require(&apos;rollup-plugin-babel&apos;);
+  import logger from &apos;./logger.js&apos;;
+  let cache;
 
-export default class Builder {
-  build(config) {
-    if (config.format &amp;&amp; typeof config.format === &apos;object&apos;) {
-      const formats = config.format;
-      for (let format of formats) {
-        let dest = config.dest;
-        if (format !== &apos;iffe&apos;) {
-          switch (format) {
-            case &apos;cjs&apos;:
-              dest = dest.replace(&apos;.js&apos;, &apos;-node.js&apos;);
-              break;
-            case &apos;es&apos;:
-            case &apos;amd&apos;:
-              dest = dest.replace(&apos;.js&apos;, `-${format}.js`);
-              break;
+  export default class Builder {
+    build(config) {
+      if (config.src) {
+        logger.warn(`Deprecated::[visit](https://github.com/vandeurenglenn/backed-cli#README) to learn more or take a look at the [example](https://github.com/vandeurenglenn/backed-cli/config/backed.json)`);
+        this.handleFormats(config).then(through =&gt; {
+          this.bundle(through);
+        });
+      } else {
+        this.promiseBundles(config).then(bundles =&gt; {
+          for (let bundle of bundles) {
+            this.bundle(bundle);
           }
-        }
-        this.bundle(config, dest, format);
+        }).catch(err =&gt; {
+          logger.error(err);
+        });
       }
-    } else {
-      this.bundle(config, config.dest, config.format);
     }
-  }
 
-  bundle(config, dest, format) {
-    rollup({
-      entry: `${process.cwd()}/${config.src}`,
-    // Use the previous bundle as starting point.
-      cache: cache
-    }).then(bundle =&gt; {
-    // Cache our bundle for later use (optional)
-      cache = bundle;
-      bundle.write({
-        format: format,
-        moduleName: config.moduleName,
-        sourceMap: config.sourceMap,
-        plugins: [
-          json(),
-          babel(config.babel || {})
-        ],
-        dest: `${process.cwd()}/${dest}`
-      }).catch(err =&gt; {
-        console.error(err);
+    handleFormats(config) {
+      return new Promise((resolve, reject) =&gt; {
+        try {
+          if (config.format &amp;&amp; typeof config.format !== &apos;string&apos;) {
+            for (let format of config.format) {
+              let dest = config.dest;
+              if (format !== &apos;iife&apos;) {
+                switch (format) {
+                  case &apos;cjs&apos;:
+                    dest = dest.replace(&apos;.js&apos;, &apos;-node.js&apos;);
+                    break;
+                  case &apos;es&apos;:
+                  case &apos;amd&apos;:
+                    dest = dest.replace(&apos;.js&apos;, `-${format}.js`);
+                    break;
+                  default:
+                    break;
+                  // do nothing
+                }
+              }
+              config.dest = dest;
+              config.format = format;
+              resolve(config);
+            }
+          } else {
+            resolve(config);
+          }
+        } catch (err) {
+          reject(err);
+        }
       });
-      console.log(`${config.name}::build finished`);
-    });
-  }
+    }
+
+    promiseBundles(config) {
+      return new Promise((resolve, reject) =&gt; {
+        let bundles = [];
+        try {
+          for (let bundle of config.bundles) {
+            bundle.name = bundle.babel || config.name;
+            bundle.babel = bundle.babel || config.babel;
+            bundle.format = bundle.format || config.format || &apos;es&apos;;
+            bundles.push(this.handleFormats(bundle));
+          }
+
+          Promise.all(bundles).then(bundles =&gt; {
+            resolve(bundles);
+          });
+        } catch (err) {
+          reject(err);
+        }
+      });
+    }
+
+  /**
+   * @param {object} config
+   * @param {string} config.src path/to/js
+   * @param {string} config.dest destination to write to
+   * @param {string} config.format format to build [&apos;es&apos;, &apos;iife&apos;, &apos;amd&apos;, &apos;cjs&apos;]
+   * @param {string} config.name the name of your element/app
+   * @param {string} config.moduleName the moduleName for your element/app (not needed for es &amp; cjs)
+   * @param {boolean} config.sourceMap Wether or not to build sourceMaps defaults to &apos;true&apos;
+   * @param {object} config.babel babel configuration [see](http://babeljs.io/docs/usage/babelrc/)
+   */
+    bundle(config = {src: null, dest: &apos;bundle.js&apos;, format: &apos;iife&apos;, name: null, babel: {}, moduleName: null, sourceMap: true}) {
+      rollup({
+        entry: `${process.cwd()}/${config.src}`,
+        // Use the previous bundle as starting point.
+        onwarn: warning =&gt; {
+          logger.warn(warning);
+        },
+        cache: cache
+      }).then(bundle =&gt; {
+      // Cache our bundle for later use (optional)
+        cache = bundle;
+        bundle.write({
+          format: config.format,
+          moduleName: config.moduleName,
+          sourceMap: config.sourceMap,
+          plugins: [
+            json(),
+            _babel(config.babel)
+          ],
+          dest: `${process.cwd()}/${config.dest}`
+        });
+        logger.succes(`${config.name}::build finished`);
+      }).catch(err =&gt; {
+        logger.error(err);
+      });
+    }
 }
 </code></pre>
 

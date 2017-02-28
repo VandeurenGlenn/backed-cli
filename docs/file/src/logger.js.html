@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <base data-ice="baseUrl" href="../../">
-  <title data-ice="title">src/config.js | API Document</title>
+  <title data-ice="title">src/logger.js | API Document</title>
   <link type="text/css" rel="stylesheet" href="css/style.css">
   <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
   <script src="script/prettify/prettify.js"></script>
@@ -42,62 +42,32 @@
 </div>
 </nav>
 
-<div class="content" data-ice="content"><h1 data-ice="title">src/config.js</h1>
+<div class="content" data-ice="content"><h1 data-ice="title">src/logger.js</h1>
 <pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">&apos;use strict&apos;;
-const {readFileSync} = require(&apos;fs&apos;);
-
-export default class Config {
-  constructor() {
-    let config = this.importConfig();
-    const name = this.importPackageName();
-    return this.updateConfig(config, name);
+const chalk = require(&apos;chalk&apos;);
+class Logger {
+  _chalk(text, color = &apos;white&apos;) {
+    return chalk[color](text);
   }
 
-  /**
-   * wrapper around cjs require
-   * try&apos;s to read file from current working directory
-   * @param {string} path path to file/module
-   * @return {object|array|function|class} module or file
-   */
-  require(path) {
-    let root = process.cwd();
-    root += `/${path}`;
-    try {
-      return require(root);
-    } catch (error) {
-      return console.warn(error);
-    }
+  log(text) {
+    console.log(this._chalk(text));
   }
 
-  /**
-   * @return {object} value of &apos;backed.json&apos;
-   */
-  importConfig() {
-    return this.require(&apos;backed.json&apos;);
+  warn(text) {
+    console.warn(this._chalk(text, &apos;yellow&apos;));
   }
 
-  /**
-   * @return {string} name from &apos;package.json&apos;
-   */
-  importPackageName() {
-    return JSON.parse(readFileSync(`${process.cwd()}/package.json`)).name;
+  error(text) {
+    console.error(this._chalk(text, &apos;red&apos;));
   }
 
-  /**
-   * @param {object} config - the config to be updated
-   * @param {string} name - the name of the element, component, etc
-   */
-  updateConfig(config, name) {
-    config.name = config.name || name;
-    config.format = config.format || &apos;es&apos;;
-    config.sourceMap = config.sourceMap || true;
-    config.server = config.server || {};
-    config.server.elementLocation =
-      config.server.elementLocation || `${config.name}.js`;
-    global.config = config;
-    return config;
+  succes(text) {
+    console.log(this._chalk(text, &apos;cyan&apos;));
   }
+
 }
+export default new Logger();
 </code></pre>
 
 </div>

@@ -3,7 +3,7 @@
     "__docId__": 0,
     "kind": "file",
     "name": "src/backed.js",
-    "content": "process.title = 'backed';\nconst commander = require('commander');\nconst {version} = require('./../package.json');\n\nimport Builder from './builder.js';\nimport Server from './server.js';\nimport Config from './config.js';\nimport Utils from './utils.js';\nconst config = new Config();\nconst utils = new Utils();\n\nconst hasConfig = () => {\n  if (global.config === undefined) {\n    return false;\n  }\n  return true;\n};\n\ncommander\n  .version(version)\n  .option('-b, --build', 'build your app/component')\n  .option('-s, --serve', 'serve your app/component')\n  .option('-c, --copy', 'copy files from your app/component src folder to it distribution folder')\n  .parse(process.argv);\n\nlet build = commander.build;\nlet copy = commander.build || commander.copy;\nlet serve = commander.serve;\n\nif (hasConfig()) {\n  if (build) {\n    const builder = new Builder(config);\n    builder.build(config);\n  }\n  if (copy) {\n    utils.copySources(config.sources).then(() => {\n      console.log(`${config.name}::copy finished`);\n    });\n  }\n  if (serve) {\n    const server = new Server();\n    server.serve(config.server, config.name);\n  }\n}\n",
+    "content": "process.title = 'backed';\nconst commander = require('commander');\nconst {version} = require('./../package.json');\n\nimport Builder from './builder.js';\nimport Server from './server.js';\nimport Config from './config.js';\nimport Utils from './utils.js';\nimport logger from './logger.js';\nconst config = new Config();\nconst utils = new Utils();\n\nconst hasConfig = () => {\n  if (global.config === undefined) {\n    return false;\n  }\n  return true;\n};\n\ncommander\n  .version(version)\n  .option('-b, --build', 'build your app/component')\n  .option('-s, --serve', 'serve your app/component')\n  .option('-c, --copy', 'copy files from your app/component src folder to it distribution folder')\n  .parse(process.argv);\n\nlet build = commander.build;\nlet copy = commander.build || commander.copy;\nlet serve = commander.serve;\n\nif (hasConfig()) {\n  if (build) {\n    const builder = new Builder(config);\n    builder.build(config);\n  }\n  if (copy) {\n    utils.copySources(config.sources).then(() => {\n      logger.success(`${config.name}::copy finished`);\n    });\n  }\n  if (serve) {\n    const server = new Server();\n    server.serve(config.server, config.name);\n  }\n}\n",
     "static": true,
     "longname": "src/backed.js",
     "access": null,
@@ -74,7 +74,7 @@
     "importPath": "backed-cli/src/backed.js",
     "importStyle": null,
     "description": null,
-    "lineNumber": 9,
+    "lineNumber": 10,
     "undocument": true,
     "unknown": [
       {
@@ -100,7 +100,7 @@
     "importPath": "backed-cli/src/backed.js",
     "importStyle": null,
     "description": null,
-    "lineNumber": 10,
+    "lineNumber": 11,
     "undocument": true,
     "unknown": [
       {
@@ -128,7 +128,7 @@
     "importPath": "backed-cli/src/backed.js",
     "importStyle": null,
     "description": null,
-    "lineNumber": 12,
+    "lineNumber": 13,
     "undocument": true,
     "unknown": [
       {
@@ -155,7 +155,7 @@
     "importPath": "backed-cli/src/backed.js",
     "importStyle": null,
     "description": null,
-    "lineNumber": 26,
+    "lineNumber": 27,
     "undocument": true,
     "unknown": [
       {
@@ -181,7 +181,7 @@
     "importPath": "backed-cli/src/backed.js",
     "importStyle": null,
     "description": null,
-    "lineNumber": 27,
+    "lineNumber": 28,
     "undocument": true,
     "unknown": [
       {
@@ -207,7 +207,7 @@
     "importPath": "backed-cli/src/backed.js",
     "importStyle": null,
     "description": null,
-    "lineNumber": 28,
+    "lineNumber": 29,
     "undocument": true,
     "unknown": [
       {
@@ -225,7 +225,7 @@
     "__docId__": 9,
     "kind": "file",
     "name": "src/builder.js",
-    "content": "'use strict';\nconst {rollup} = require('rollup');\nconst json = require('rollup-plugin-json');\nconst babel = require('rollup-plugin-babel');\nlet cache;\n\nexport default class Builder {\n  build(config) {\n    if (config.format && typeof config.format === 'object') {\n      const formats = config.format;\n      for (let format of formats) {\n        let dest = config.dest;\n        if (format !== 'iffe') {\n          switch (format) {\n            case 'cjs':\n              dest = dest.replace('.js', '-node.js');\n              break;\n            case 'es':\n            case 'amd':\n              dest = dest.replace('.js', `-${format}.js`);\n              break;\n          }\n        }\n        this.bundle(config, dest, format);\n      }\n    } else {\n      this.bundle(config, config.dest, config.format);\n    }\n  }\n\n  bundle(config, dest, format) {\n    rollup({\n      entry: `${process.cwd()}/${config.src}`,\n    // Use the previous bundle as starting point.\n      cache: cache\n    }).then(bundle => {\n    // Cache our bundle for later use (optional)\n      cache = bundle;\n      bundle.write({\n        format: format,\n        moduleName: config.moduleName,\n        sourceMap: config.sourceMap,\n        plugins: [\n          json(),\n          babel(config.babel || {})\n        ],\n        dest: `${process.cwd()}/${dest}`\n      }).catch(err => {\n        console.error(err);\n      });\n      console.log(`${config.name}::build finished`);\n    });\n  }\n}\n",
+    "content": "  'use strict';\n  const {rollup} = require('rollup');\n  const json = require('rollup-plugin-json');\n  const _babel = require('rollup-plugin-babel');\n  import logger from './logger.js';\n  let cache;\n\n  export default class Builder {\n    build(config) {\n      if (config.src) {\n        logger.warn(`Deprecated::[visit](https://github.com/vandeurenglenn/backed-cli#README) to learn more or take a look at the [example](https://github.com/vandeurenglenn/backed-cli/config/backed.json)`);\n        this.handleFormats(config).then(through => {\n          this.bundle(through);\n        });\n      } else {\n        this.promiseBundles(config).then(bundles => {\n          for (let bundle of bundles) {\n            this.bundle(bundle);\n          }\n        }).catch(err => {\n          logger.error(err);\n        });\n      }\n    }\n\n    handleFormats(config) {\n      return new Promise((resolve, reject) => {\n        try {\n          if (config.format && typeof config.format !== 'string') {\n            for (let format of config.format) {\n              let dest = config.dest;\n              if (format !== 'iife') {\n                switch (format) {\n                  case 'cjs':\n                    dest = dest.replace('.js', '-node.js');\n                    break;\n                  case 'es':\n                  case 'amd':\n                    dest = dest.replace('.js', `-${format}.js`);\n                    break;\n                  default:\n                    break;\n                  // do nothing\n                }\n              }\n              config.dest = dest;\n              config.format = format;\n              resolve(config);\n            }\n          } else {\n            resolve(config);\n          }\n        } catch (err) {\n          reject(err);\n        }\n      });\n    }\n\n    promiseBundles(config) {\n      return new Promise((resolve, reject) => {\n        let bundles = [];\n        try {\n          for (let bundle of config.bundles) {\n            bundle.name = bundle.babel || config.name;\n            bundle.babel = bundle.babel || config.babel;\n            bundle.format = bundle.format || config.format || 'es';\n            bundles.push(this.handleFormats(bundle));\n          }\n\n          Promise.all(bundles).then(bundles => {\n            resolve(bundles);\n          });\n        } catch (err) {\n          reject(err);\n        }\n      });\n    }\n\n  /**\n   * @param {object} config\n   * @param {string} config.src path/to/js\n   * @param {string} config.dest destination to write to\n   * @param {string} config.format format to build ['es', 'iife', 'amd', 'cjs']\n   * @param {string} config.name the name of your element/app\n   * @param {string} config.moduleName the moduleName for your element/app (not needed for es & cjs)\n   * @param {boolean} config.sourceMap Wether or not to build sourceMaps defaults to 'true'\n   * @param {object} config.babel babel configuration [see](http://babeljs.io/docs/usage/babelrc/)\n   */\n    bundle(config = {src: null, dest: 'bundle.js', format: 'iife', name: null, babel: {}, moduleName: null, sourceMap: true}) {\n      rollup({\n        entry: `${process.cwd()}/${config.src}`,\n        // Use the previous bundle as starting point.\n        onwarn: warning => {\n          logger.warn(warning);\n        },\n        cache: cache\n      }).then(bundle => {\n      // Cache our bundle for later use (optional)\n        cache = bundle;\n        bundle.write({\n          format: config.format,\n          moduleName: config.moduleName,\n          sourceMap: config.sourceMap,\n          plugins: [\n            json(),\n            _babel(config.babel)\n          ],\n          dest: `${process.cwd()}/${config.dest}`\n        });\n        logger.succes(`${config.name}::build finished`);\n      }).catch(err => {\n        logger.error(err);\n      });\n    }\n}\n",
     "static": true,
     "longname": "src/builder.js",
     "access": null,
@@ -287,10 +287,10 @@
   {
     "__docId__": 12,
     "kind": "variable",
-    "name": "babel",
+    "name": "_babel",
     "memberof": "src/builder.js",
     "static": true,
-    "longname": "src/builder.js~babel",
+    "longname": "src/builder.js~_babel",
     "access": null,
     "export": false,
     "importPath": "backed-cli/src/builder.js",
@@ -322,7 +322,7 @@
     "importPath": "backed-cli/src/builder.js",
     "importStyle": "Builder",
     "description": null,
-    "lineNumber": 7,
+    "lineNumber": 8,
     "undocument": true,
     "unknown": [
       {
@@ -343,7 +343,7 @@
     "longname": "src/builder.js~Builder#build",
     "access": null,
     "description": null,
-    "lineNumber": 8,
+    "lineNumber": 9,
     "undocument": true,
     "unknown": [
       {
@@ -363,15 +363,15 @@
   {
     "__docId__": 15,
     "kind": "method",
-    "name": "bundle",
+    "name": "handleFormats",
     "memberof": "src/builder.js~Builder",
     "generator": false,
     "async": false,
     "static": false,
-    "longname": "src/builder.js~Builder#bundle",
+    "longname": "src/builder.js~Builder#handleFormats",
     "access": null,
     "description": null,
-    "lineNumber": 31,
+    "lineNumber": 26,
     "undocument": true,
     "unknown": [
       {
@@ -385,26 +385,147 @@
         "types": [
           "*"
         ]
-      },
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 16,
+    "kind": "method",
+    "name": "promiseBundles",
+    "memberof": "src/builder.js~Builder",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/builder.js~Builder#promiseBundles",
+    "access": null,
+    "description": null,
+    "lineNumber": 59,
+    "undocument": true,
+    "unknown": [
       {
-        "name": "dest",
-        "types": [
-          "*"
-        ]
-      },
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
       {
-        "name": "format",
+        "name": "config",
         "types": [
           "*"
         ]
       }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 17,
+    "kind": "method",
+    "name": "bundle",
+    "memberof": "src/builder.js~Builder",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/builder.js~Builder#bundle",
+    "access": null,
+    "description": "",
+    "lineNumber": 89,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "config",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "config.src",
+        "description": "path/to/js"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "config.dest",
+        "description": "destination to write to"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "config.format",
+        "description": "format to build ['es', 'iife', 'amd', 'cjs']"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "config.name",
+        "description": "the name of your element/app"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "config.moduleName",
+        "description": "the moduleName for your element/app (not needed for es & cjs)"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "boolean"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "config.sourceMap",
+        "description": "Wether or not to build sourceMaps defaults to 'true'"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "config.babel",
+        "description": "babel configuration [see](http://babeljs.io/docs/usage/babelrc/)"
+      }
     ]
   },
   {
-    "__docId__": 16,
+    "__docId__": 18,
     "kind": "file",
     "name": "src/config.js",
-    "content": "'use strict';\nconst {readFileSync} = require('fs');\n\nexport default class Config {\n  constructor() {\n    let config = this.importConfig();\n    const name = this.importPackageName();\n    return this.updateConfig(config, name);\n  }\n\n  /**\n   * wrapper around cjs require\n   * try's to read file from current working directory\n   * @param {string} path path to file/module\n   * @return {object|array|function|class} module or file\n   */\n  require(path) {\n    let root = process.cwd();\n    root += `/${path}`;\n    try {\n      return require(root);\n    } catch (error) {\n      return console.warn(error);\n    }\n  }\n\n  /**\n   * @return {object} value of 'backed.json'\n   */\n  importConfig() {\n    return this.require('backed.json');\n  }\n\n  /**\n   * @return {string} name from 'package.json'\n   */\n  importPackageName() {\n    return JSON.parse(readFileSync(`${process.cwd()}/package.json`)).name;\n  }\n\n  /**\n   * @param {object} config - the config to be updated\n   * @param {string} name - the name of the element, component, etc\n   */\n  updateConfig(config, name) {\n    config.name = config.name || name;\n    config.format = config.format || 'es';\n    config.sourceMap = config.sourceMap || true;\n    config.server = config.server || {};\n    config.server.elementLocation =\n      config.server.elementLocation || `${config.name}.js`;\n    global.config = config;\n    return config;\n  }\n}\n",
+    "content": "'use strict';\r\nconst {readFileSync} = require('fs');\r\n\r\nexport default class Config {\r\n  constructor() {\r\n    let config = this.importConfig();\r\n    const name = this.importPackageName();\r\n    return this.updateConfig(config, name);\r\n  }\r\n\r\n  /**\r\n   * wrapper around cjs require\r\n   * try's to read file from current working directory\r\n   * @param {string} path path to file/module\r\n   * @return {object|array|function|class} module or file\r\n   */\r\n  require(path) {\r\n    let root = process.cwd();\r\n    root += `/${path}`;\r\n    try {\r\n      return require(root);\r\n    } catch (error) {\r\n      return console.warn(error);\r\n    }\r\n  }\r\n\r\n  /**\r\n   * @return {object} value of 'backed.json'\r\n   */\r\n  importConfig() {\r\n    return this.require('backed.json');\r\n  }\r\n\r\n  /**\r\n   * @return {string} name from 'package.json'\r\n   */\r\n  importPackageName() {\r\n    return JSON.parse(readFileSync(`${process.cwd()}/package.json`)).name;\r\n  }\r\n\r\n  /**\r\n   * @param {object} config - the config to be updated\r\n   * @param {string} name - the name of the element, component, etc\r\n   */\r\n  updateConfig(config, name) {\r\n    config.name = config.name || name;\r\n    config.format = config.format || 'es';\r\n    config.sourceMap = config.sourceMap || true;\r\n    config.server = config.server || {};\r\n    config.server.elementLocation =\r\n      config.server.elementLocation || `${config.name}.js`;\r\n    global.config = config;\r\n    return config;\r\n  }\r\n}\r\n",
     "static": true,
     "longname": "src/config.js",
     "access": null,
@@ -412,7 +533,7 @@
     "lineNumber": 1
   },
   {
-    "__docId__": 17,
+    "__docId__": 19,
     "kind": "variable",
     "name": "readFileSync",
     "memberof": "src/config.js",
@@ -438,7 +559,7 @@
     }
   },
   {
-    "__docId__": 18,
+    "__docId__": 20,
     "kind": "class",
     "name": "Config",
     "memberof": "src/config.js",
@@ -460,7 +581,7 @@
     "interface": false
   },
   {
-    "__docId__": 19,
+    "__docId__": 21,
     "kind": "constructor",
     "name": "constructor",
     "memberof": "src/config.js~Config",
@@ -481,7 +602,7 @@
     "params": []
   },
   {
-    "__docId__": 20,
+    "__docId__": 22,
     "kind": "method",
     "name": "require",
     "memberof": "src/config.js~Config",
@@ -517,7 +638,7 @@
     }
   },
   {
-    "__docId__": 21,
+    "__docId__": 23,
     "kind": "method",
     "name": "importConfig",
     "memberof": "src/config.js~Config",
@@ -539,7 +660,7 @@
     }
   },
   {
-    "__docId__": 22,
+    "__docId__": 24,
     "kind": "method",
     "name": "importPackageName",
     "memberof": "src/config.js~Config",
@@ -561,7 +682,7 @@
     }
   },
   {
-    "__docId__": 23,
+    "__docId__": 25,
     "kind": "method",
     "name": "updateConfig",
     "memberof": "src/config.js~Config",
@@ -601,7 +722,247 @@
     }
   },
   {
-    "__docId__": 24,
+    "__docId__": 26,
+    "kind": "file",
+    "name": "src/logger.js",
+    "content": "'use strict';\nconst chalk = require('chalk');\nclass Logger {\n  _chalk(text, color = 'white') {\n    return chalk[color](text);\n  }\n\n  log(text) {\n    console.log(this._chalk(text));\n  }\n\n  warn(text) {\n    console.warn(this._chalk(text, 'yellow'));\n  }\n\n  error(text) {\n    console.error(this._chalk(text, 'red'));\n  }\n\n  succes(text) {\n    console.log(this._chalk(text, 'cyan'));\n  }\n\n}\nexport default new Logger();\n",
+    "static": true,
+    "longname": "src/logger.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1
+  },
+  {
+    "__docId__": 27,
+    "kind": "variable",
+    "name": "chalk",
+    "memberof": "src/logger.js",
+    "static": true,
+    "longname": "src/logger.js~chalk",
+    "access": null,
+    "export": false,
+    "importPath": "backed-cli/src/logger.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 2,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 28,
+    "kind": "class",
+    "name": "Logger",
+    "memberof": "src/logger.js",
+    "static": true,
+    "longname": "src/logger.js~Logger",
+    "access": null,
+    "export": true,
+    "importPath": "backed-cli/src/logger.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 3,
+    "pseudoExport": true,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "interface": false
+  },
+  {
+    "__docId__": 29,
+    "kind": "method",
+    "name": "_chalk",
+    "memberof": "src/logger.js~Logger",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/logger.js~Logger#_chalk",
+    "access": null,
+    "description": null,
+    "lineNumber": 4,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "text",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "color",
+        "optional": true,
+        "types": [
+          "string"
+        ],
+        "defaultRaw": "white",
+        "defaultValue": "white"
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 30,
+    "kind": "method",
+    "name": "log",
+    "memberof": "src/logger.js~Logger",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/logger.js~Logger#log",
+    "access": null,
+    "description": null,
+    "lineNumber": 8,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "text",
+        "types": [
+          "*"
+        ]
+      }
+    ]
+  },
+  {
+    "__docId__": 31,
+    "kind": "method",
+    "name": "warn",
+    "memberof": "src/logger.js~Logger",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/logger.js~Logger#warn",
+    "access": null,
+    "description": null,
+    "lineNumber": 12,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "text",
+        "types": [
+          "*"
+        ]
+      }
+    ]
+  },
+  {
+    "__docId__": 32,
+    "kind": "method",
+    "name": "error",
+    "memberof": "src/logger.js~Logger",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/logger.js~Logger#error",
+    "access": null,
+    "description": null,
+    "lineNumber": 16,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "text",
+        "types": [
+          "*"
+        ]
+      }
+    ]
+  },
+  {
+    "__docId__": 33,
+    "kind": "method",
+    "name": "succes",
+    "memberof": "src/logger.js~Logger",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/logger.js~Logger#succes",
+    "access": null,
+    "description": null,
+    "lineNumber": 20,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "text",
+        "types": [
+          "*"
+        ]
+      }
+    ]
+  },
+  {
+    "__docId__": 34,
+    "kind": "variable",
+    "name": "logger",
+    "memberof": "src/logger.js",
+    "static": true,
+    "longname": "src/logger.js~logger",
+    "access": null,
+    "export": true,
+    "importPath": "backed-cli/src/logger.js",
+    "importStyle": "logger",
+    "description": null,
+    "lineNumber": 25,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "src/logger.js~Logger"
+      ]
+    }
+  },
+  {
+    "__docId__": 35,
     "kind": "file",
     "name": "src/server.js",
     "content": "'use strict';\nconst express = require('express');\n\nconst app = express();\n\nconst glob = require('glob');\n\n/**\n * glob file path\n * @param {string} string\n */\nconst src = string => {\n  return new Promise((resolve, reject) => {\n    glob(string, (error, files) => {\n      if (error) {\n        reject(error);\n      }\n      if (files.length > 0) {\n        resolve(files);\n      }\n    });\n  });\n};\n\nexport default class Server {\n\n/**\n * @param {object} server - configuration\n * @param {string} name - name of the element\n * @param {string} server.entry path to where your build is located\n * @param {string} server.path src path of the component\n * @param {string} server.bowerPath path to bower_components\n * @param {string} server.nodeModulesPath path to node_modules\n * @param {string} server.elementLocation path to your element (in the browser)\n * @param {string} server.demo path to the demo\n * @param {string} server.index path to your index.html file we serve a helper/docs index by default\n */\n  serve(server, name) {\n    app.use('/bower_components', express.static(\n      this.appLocation(server.bowerPath, 'bower_components')));\n\n    app.use('/node_modules', express.static(\n      this.appLocation(server.nodeModulesPath, 'node_modules')));\n\n    app.use(`/${server.elementLocation}`, express.static(\n      this.appLocation(server.path, 'some-element.js')));\n\n    app.use('/dist', express.static(\n      this.appLocation(server.entry, 'dist')));\n\n    app.use('/demo', express.static(\n      this.appLocation(server.demo, 'demo')));\n\n    app.use('/docs', express.static(\n      this.appLocation(server.docs, 'docs')));\n\n    app.use('/package.json', express.static(\n      this.appLocation('package.json')\n    ));\n\n    app.use('/bower.json', express.static(\n      this.appLocation('bower.json')\n    ));\n\n    // TODO: Add option to override index\n    app.use('/', express.static(__dirname.replace('bin', 'node_modules\\\\backed-client\\\\dist')));\n\n      // serve backed\n    app.use('/backed/docs', express.static(\n      __dirname.replace('bin', 'docs')));\n\n    // TODO: implement copyrighted by package author & package name if no file is found\n    src(process.cwd() + '/license.*').then(files => {\n      app.use('/license', express.static(files[0]));\n    });\n\n    app.listen(3000, error => {\n      if (error) {\n        return console.warn(error);\n      }\n      console.log(`${name}::serving app from ${server.entry}`);\n    });\n  }\n\n  /**\n   * @param {string} path - location of the file\n   * @param {string} alternate - returns when path is undefined\n   * @param {string} disableAlternate - current working directory is ignored when true, defaults to false\n   */\n  appLocation(path, alternate, disableAlternate = false) {\n    let root = process.cwd();\n    if (!path && !disableAlternate) {\n      path = alternate;\n    } else if (!path && disableAlternate) {\n      // when we disable alternate we return the value of alternate\n      return alternate;\n    }\n    root += `\\\\${path}`;\n    return root;\n  }\n}\n",
@@ -612,7 +973,7 @@
     "lineNumber": 1
   },
   {
-    "__docId__": 25,
+    "__docId__": 36,
     "kind": "variable",
     "name": "express",
     "memberof": "src/server.js",
@@ -638,7 +999,7 @@
     }
   },
   {
-    "__docId__": 26,
+    "__docId__": 37,
     "kind": "variable",
     "name": "app",
     "memberof": "src/server.js",
@@ -664,7 +1025,7 @@
     }
   },
   {
-    "__docId__": 27,
+    "__docId__": 38,
     "kind": "variable",
     "name": "glob",
     "memberof": "src/server.js",
@@ -690,7 +1051,7 @@
     }
   },
   {
-    "__docId__": 28,
+    "__docId__": 39,
     "kind": "function",
     "name": "src",
     "memberof": "src/server.js",
@@ -723,7 +1084,7 @@
     }
   },
   {
-    "__docId__": 29,
+    "__docId__": 40,
     "kind": "class",
     "name": "Server",
     "memberof": "src/server.js",
@@ -745,7 +1106,7 @@
     "interface": false
   },
   {
-    "__docId__": 30,
+    "__docId__": 41,
     "kind": "method",
     "name": "serve",
     "memberof": "src/server.js~Server",
@@ -850,7 +1211,7 @@
     ]
   },
   {
-    "__docId__": 31,
+    "__docId__": 42,
     "kind": "method",
     "name": "appLocation",
     "memberof": "src/server.js~Server",
@@ -900,7 +1261,7 @@
     }
   },
   {
-    "__docId__": 32,
+    "__docId__": 43,
     "kind": "file",
     "name": "src/utils.js",
     "content": "'use strict';\nconst {readFile, writeFile, mkdir} = require('fs');\nconst glob = require('glob');\n\nexport default class {\n  /**\n   * @param {object} sources {src: [\"some/glob/exp\"], dest: \"some/dest\"}\n   */\n  copySources(sources) {\n    return new Promise((resolve, reject) => {\n      if (sources) {\n        for (let src of sources.src) {\n          glob(String(src), (err, files) => {\n            if (err) {\n              reject(err);\n            }\n            let promises = [];\n            for (let file of files) {\n              const base = file.replace(/\\/(?:.(?!\\/))+$/, '');\n              const dest = sources.dest += file.replace(base, '');\n              promises.push(this.copy(file, dest));\n            }\n            Promise.all(promises).then(() => {\n              resolve();\n            });\n          });\n        }\n      } else {\n        resolve();\n      }\n    });\n  }\n\n  /**\n   * @param {string} src \"some/src/path\"\n   * @param {string} dest \"some/dest/path\"\n   */\n  copy(src, dest) {\n    return new Promise(resolve => {\n      // TODO: decide to clean dest dir or not\n      this.read({src: src, dest: dest}).then(source => {\n        this.write(source).then(() => {\n          resolve();\n        });\n      });\n    });\n  }\n\n  /**\n   * @param {object} source {src: \"some/src/path\", dest: \"some/dest/path\"}\n   */\n  read(source) {\n    return new Promise((resolve, reject) => {\n      readFile(source.src, (err, data) => {\n        if (err) {\n          reject(err);\n        }\n        source.data = data;\n        resolve(source);\n      });\n    });\n  }\n\n  /**\n   * @param {object} source {src: \"some/src/path\", dest: \"some/dest/path\"}\n   */\n  write(source) {\n    return new Promise((resolve, reject) => {\n      writeFile(source.dest, source.data, err => {\n        if (err) {\n          const dest = source.dest.replace(/\\/(?:.(?!\\/))+$/, '');\n          const paths = dest.split('/');\n          let prepath = '';\n          for (let path of paths) {\n            prepath += `${path}/`;\n            mkdir(prepath, err => {\n              if (err) {\n                if (err.code !== 'EEXIST') {\n                  reject(err);\n                }\n              }\n            });\n          }\n          this.write(source).then(() => {\n            resolve();\n          });\n        } else {\n          resolve();\n        }\n      });\n    });\n  }\n}\n",
@@ -911,7 +1272,7 @@
     "lineNumber": 1
   },
   {
-    "__docId__": 33,
+    "__docId__": 44,
     "kind": "variable",
     "name": "readFile",
     "memberof": "src/utils.js",
@@ -937,7 +1298,7 @@
     }
   },
   {
-    "__docId__": 34,
+    "__docId__": 45,
     "kind": "variable",
     "name": "glob",
     "memberof": "src/utils.js",
@@ -963,7 +1324,7 @@
     }
   },
   {
-    "__docId__": 35,
+    "__docId__": 46,
     "kind": "class",
     "name": "utils",
     "memberof": "src/utils.js",
@@ -985,7 +1346,7 @@
     "interface": false
   },
   {
-    "__docId__": 36,
+    "__docId__": 47,
     "kind": "method",
     "name": "copySources",
     "memberof": "src/utils.js~utils",
@@ -1015,7 +1376,7 @@
     }
   },
   {
-    "__docId__": 37,
+    "__docId__": 48,
     "kind": "method",
     "name": "copy",
     "memberof": "src/utils.js~utils",
@@ -1055,7 +1416,7 @@
     }
   },
   {
-    "__docId__": 38,
+    "__docId__": 49,
     "kind": "method",
     "name": "read",
     "memberof": "src/utils.js~utils",
@@ -1085,7 +1446,7 @@
     }
   },
   {
-    "__docId__": 39,
+    "__docId__": 50,
     "kind": "method",
     "name": "write",
     "memberof": "src/utils.js~utils",
@@ -1115,7 +1476,7 @@
     }
   },
   {
-    "__docId__": 41,
+    "__docId__": 52,
     "kind": "external",
     "name": "Infinity",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Infinity",
@@ -1127,7 +1488,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 42,
+    "__docId__": 53,
     "kind": "external",
     "name": "NaN",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NaN",
@@ -1139,7 +1500,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 43,
+    "__docId__": 54,
     "kind": "external",
     "name": "undefined",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined",
@@ -1151,7 +1512,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 44,
+    "__docId__": 55,
     "kind": "external",
     "name": "null",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/null",
@@ -1163,7 +1524,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 45,
+    "__docId__": 56,
     "kind": "external",
     "name": "Object",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
@@ -1175,7 +1536,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 46,
+    "__docId__": 57,
     "kind": "external",
     "name": "object",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
@@ -1187,7 +1548,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 47,
+    "__docId__": 58,
     "kind": "external",
     "name": "Function",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function",
@@ -1199,7 +1560,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 48,
+    "__docId__": 59,
     "kind": "external",
     "name": "function",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function",
@@ -1211,7 +1572,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 49,
+    "__docId__": 60,
     "kind": "external",
     "name": "Boolean",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean",
@@ -1223,7 +1584,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 50,
+    "__docId__": 61,
     "kind": "external",
     "name": "boolean",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean",
@@ -1235,7 +1596,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 51,
+    "__docId__": 62,
     "kind": "external",
     "name": "Symbol",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol",
@@ -1247,7 +1608,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 52,
+    "__docId__": 63,
     "kind": "external",
     "name": "Error",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error",
@@ -1259,7 +1620,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 53,
+    "__docId__": 64,
     "kind": "external",
     "name": "EvalError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/EvalError",
@@ -1271,7 +1632,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 54,
+    "__docId__": 65,
     "kind": "external",
     "name": "InternalError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/InternalError",
@@ -1283,7 +1644,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 55,
+    "__docId__": 66,
     "kind": "external",
     "name": "RangeError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RangeError",
@@ -1295,7 +1656,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 56,
+    "__docId__": 67,
     "kind": "external",
     "name": "ReferenceError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ReferenceError",
@@ -1307,7 +1668,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 57,
+    "__docId__": 68,
     "kind": "external",
     "name": "SyntaxError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError",
@@ -1319,7 +1680,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 58,
+    "__docId__": 69,
     "kind": "external",
     "name": "TypeError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError",
@@ -1331,7 +1692,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 59,
+    "__docId__": 70,
     "kind": "external",
     "name": "URIError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/URIError",
@@ -1343,7 +1704,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 60,
+    "__docId__": 71,
     "kind": "external",
     "name": "Number",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number",
@@ -1355,7 +1716,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 61,
+    "__docId__": 72,
     "kind": "external",
     "name": "number",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number",
@@ -1367,7 +1728,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 62,
+    "__docId__": 73,
     "kind": "external",
     "name": "Date",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date",
@@ -1379,7 +1740,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 63,
+    "__docId__": 74,
     "kind": "external",
     "name": "String",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String",
@@ -1391,7 +1752,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 64,
+    "__docId__": 75,
     "kind": "external",
     "name": "string",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String",
@@ -1403,7 +1764,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 65,
+    "__docId__": 76,
     "kind": "external",
     "name": "RegExp",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp",
@@ -1415,7 +1776,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 66,
+    "__docId__": 77,
     "kind": "external",
     "name": "Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array",
@@ -1427,7 +1788,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 67,
+    "__docId__": 78,
     "kind": "external",
     "name": "Int8Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int8Array",
@@ -1439,7 +1800,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 68,
+    "__docId__": 79,
     "kind": "external",
     "name": "Uint8Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array",
@@ -1451,7 +1812,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 69,
+    "__docId__": 80,
     "kind": "external",
     "name": "Uint8ClampedArray",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8ClampedArray",
@@ -1463,7 +1824,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 70,
+    "__docId__": 81,
     "kind": "external",
     "name": "Int16Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int16Array",
@@ -1475,7 +1836,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 71,
+    "__docId__": 82,
     "kind": "external",
     "name": "Uint16Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint16Array",
@@ -1487,7 +1848,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 72,
+    "__docId__": 83,
     "kind": "external",
     "name": "Int32Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int32Array",
@@ -1499,7 +1860,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 73,
+    "__docId__": 84,
     "kind": "external",
     "name": "Uint32Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint32Array",
@@ -1511,7 +1872,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 74,
+    "__docId__": 85,
     "kind": "external",
     "name": "Float32Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float32Array",
@@ -1523,7 +1884,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 75,
+    "__docId__": 86,
     "kind": "external",
     "name": "Float64Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float64Array",
@@ -1535,7 +1896,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 76,
+    "__docId__": 87,
     "kind": "external",
     "name": "Map",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map",
@@ -1547,7 +1908,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 77,
+    "__docId__": 88,
     "kind": "external",
     "name": "Set",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set",
@@ -1559,7 +1920,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 78,
+    "__docId__": 89,
     "kind": "external",
     "name": "WeakMap",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap",
@@ -1571,7 +1932,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 79,
+    "__docId__": 90,
     "kind": "external",
     "name": "WeakSet",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet",
@@ -1583,7 +1944,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 80,
+    "__docId__": 91,
     "kind": "external",
     "name": "ArrayBuffer",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer",
@@ -1595,7 +1956,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 81,
+    "__docId__": 92,
     "kind": "external",
     "name": "DataView",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView",
@@ -1607,7 +1968,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 82,
+    "__docId__": 93,
     "kind": "external",
     "name": "JSON",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON",
@@ -1619,7 +1980,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 83,
+    "__docId__": 94,
     "kind": "external",
     "name": "Promise",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise",
@@ -1631,7 +1992,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 84,
+    "__docId__": 95,
     "kind": "external",
     "name": "Generator",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator",
@@ -1643,7 +2004,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 85,
+    "__docId__": 96,
     "kind": "external",
     "name": "GeneratorFunction",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/GeneratorFunction",
@@ -1655,7 +2016,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 86,
+    "__docId__": 97,
     "kind": "external",
     "name": "Reflect",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect",
@@ -1667,7 +2028,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 87,
+    "__docId__": 98,
     "kind": "external",
     "name": "Proxy",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy",
@@ -1680,7 +2041,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 89,
+    "__docId__": 100,
     "kind": "external",
     "name": "CanvasRenderingContext2D",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D",
@@ -1692,7 +2053,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 90,
+    "__docId__": 101,
     "kind": "external",
     "name": "DocumentFragment",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/DocumentFragment",
@@ -1704,7 +2065,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 91,
+    "__docId__": 102,
     "kind": "external",
     "name": "Element",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Element",
@@ -1716,7 +2077,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 92,
+    "__docId__": 103,
     "kind": "external",
     "name": "Event",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Event",
@@ -1728,7 +2089,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 93,
+    "__docId__": 104,
     "kind": "external",
     "name": "Node",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Node",
@@ -1740,7 +2101,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 94,
+    "__docId__": 105,
     "kind": "external",
     "name": "NodeList",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/NodeList",
@@ -1752,7 +2113,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 95,
+    "__docId__": 106,
     "kind": "external",
     "name": "XMLHttpRequest",
     "externalLink": "https://developer.mozilla.org/en/docs/Web/API/XMLHttpRequest",
@@ -1764,7 +2125,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 96,
+    "__docId__": 107,
     "kind": "external",
     "name": "AudioContext",
     "externalLink": "https://developer.mozilla.org/en/docs/Web/API/AudioContext",

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <base data-ice="baseUrl" href="../../">
-  <title data-ice="title">Builder | API Document</title>
+  <title data-ice="title">Logger | API Document</title>
   <link type="text/css" rel="stylesheet" href="css/style.css">
   <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
   <script src="script/prettify/prettify.js"></script>
@@ -43,19 +43,23 @@
 </nav>
 
 <div class="content" data-ice="content"><div class="header-notice">
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import Builder from &apos;<span><a href="file/src/builder.js.html#lineNumber8">backed-cli/src/builder.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode"></code></pre></div>
   <span data-ice="access">public</span>
   <span data-ice="kind">class</span>
   
   
   
-  <span data-ice="source">| <span><a href="file/src/builder.js.html#lineNumber8">source</a></span></span>
+  <span data-ice="source">| <span><a href="file/src/logger.js.html#lineNumber3">source</a></span></span>
 </div>
 
 <div class="self-detail detail">
-  <h1 data-ice="name">Builder</h1>
+  <h1 data-ice="name">Logger</h1>
 
-  
+  <div data-ice="instanceDocs" class="instance-docs">
+    <span>You can directly use an instance of this class.</span>
+    
+  <span data-ice="instanceDoc"><span><a href="variable/index.html#static-variable-logger">logger</a></span></span>
+</div>
 
   
   
@@ -102,7 +106,7 @@
         <p>
           
           
-          <span data-ice="name"><span><a href="class/src/builder.js~Builder.html#instance-method-build">build</a></span></span><span data-ice="signature">(config: <span>*</span>)</span>
+          <span data-ice="name"><span><a href="class/src/logger.js~Logger.html#instance-method-error">error</a></span></span><span data-ice="signature">(text: <span>*</span>)</span>
         </p>
       </div>
       <div>
@@ -129,7 +133,7 @@
         <p>
           
           
-          <span data-ice="name"><span><a href="class/src/builder.js~Builder.html#instance-method-bundle">bundle</a></span></span><span data-ice="signature">(config: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a></span>)</span>
+          <span data-ice="name"><span><a href="class/src/logger.js~Logger.html#instance-method-log">log</a></span></span><span data-ice="signature">(text: <span>*</span>)</span>
         </p>
       </div>
       <div>
@@ -156,7 +160,7 @@
         <p>
           
           
-          <span data-ice="name"><span><a href="class/src/builder.js~Builder.html#instance-method-handleFormats">handleFormats</a></span></span><span data-ice="signature">(config: <span>*</span>): <span>*</span></span>
+          <span data-ice="name"><span><a href="class/src/logger.js~Logger.html#instance-method-succes">succes</a></span></span><span data-ice="signature">(text: <span>*</span>)</span>
         </p>
       </div>
       <div>
@@ -183,7 +187,7 @@
         <p>
           
           
-          <span data-ice="name"><span><a href="class/src/builder.js~Builder.html#instance-method-promiseBundles">promiseBundles</a></span></span><span data-ice="signature">(config: <span>*</span>): <span>*</span></span>
+          <span data-ice="name"><span><a href="class/src/logger.js~Logger.html#instance-method-warn">warn</a></span></span><span data-ice="signature">(text: <span>*</span>)</span>
         </p>
       </div>
       <div>
@@ -210,18 +214,18 @@
 <div data-ice="methodDetails"><h2 data-ice="title">Public Methods</h2>
 
 <div class="detail" data-ice="detail">
-  <h3 data-ice="anchor" id="instance-method-build">
+  <h3 data-ice="anchor" id="instance-method-error">
     <span class="access" data-ice="access">public</span>
     
     
     
     
     
-    <span data-ice="name">build</span><span data-ice="signature">(config: <span>*</span>)</span>
+    <span data-ice="name">error</span><span data-ice="signature">(text: <span>*</span>)</span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber9">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/logger.js.html#lineNumber16">source</a></span></span>
     </span>
   </h3>
 
@@ -241,7 +245,7 @@
     <tbody>
     
     <tr data-ice="property" data-depth="0">
-      <td data-ice="name" data-depth="0">config</td>
+      <td data-ice="name" data-depth="0">text</td>
       <td data-ice="type"><span>*</span></td>
       <td data-ice="appendix"></td>
       <td data-ice="description"></td>
@@ -269,18 +273,18 @@
   
 </div>
 <div class="detail" data-ice="detail">
-  <h3 data-ice="anchor" id="instance-method-bundle">
+  <h3 data-ice="anchor" id="instance-method-log">
     <span class="access" data-ice="access">public</span>
     
     
     
     
     
-    <span data-ice="name">bundle</span><span data-ice="signature">(config: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a></span>)</span>
+    <span data-ice="name">log</span><span data-ice="signature">(text: <span>*</span>)</span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber89">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/logger.js.html#lineNumber8">source</a></span></span>
     </span>
   </h3>
 
@@ -300,59 +304,10 @@
     <tbody>
     
     <tr data-ice="property" data-depth="0">
-      <td data-ice="name" data-depth="0">config</td>
-      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a></span></td>
+      <td data-ice="name" data-depth="0">text</td>
+      <td data-ice="type"><span>*</span></td>
       <td data-ice="appendix"></td>
       <td data-ice="description"></td>
-    </tr>
-<tr data-ice="property" data-depth="1">
-      <td data-ice="name" data-depth="1">config.src</td>
-      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span></td>
-      <td data-ice="appendix"></td>
-      <td data-ice="description"><p>path/to/js</p>
-</td>
-    </tr>
-<tr data-ice="property" data-depth="1">
-      <td data-ice="name" data-depth="1">config.dest</td>
-      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span></td>
-      <td data-ice="appendix"></td>
-      <td data-ice="description"><p>destination to write to</p>
-</td>
-    </tr>
-<tr data-ice="property" data-depth="1">
-      <td data-ice="name" data-depth="1">config.format</td>
-      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span></td>
-      <td data-ice="appendix"></td>
-      <td data-ice="description"><p>format to build [&apos;es&apos;, &apos;iife&apos;, &apos;amd&apos;, &apos;cjs&apos;]</p>
-</td>
-    </tr>
-<tr data-ice="property" data-depth="1">
-      <td data-ice="name" data-depth="1">config.name</td>
-      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span></td>
-      <td data-ice="appendix"></td>
-      <td data-ice="description"><p>the name of your element/app</p>
-</td>
-    </tr>
-<tr data-ice="property" data-depth="1">
-      <td data-ice="name" data-depth="1">config.moduleName</td>
-      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span></td>
-      <td data-ice="appendix"></td>
-      <td data-ice="description"><p>the moduleName for your element/app (not needed for es &amp; cjs)</p>
-</td>
-    </tr>
-<tr data-ice="property" data-depth="1">
-      <td data-ice="name" data-depth="1">config.sourceMap</td>
-      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a></span></td>
-      <td data-ice="appendix"></td>
-      <td data-ice="description"><p>Wether or not to build sourceMaps defaults to &apos;true&apos;</p>
-</td>
-    </tr>
-<tr data-ice="property" data-depth="1">
-      <td data-ice="name" data-depth="1">config.babel</td>
-      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a></span></td>
-      <td data-ice="appendix"></td>
-      <td data-ice="description"><p>babel configuration <a href="http://babeljs.io/docs/usage/babelrc/">see</a></p>
-</td>
     </tr>
 </tbody>
   </table>
@@ -377,18 +332,18 @@
   
 </div>
 <div class="detail" data-ice="detail">
-  <h3 data-ice="anchor" id="instance-method-handleFormats">
+  <h3 data-ice="anchor" id="instance-method-succes">
     <span class="access" data-ice="access">public</span>
     
     
     
     
     
-    <span data-ice="name">handleFormats</span><span data-ice="signature">(config: <span>*</span>): <span>*</span></span>
+    <span data-ice="name">succes</span><span data-ice="signature">(text: <span>*</span>)</span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber26">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/logger.js.html#lineNumber20">source</a></span></span>
     </span>
   </h3>
 
@@ -408,7 +363,7 @@
     <tbody>
     
     <tr data-ice="property" data-depth="0">
-      <td data-ice="name" data-depth="0">config</td>
+      <td data-ice="name" data-depth="0">text</td>
       <td data-ice="type"><span>*</span></td>
       <td data-ice="appendix"></td>
       <td data-ice="description"></td>
@@ -418,19 +373,7 @@
 </div>
 </div>
 
-  <div class="return-params" data-ice="returnParams">
-    <h4>Return:</h4>
-    <table>
-      <tbody>
-        <tr>
-          <td class="return-type" data-ice="returnType"><span>*</span></td>
-          
-        </tr>
-      </tbody>
-    </table>
-    <div data-ice="returnProperties">
-</div>
-  </div>
+  
 
   
 
@@ -448,18 +391,18 @@
   
 </div>
 <div class="detail" data-ice="detail">
-  <h3 data-ice="anchor" id="instance-method-promiseBundles">
+  <h3 data-ice="anchor" id="instance-method-warn">
     <span class="access" data-ice="access">public</span>
     
     
     
     
     
-    <span data-ice="name">promiseBundles</span><span data-ice="signature">(config: <span>*</span>): <span>*</span></span>
+    <span data-ice="name">warn</span><span data-ice="signature">(text: <span>*</span>)</span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber59">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/logger.js.html#lineNumber12">source</a></span></span>
     </span>
   </h3>
 
@@ -479,7 +422,7 @@
     <tbody>
     
     <tr data-ice="property" data-depth="0">
-      <td data-ice="name" data-depth="0">config</td>
+      <td data-ice="name" data-depth="0">text</td>
       <td data-ice="type"><span>*</span></td>
       <td data-ice="appendix"></td>
       <td data-ice="description"></td>
@@ -489,19 +432,7 @@
 </div>
 </div>
 
-  <div class="return-params" data-ice="returnParams">
-    <h4>Return:</h4>
-    <table>
-      <tbody>
-        <tr>
-          <td class="return-type" data-ice="returnType"><span>*</span></td>
-          
-        </tr>
-      </tbody>
-    </table>
-    <div data-ice="returnProperties">
-</div>
-  </div>
+  
 
   
 

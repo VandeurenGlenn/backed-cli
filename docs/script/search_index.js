@@ -12,10 +12,22 @@ window.esdocSearchIndex = [
     "class"
   ],
   [
+    "backed-cli/src/logger.js~logger",
+    "class/src/logger.js~Logger.html",
+    "<span>Logger</span> <span class=\"search-result-import-path\">backed-cli/src/logger.js</span>",
+    "class"
+  ],
+  [
     "backed-cli/src/server.js~server",
     "class/src/server.js~Server.html",
     "<span>Server</span> <span class=\"search-result-import-path\">backed-cli/src/server.js</span>",
     "class"
+  ],
+  [
+    "backed-cli/src/logger.js~logger",
+    "variable/index.html#static-variable-logger",
+    "<span>logger</span> <span class=\"search-result-import-path\">backed-cli/src/logger.js</span>",
+    "variable"
   ],
   [
     "backed-cli/src/utils.js~utils",
@@ -378,6 +390,18 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/builder.js~builder#handleformats",
+    "class/src/builder.js~Builder.html#instance-method-handleFormats",
+    "src/builder.js~Builder#handleFormats",
+    "method"
+  ],
+  [
+    "src/builder.js~builder#promisebundles",
+    "class/src/builder.js~Builder.html#instance-method-promiseBundles",
+    "src/builder.js~Builder#promiseBundles",
+    "method"
+  ],
+  [
     "src/config.js",
     "file/src/config.js.html",
     "src/config.js",
@@ -411,6 +435,36 @@ window.esdocSearchIndex = [
     "src/config.js~config#updateconfig",
     "class/src/config.js~Config.html#instance-method-updateConfig",
     "src/config.js~Config#updateConfig",
+    "method"
+  ],
+  [
+    "src/logger.js",
+    "file/src/logger.js.html",
+    "src/logger.js",
+    "file"
+  ],
+  [
+    "src/logger.js~logger#error",
+    "class/src/logger.js~Logger.html#instance-method-error",
+    "src/logger.js~Logger#error",
+    "method"
+  ],
+  [
+    "src/logger.js~logger#log",
+    "class/src/logger.js~Logger.html#instance-method-log",
+    "src/logger.js~Logger#log",
+    "method"
+  ],
+  [
+    "src/logger.js~logger#succes",
+    "class/src/logger.js~Logger.html#instance-method-succes",
+    "src/logger.js~Logger#succes",
+    "method"
+  ],
+  [
+    "src/logger.js~logger#warn",
+    "class/src/logger.js~Logger.html#instance-method-warn",
+    "src/logger.js~Logger#warn",
     "method"
   ],
   [
