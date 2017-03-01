@@ -53,7 +53,6 @@ export default class {
       }).then(files => {
         for (let file of files) {
           file.dest = dest;
-            // console.log(through);
           promises.push(this.write(this.destinationFromFile(file)));
         }
         Promise.all(promises).then(() => {

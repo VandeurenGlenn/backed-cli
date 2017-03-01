@@ -54,8 +54,10 @@ export default class Config {
     config.format = config.format || 'es';
     config.sourceMap = config.sourceMap || true;
     config.server = config.server || {};
-    config.server.elementLocation =
-      config.server.elementLocation || `${config.name}.js`;
+    // TODO: create method for building atom app with atom-builder
+    // TODO: implement element, app & atom-app config
+    // config.server.element = config.element || {path: `${config.name}.js`};
+    // config.server.app = config.app || {path: `${config.name}.js`};
     global.config = config;
     return config;
   }

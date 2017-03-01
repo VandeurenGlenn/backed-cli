@@ -1,0 +1,31 @@
+{
+  "bundles": [
+    {
+      "src": "src/main.js",
+      "dest": "app/main.js"
+    }, {
+      "src": "src/renderer.js",
+      "dest": "app/renderer.js"
+    }
+  ],
+  "sources": [
+    {
+      "src": [
+        "src/html/{behaviors,components,sources,styles}/**/**/*",
+        "src/html/index.html"
+      ],
+      "dest": "app"
+    }
+  ],
+  "server": {
+    "use": [
+      {
+        "path": "some-element.html"
+      }, {
+        "path": "src/styles.css",
+        "static": "styles.css"
+      }
+    ],
+    "demo": "demo"
+  }
+}
