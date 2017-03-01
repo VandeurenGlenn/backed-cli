@@ -55,11 +55,108 @@
 </ul>
 <h3 id="commands">Commands</h3>
 <h4 id="build-build-b-">Build[--build, -b]</h4>
+<p>Bundle your app/component</p>
 <pre><code class="lang-sh"><code class="source-code prettyprint">  backed --build</code>
 </code></pre>
+<h4 id="copy-copy-c-">Copy[--copy, -c]</h4>
+<p>Copy resources</p>
+<pre><code class="lang-sh"><code class="source-code prettyprint">  backed --copy</code>
+</code></pre>
 <h4 id="serve-serve-s-">Serve[--serve, -s]</h4>
+<p>Serve a localhost for your app/component</p>
 <pre><code class="lang-sh"><code class="source-code prettyprint">  backed --serve</code>
 </code></pre>
+<h2 id="api">API</h2>
+<h3 id="backed-options-">backed[{options}]</h3>
+<h4 id="options">options</h4>
+<h4 id="bundles">bundles</h4>
+<p>Type: <code>array</code><br>
+Default: <code>undefined</code><br>
+Options: <code>src, dest, format, babel</code></p>
+<p>An array of objects with each object containing a src &amp; dest property</p>
+<pre><code class="lang-json"><code class="source-code prettyprint">// minimal
+{
+  &quot;bundles&quot;: [{
+    &quot;src&quot;: &quot;some/path/to/index&quot;,
+    &quot;dest&quot;: &quot;some/path/to/index&quot;
+  }]
+}
+
+// minimal with multiple bundles
+{
+  &quot;bundles&quot;: [{
+    &quot;src&quot;: &quot;some/path/to/index&quot;,
+    &quot;dest&quot;: &quot;some/path/to/index&quot;
+  }, {
+    &quot;src&quot;: &quot;some/other/path/to/element&quot;,
+    &quot;dest&quot;: &quot;some/other/path/to/element&quot;
+  }]
+}
+
+// all options
+{
+  &quot;bundles&quot;: [{
+    &quot;src&quot;: &quot;some/path/to/index&quot;,
+    &quot;dest&quot;: &quot;some/path/to/index&quot;,
+    &quot;format&quot;: &quot;iife&quot;
+  }, {
+    &quot;src&quot;: &quot;some/other/path/to/element&quot;,
+    &quot;dest&quot;: &quot;some/other/path/to/element&quot;,
+    &quot;format&quot;: [&quot;iife&quot;, &quot;es&quot;],
+    &quot;babel&quot;: {&quot;babel-config&quot;}
+  }]
+}</code>
+</code></pre>
+<h4 id="format">format</h4>
+<p>Type: <code>array</code><br>
+Default: <code>iife</code><br>
+Options: <code>iife, es, cjs, amd</code></p>
+<p>The format to build.</p>
+<pre><code class="lang-json"><code class="source-code prettyprint">{
+  &quot;format&quot;: &quot;es&quot;
+}
+
+// multiple
+
+{
+  &quot;format&quot;: [&quot;iife&quot;, &quot;es&quot;]
+}</code>
+</code></pre>
+<h4 id="server-documentation-not-finished-check-backed-json-https-github-com-vandeurenglenn-backed-cli-blob-master-config-backed-json-or-when-using-next-next-backed-json-https-github-com-vandeurenglenn-backed-cli-blob-master-config-next-backed-json-">server (documentation not finished check <a href="https://github.com/VandeurenGlenn/backed-cli/blob/master/config/backed.json">backed.json</a> or when using next <a href="https://github.com/VandeurenGlenn/backed-cli/blob/master/config/next-backed.json">next-backed.json</a>)</h4>
+<p>Type: <code>object</code><br>
+Default: <code>undefined</code><br>
+Options: <code>demo, use, docs</code></p>
+<p>Serve your component/app documentation &amp; demo</p>
+<h2 id="todo">TODO</h2>
+<ul>
+<li>[ ] Add more documentation &amp; examples</li>
+<li>[ ] Add support for plugins <code>example:</code> <br><ul>
+<li>backed-plugin-todo <br></li>
+<li>backed-plugin-atom <br></li>
+<li>...</li>
+</ul>
+</li>
+<li>[ ] Add support for presets <code>example:</code> <br><ul>
+<li>backed-preset-element <br></li>
+<li>backed-preset-app <br></li>
+<li>backed-preset-atom <br></li>
+<li>...</li>
+</ul>
+</li>
+<li>[ ] Serve app after build &amp; copy</li>
+<li>[ ] Handle errors</li>
+<li>[ ] Run tests with <a href="https://travis-ci.org/">Travis CI</a> &amp; <a href="https://saucelabs.com/">SAUCELABS</a></li>
+</ul>
+<h2 id="projects-using-backed-cli">Projects using Backed CLI</h2>
+<h3 id="components">components</h3>
+<ul>
+<li><a href="https://github.com/VandeurenGlenn/custom-marked">custom-marked</a></li>
+<li><a href="https://github.com/Reeflight/reef-controller">reef-controller</a> RPI reeflight controller</li>
+</ul>
+<h3 id="frameworks">frameworks</h3>
+<ul>
+<li><a href="https://github.com/VandeurenGlenn/backed">Backed</a> - Small web framework for quick app &amp; component development</li>
+</ul>
 <h2 id="license">License</h2>
 <p>MIT &#xA9; <a href="">Glenn Vandeuren</a></p>
 </div>

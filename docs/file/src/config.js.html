@@ -49,7 +49,7 @@ const {readFileSync} = require(&apos;fs&apos;);
 export default class Config {
   constructor() {
     let config = this.importConfig();
-    const name = this.importPackageName();
+    const name = this.importPackageName() || this.importBowerName();
     return this.updateConfig(config, name);
   }
 
@@ -84,6 +84,13 @@ export default class Config {
   }
 
   /**
+   * @return {string} name from &apos;package.json&apos;
+   */
+  importBowerName() {
+    return JSON.parse(readFileSync(`${process.cwd()}/bower.json`)).name;
+  }
+
+  /**
    * @param {object} config - the config to be updated
    * @param {string} name - the name of the element, component, etc
    */
@@ -92,8 +99,10 @@ export default class Config {
     config.format = config.format || &apos;es&apos;;
     config.sourceMap = config.sourceMap || true;
     config.server = config.server || {};
-    config.server.elementLocation =
-      config.server.elementLocation || `${config.name}.js`;
+    // TODO: create method for building atom app with atom-builder
+    // TODO: implement element, app &amp; atom-app config
+    // config.server.element = config.element || {path: `${config.name}.js`};
+    // config.server.app = config.app || {path: `${config.name}.js`};
     global.config = config;
     return config;
   }

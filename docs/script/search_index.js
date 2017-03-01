@@ -414,6 +414,12 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/config.js~config#importbowername",
+    "class/src/config.js~Config.html#instance-method-importBowerName",
+    "src/config.js~Config#importBowerName",
+    "method"
+  ],
+  [
     "src/config.js~config#importconfig",
     "class/src/config.js~Config.html#instance-method-importConfig",
     "src/config.js~Config#importConfig",
@@ -504,9 +510,9 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
-    "src/utils.js~utils#read",
-    "class/src/utils.js~utils.html#instance-method-read",
-    "src/utils.js~utils#read",
+    "src/utils.js~utils#destinationfromfile",
+    "class/src/utils.js~utils.html#instance-method-destinationFromFile",
+    "src/utils.js~utils#destinationFromFile",
     "method"
   ],
   [

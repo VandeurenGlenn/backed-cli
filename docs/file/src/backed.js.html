@@ -51,7 +51,6 @@ import Builder from &apos;./builder.js&apos;;
 import Server from &apos;./server.js&apos;;
 import Config from &apos;./config.js&apos;;
 import Utils from &apos;./utils.js&apos;;
-import logger from &apos;./logger.js&apos;;
 const config = new Config();
 const utils = new Utils();
 
@@ -67,25 +66,26 @@ commander
   .option(&apos;-b, --build&apos;, &apos;build your app/component&apos;)
   .option(&apos;-s, --serve&apos;, &apos;serve your app/component&apos;)
   .option(&apos;-c, --copy&apos;, &apos;copy files from your app/component src folder to it distribution folder&apos;)
+  .option(&apos;-d, --debug&apos;, &apos;show all warnings&apos;)
   .parse(process.argv);
 
 let build = commander.build;
 let copy = commander.build || commander.copy;
 let serve = commander.serve;
+let debug = commander.debug;
 
 if (hasConfig()) {
+  global.debug = debug || config.debug;
   if (build) {
     const builder = new Builder(config);
     builder.build(config);
   }
   if (copy) {
-    utils.copySources(config.sources).then(() =&gt; {
-      logger.success(`${config.name}::copy finished`);
-    });
+    utils.copySources(config.sources);
   }
   if (serve) {
     const server = new Server();
-    server.serve(config.server, config.name);
+    server.serve(config.server);
   }
 }
 </code></pre>
