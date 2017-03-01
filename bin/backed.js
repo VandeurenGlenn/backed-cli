@@ -35,7 +35,7 @@ const {rollup} = require('rollup');
   class Builder {
     build(config) {
       if (config.src) {
-        logger.warn(`Deprecated::[visit](https://github.com/vandeurenglenn/backed-cli#README) to learn more or take a look at the [example](https://github.com/vandeurenglenn/backed-cli/config/backed.json)`);
+        logger.warn(`Deprecated::src, support ends @0.2.0 [visit](https://github.com/vandeurenglenn/backed-cli#README) to learn more or take a look at the [example](https://github.com/vandeurenglenn/backed-cli/config/backed.json)`);
         this.handleFormats(config).then(through => {
           this.bundle(through);
         });
@@ -134,7 +134,7 @@ const {rollup} = require('rollup');
           ],
           dest: `${process.cwd()}/${config.dest}`
         });
-        logger.succes(`${config.name}::build finished`);
+        logger.succes(`${global.config.name}::build finished`);
       }).catch(err => {
         logger.error(err);
       });
@@ -168,60 +168,71 @@ class Server {
 
 /**
  * @param {object} server - configuration
- * @param {string} name - name of the element
  * @param {string} server.entry path to where your build is located
+ * @param {string} server.docs path to where your docs are located
  * @param {string} server.path src path of the component
  * @param {string} server.bowerPath path to bower_components
  * @param {string} server.nodeModulesPath path to node_modules
- * @param {string} server.elementLocation path to your element (in the browser)
  * @param {string} server.demo path to the demo
  * @param {string} server.index path to your index.html file we serve a helper/docs index by default
  */
-  serve(server, name) {
-    app.use('/bower_components', express.static(
-      this.appLocation(server.bowerPath, 'bower_components')));
-
-    app.use('/node_modules', express.static(
-      this.appLocation(server.nodeModulesPath, 'node_modules')));
-
-    app.use(`/${server.elementLocation}`, express.static(
-      this.appLocation(server.path, 'some-element.js')));
-
-    app.use('/dist', express.static(
-      this.appLocation(server.entry, 'dist')));
-
-    app.use('/demo', express.static(
-      this.appLocation(server.demo, 'demo')));
-
-    app.use('/docs', express.static(
-      this.appLocation(server.docs, 'docs')));
-
-    app.use('/package.json', express.static(
-      this.appLocation('package.json')
-    ));
-
-    app.use('/bower.json', express.static(
-      this.appLocation('bower.json')
-    ));
-
-    // TODO: Add option to override index
-    app.use('/', express.static(__dirname.replace('bin', 'node_modules\\backed-client\\dist')));
-
-      // serve backed
-    app.use('/backed/docs', express.static(
-      __dirname.replace('bin', 'docs')));
-
-    // TODO: implement copyrighted by package author & package name if no file is found
-    src(process.cwd() + '/license.*').then(files => {
-      app.use('/license', express.static(files[0]));
-    });
-
-    app.listen(3000, error => {
-      if (error) {
-        return console.warn(error);
+  serve(server) {
+    if (server) {
+      if (server.elementLocation) {
+        logger.warn('Deprecated::server.elementLocation, support ends @0.2.0 [visit](https://github.com/vandeurenglenn/backed-cli#serve) to learn more');
+        app.use(`/${server.elementLocation}`, express.static(
+          this.appLocation(server.path, 'some-element.js')));
       }
-      console.log(`${name}::serving app from ${server.entry}`);
-    });
+      for (let use of server.use) {
+        app.use(use.path, express.static(this.appLocation(use.static || use.path)));
+      }
+      app.use('/bower_components', express.static(
+        this.appLocation(server.bowerPath, 'bower_components')));
+
+      app.use('/node_modules', express.static(
+        this.appLocation(server.nodeModulesPath, 'node_modules')));
+
+      // app.use(`/${server.elementLocation}`, express.static(
+      //   this.appLocation(server.path, 'some-element.js')));
+
+      app.use('/dist', express.static(
+        this.appLocation(server.entry, 'dist')));
+
+      app.use('/demo', express.static(
+        this.appLocation(server.demo, 'demo')));
+
+      app.use('/docs', express.static(
+        this.appLocation(server.docs, 'docs')));
+
+      app.use('/package.json', express.static(
+        this.appLocation('package.json')
+      ));
+
+      app.use('/bower.json', express.static(
+        this.appLocation('bower.json')
+      ));
+
+      // TODO: Add option to override index
+      app.use('/', express.static(__dirname.replace('bin', 'node_modules\\backed-client\\dist')));
+
+        // serve backed
+      app.use('/backed/docs', express.static(
+        __dirname.replace('bin', 'docs')));
+
+      // TODO: implement copyrighted by package author & package name if no file is found
+      src(process.cwd() + '/license.*').then(files => {
+        app.use('/license', express.static(files[0]));
+      });
+
+      app.listen(3000, error => {
+        if (error) {
+          return logger.warn(error);
+        }
+        logger.log(`${global.config.name}::serving app from ${server.entry}`);
+      });
+    } else {
+      return logger.warn(`${global.config.name}::server config not found [example](https://github.com/vandeurenglenn/backed-cli/config/backed.json)`);
+    }
   }
 
   /**
@@ -247,7 +258,8 @@ const {readFileSync} = require('fs');
 class Config {
   constructor() {
     let config = this.importConfig();
-    return this.updateConfig(config);
+    const name = this.importPackageName() || this.importBowerName();
+    return this.updateConfig(config, name);
   }
 
   /**
@@ -276,73 +288,73 @@ class Config {
   /**
    * @return {string} name from 'package.json'
    */
-  importNpmName() {
-    try {
-      return JSON.parse(readFileSync(`${process.cwd()}/package.json`)).name;
-    } catch (err) {
-      console.warn('no package.json file found');
-      return null;
-    }
+  importPackageName() {
+    return JSON.parse(readFileSync(`${process.cwd()}/package.json`)).name;
   }
 
   /**
-   * @return {string} name from 'bower.json'
+   * @return {string} name from 'package.json'
    */
   importBowerName() {
-    try {
-      return JSON.parse(readFileSync(`${process.cwd()}/bower.json`)).name;
-    } catch (err) {
-      console.warn('no bower.json file found');
-      return null;
-    }
+    return JSON.parse(readFileSync(`${process.cwd()}/bower.json`)).name;
   }
 
   /**
    * @param {object} config - the config to be updated
-   * @param {string} name - the name of the element, component, etc (will read from package.json or bower.json when not defined)
+   * @param {string} name - the name of the element, component, etc
    */
-  updateConfig(config) {
-    config.name = config.name || this.importNpmName() || this.importBowerName();
+  updateConfig(config, name) {
+    config.name = config.name || name;
     config.format = config.format || 'es';
     config.sourceMap = config.sourceMap || true;
     config.server = config.server || {};
-    config.server.elementLocation =
-      config.server.elementLocation || `${config.name}.js`;
+    // TODO: create method for building atom app with atom-builder
+    // TODO: implement element, app & atom-app config
+    // config.server.element = config.element || {path: `${config.name}.js`};
+    // config.server.app = config.app || {path: `${config.name}.js`};
     global.config = config;
     return config;
   }
 }
 
-const {readFile, writeFile, mkdir} = require('fs');
-const glob$1 = require('glob');
-
+const {writeFile, mkdir} = require('fs');
+const vinylRead = require('vinyl-read');
+const path = require('path');
 var Utils = class {
   /**
    * @param {object} sources {src: ["some/glob/exp"], dest: "some/dest"}
    */
   copySources(sources) {
-    return new Promise((resolve, reject) => {
-      if (sources) {
-        for (let src of sources.src) {
-          glob$1(String(src), (err, files) => {
-            if (err) {
-              reject(err);
-            }
-            let promises = [];
-            for (let file of files) {
-              const base = file.replace(/\/(?:.(?!\/))+$/, '');
-              const dest = sources.dest += file.replace(base, '');
-              promises.push(this.copy(file, dest));
-            }
-            Promise.all(promises).then(() => {
-              resolve();
-            });
-          });
-        }
-      } else {
-        resolve();
+    if (sources) {
+      let promises = [];
+      for (let source of sources) {
+        promises.push(this.copy(source.src, source.dest));
       }
-    });
+      return Promise.all(promises).then(() => {
+        logger.succes(`${global.config.name}::copy finished`);
+      });
+    }
+    return;
+  }
+
+  /**
+   * returns a destination using [vinyl](https://github.com/gulpjs/vinyl) info
+   */
+  destinationFromFile(file) {
+    let dest = file.path;
+    dest = dest.replace(`${file.cwd}\\`, '');
+    dest = dest.split(path.sep);
+    if (dest.length > 1) {
+      dest[0] = file.dest;
+    } else {
+      dest[1] = dest[0];
+      dest[0] = dest;
+    }
+    let index = dest.length - 1;
+    if (path.extname(dest[index]) !== '' || dest[index].match(/\B\W(.*)/g)) {
+      file.dest = dest.toString().replace(/,/g, '/');
+      return file;
+    }
   }
 
   /**
@@ -351,9 +363,15 @@ var Utils = class {
    */
   copy(src, dest) {
     return new Promise(resolve => {
-      // TODO: decide to clean dest dir or not
-      this.read({src: src, dest: dest}).then(source => {
-        this.write(source).then(() => {
+      let promises = [];
+      vinylRead(src, {
+        cwd: process.cwd()
+      }).then(files => {
+        for (let file of files) {
+          file.dest = dest;
+          promises.push(this.write(this.destinationFromFile(file)));
+        }
+        Promise.all(promises).then(() => {
           resolve();
         });
       });
@@ -361,47 +379,42 @@ var Utils = class {
   }
 
   /**
-   * @param {object} source {src: "some/src/path", dest: "some/dest/path"}
+   * @param {object} file {src: "some/src/path", dest: "some/dest/path"}
    */
-  read(source) {
+  write(file) {
     return new Promise((resolve, reject) => {
-      readFile(source.src, (err, data) => {
-        if (err) {
-          reject(err);
-        }
-        source.data = data;
-        resolve(source);
-      });
-    });
-  }
-
-  /**
-   * @param {object} source {src: "some/src/path", dest: "some/dest/path"}
-   */
-  write(source) {
-    return new Promise((resolve, reject) => {
-      writeFile(source.dest, source.data, err => {
-        if (err) {
-          const dest = source.dest.replace(/\/(?:.(?!\/))+$/, '');
-          const paths = dest.split('/');
-          let prepath = '';
-          for (let path of paths) {
-            prepath += `${path}/`;
-            mkdir(prepath, err => {
-              if (err) {
-                if (err.code !== 'EEXIST') {
-                  reject(err);
+      if (file) {
+        writeFile(file.dest, file.contents, err => {
+          if (err) {
+            if (global.debug) {
+              logger.warn(
+                  `subdirectory(s)::not existing
+                  Backed will now try to create ${file.dest}`
+                );
+            }
+            const dest = file.dest.replace(/\/(?:.(?!\/))+$/, '');
+            const paths = dest.split('/');
+            let prepath = '';
+            for (let path of paths) {
+              prepath += `${path}/`;
+              mkdir(prepath, err => {
+                if (err) {
+                  if (err.code !== 'EEXIST') {
+                    reject(err);
+                  }
                 }
-              }
+              });
+            }
+            this.write(file).then(() => {
+              resolve();
             });
-          }
-          this.write(source).then(() => {
+          } else {
             resolve();
-          });
-        } else {
-          resolve();
-        }
-      });
+          }
+        });
+      } else {
+        resolve();
+      }
     });
   }
 };
@@ -425,25 +438,26 @@ commander
   .option('-b, --build', 'build your app/component')
   .option('-s, --serve', 'serve your app/component')
   .option('-c, --copy', 'copy files from your app/component src folder to it distribution folder')
+  .option('-d, --debug', 'show all warnings')
   .parse(process.argv);
 
 let build = commander.build;
 let copy = commander.build || commander.copy;
 let serve = commander.serve;
+let debug = commander.debug;
 
 if (hasConfig()) {
+  global.debug = debug || config.debug;
   if (build) {
     const builder = new Builder(config);
     builder.build(config);
   }
   if (copy) {
-    utils.copySources(config.sources).then(() => {
-      logger.success(`${config.name}::copy finished`);
-    });
+    utils.copySources(config.sources);
   }
   if (serve) {
     const server = new Server();
-    server.serve(config.server, config.name);
+    server.serve(config.server);
   }
 }
 
