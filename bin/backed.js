@@ -183,8 +183,10 @@ class Server {
         app.use(`/${server.elementLocation}`, express.static(
           this.appLocation(server.path, 'some-element.js')));
       }
-      for (let use of server.use) {
-        app.use(use.path, express.static(this.appLocation(use.static || use.path)));
+      if (server.use) {
+        for (let use of server.use) {
+          app.use(use.path, express.static(this.appLocation(use.static || use.path)));
+        }
       }
       app.use('/bower_components', express.static(
         this.appLocation(server.bowerPath, 'bower_components')));
