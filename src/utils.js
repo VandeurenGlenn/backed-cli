@@ -26,7 +26,7 @@ export default class {
    */
   destinationFromFile(file) {
     let dest = file.path;
-    dest = dest.replace(`${file.cwd}\\`, '');
+    dest = dest.replace(`${file.base}/`, '');
     dest = dest.split(path.sep);
     if (dest.length > 1) {
       dest[0] = file.dest;
