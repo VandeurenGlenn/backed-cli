@@ -352,11 +352,8 @@ var Utils = class {
       dest[1] = dest[0];
       dest[0] = dest;
     }
-    let index = dest.length - 1;
-    if (path.extname(dest[index]) !== '' || dest[index].match(/\B\W(.*)/g)) {
-      file.dest = dest.toString().replace(/,/g, '/');
-      return file;
-    }
+    file.dest = dest.toString().replace(/,/g, '/');
+    return file;
   }
 
   /**
