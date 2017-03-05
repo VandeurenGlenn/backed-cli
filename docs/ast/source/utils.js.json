@@ -1872,7 +1872,7 @@
                                 {
                                   "type": "MemberExpression",
                                   "start": 760,
-                                  "end": 768,
+                                  "end": 769,
                                   "loc": {
                                     "start": {
                                       "line": 29,
@@ -1880,7 +1880,7 @@
                                     },
                                     "end": {
                                       "line": 29,
-                                      "column": 35
+                                      "column": 36
                                     }
                                   },
                                   "object": {
@@ -1903,7 +1903,7 @@
                                   "property": {
                                     "type": "Identifier",
                                     "start": 765,
-                                    "end": 768,
+                                    "end": 769,
                                     "loc": {
                                       "start": {
                                         "line": 29,
@@ -1911,11 +1911,11 @@
                                       },
                                       "end": {
                                         "line": 29,
-                                        "column": 35
+                                        "column": 36
                                       },
-                                      "identifierName": "cwd"
+                                      "identifierName": "base"
                                     },
-                                    "name": "cwd"
+                                    "name": "base"
                                   },
                                   "computed": false
                                 }
@@ -1943,12 +1943,12 @@
                                 },
                                 {
                                   "type": "TemplateElement",
-                                  "start": 769,
+                                  "start": 770,
                                   "end": 771,
                                   "loc": {
                                     "start": {
                                       "line": 29,
-                                      "column": 36
+                                      "column": 37
                                     },
                                     "end": {
                                       "line": 29,
@@ -1956,8 +1956,8 @@
                                     }
                                   },
                                   "value": {
-                                    "raw": "\\\\",
-                                    "cooked": "\\"
+                                    "raw": "/",
+                                    "cooked": "/"
                                   },
                                   "tail": true
                                 }
@@ -10242,9 +10242,9 @@
         "postfix": false,
         "binop": null
       },
-      "value": "cwd",
+      "value": "base",
       "start": 765,
-      "end": 768,
+      "end": 769,
       "loc": {
         "start": {
           "line": 29,
@@ -10252,7 +10252,7 @@
         },
         "end": {
           "line": 29,
-          "column": 35
+          "column": 36
         }
       }
     },
@@ -10268,16 +10268,16 @@
         "postfix": false,
         "binop": null
       },
-      "start": 768,
-      "end": 769,
+      "start": 769,
+      "end": 770,
       "loc": {
         "start": {
           "line": 29,
-          "column": 35
+          "column": 36
         },
         "end": {
           "line": 29,
-          "column": 36
+          "column": 37
         }
       }
     },
@@ -10294,13 +10294,13 @@
         "binop": null,
         "updateContext": null
       },
-      "value": "\\",
-      "start": 769,
+      "value": "/",
+      "start": 770,
       "end": 771,
       "loc": {
         "start": {
           "line": 29,
-          "column": 36
+          "column": 37
         },
         "end": {
           "line": 29,
