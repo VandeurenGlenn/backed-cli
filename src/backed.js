@@ -9,13 +9,6 @@ import Utils from './utils.js';
 const config = new Config();
 const utils = new Utils();
 
-const hasConfig = () => {
-  if (global.config === undefined) {
-    return false;
-  }
-  return true;
-};
-
 commander
   .version(version)
   .option('-b, --build', 'build your app/component')
@@ -29,17 +22,15 @@ let copy = commander.build || commander.copy;
 let serve = commander.serve;
 let debug = commander.debug;
 
-if (hasConfig()) {
-  global.debug = debug || config.debug;
-  if (build) {
-    const builder = new Builder(config);
-    builder.build(config);
-  }
-  if (copy) {
-    utils.copySources(config.sources);
-  }
-  if (serve) {
-    const server = new Server();
-    server.serve(config.server);
-  }
+global.debug = debug || config.debug;
+if (build) {
+  const builder = new Builder(config);
+  builder.build(config);
+}
+if (copy) {
+  utils.copySources(config.sources);
+}
+if (serve) {
+  const server = new Server();
+  server.serve(config.server);
 }

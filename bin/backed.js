@@ -256,6 +256,7 @@ class Server {
 }
 
 const {readFileSync} = require('fs');
+const path =  require('path');
 class Config {
   constructor() {
     this.importConfig().then(config => {
@@ -293,7 +294,7 @@ class Config {
       }).catch(() => {
         logger.warn('backed.json:: not found, using default options.');
         resolve({
-          name: 'your-element'
+          name: path.posix.basename(__dirname.replace('/bin', ''))
         });
       });
     })
@@ -306,7 +307,7 @@ class Config {
     try {
       return JSON.parse(readFileSync(`${process.cwd()}/package.json`)).name;
     } catch(e) {
-      logger.warn('no package.json found');
+      if (global.debug) logger.warn('no package.json found');
     }
     return null;
   }
@@ -318,7 +319,7 @@ class Config {
     try {
       return JSON.parse(readFileSync(`${process.cwd()}/bower.json`)).name;
     } catch(e) {
-      logger.warn('no bower.json found');
+      if (global.debug) logger.warn('no bower.json found');
     }
     return null;
   }
@@ -343,7 +344,7 @@ class Config {
 
 const {writeFile, mkdir} = require('fs');
 const vinylRead = require('vinyl-read');
-const path = require('path');
+const path$1 = require('path');
 var Utils = class {
   /**
    * @param {object} sources {src: ["some/glob/exp"], dest: "some/dest"}
@@ -367,7 +368,7 @@ var Utils = class {
   destinationFromFile(file) {
     let dest = file.path;
     dest = dest.replace(`${file.base}/`, '');
-    dest = dest.split(path.sep);
+    dest = dest.split(path$1.sep);
     if (dest.length > 1) {
       dest[0] = file.dest;
     } else {
@@ -447,13 +448,6 @@ const {version} = require('./../package.json');
 const config = new Config();
 const utils = new Utils();
 
-const hasConfig = () => {
-  if (global.config === undefined) {
-    return false;
-  }
-  return true;
-};
-
 commander
   .version(version)
   .option('-b, --build', 'build your app/component')
@@ -467,19 +461,17 @@ let copy = commander.build || commander.copy;
 let serve = commander.serve;
 let debug = commander.debug;
 
-if (hasConfig()) {
-  global.debug = debug || config.debug;
-  if (build) {
-    const builder = new Builder(config);
-    builder.build(config);
-  }
-  if (copy) {
-    utils.copySources(config.sources);
-  }
-  if (serve) {
-    const server = new Server();
-    server.serve(config.server);
-  }
+global.debug = debug || config.debug;
+if (build) {
+  const builder = new Builder(config);
+  builder.build(config);
+}
+if (copy) {
+  utils.copySources(config.sources);
+}
+if (serve) {
+  const server = new Server();
+  server.serve(config.server);
 }
 
 }());

@@ -1,5 +1,6 @@
 'use strict';
 const {readFileSync} = require('fs');
+const path =  require('path');
 import logger from './logger.js';
 
 export default class Config {
@@ -39,7 +40,7 @@ export default class Config {
       }).catch(() => {
         logger.warn('backed.json:: not found, using default options.');
         resolve({
-          name: 'your-element'
+          name: path.posix.basename(__dirname.replace('/bin', ''))
         });
       });
     })
@@ -52,7 +53,7 @@ export default class Config {
     try {
       return JSON.parse(readFileSync(`${process.cwd()}/package.json`)).name;
     } catch(e) {
-      logger.warn('no package.json found');
+      if (global.debug) logger.warn('no package.json found');
     }
     return null;
   }
@@ -64,7 +65,7 @@ export default class Config {
     try {
       return JSON.parse(readFileSync(`${process.cwd()}/bower.json`)).name;
     } catch(e) {
-      logger.warn('no bower.json found');
+      if (global.debug) logger.warn('no bower.json found');
     }
     return null;
   }
