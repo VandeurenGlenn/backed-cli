@@ -3,7 +3,7 @@
     "__docId__": 0,
     "kind": "file",
     "name": "src/backed.js",
-    "content": "process.title = 'backed';\nconst commander = require('commander');\nconst {version} = require('./../package.json');\n\nimport Builder from './builder.js';\nimport Server from './server.js';\nimport Config from './config.js';\nimport Utils from './utils.js';\nconst config = new Config();\nconst utils = new Utils();\n\nconst hasConfig = () => {\n  if (global.config === undefined) {\n    return false;\n  }\n  return true;\n};\n\ncommander\n  .version(version)\n  .option('-b, --build', 'build your app/component')\n  .option('-s, --serve', 'serve your app/component')\n  .option('-c, --copy', 'copy files from your app/component src folder to it distribution folder')\n  .option('-d, --debug', 'show all warnings')\n  .parse(process.argv);\n\nlet build = commander.build;\nlet copy = commander.build || commander.copy;\nlet serve = commander.serve;\nlet debug = commander.debug;\n\nif (hasConfig()) {\n  global.debug = debug || config.debug;\n  if (build) {\n    const builder = new Builder(config);\n    builder.build(config);\n  }\n  if (copy) {\n    utils.copySources(config.sources);\n  }\n  if (serve) {\n    const server = new Server();\n    server.serve(config.server);\n  }\n}\n",
+    "content": "process.title = 'backed';\nconst commander = require('commander');\nconst {version} = require('./../package.json');\n\nimport Builder from './builder.js';\nimport Server from './server.js';\nimport Config from './config.js';\nimport Utils from './utils.js';\nconst config = new Config();\nconst utils = new Utils();\n\ncommander\n  .version(version)\n  .option('-b, --build', 'build your app/component')\n  .option('-s, --serve', 'serve your app/component')\n  .option('-c, --copy', 'copy files from your app/component src folder to it distribution folder')\n  .option('-d, --debug', 'show all warnings')\n  .parse(process.argv);\n\nlet build = commander.build;\nlet copy = commander.build || commander.copy;\nlet serve = commander.serve;\nlet debug = commander.debug;\n\nglobal.debug = debug || config.debug;\nif (build) {\n  const builder = new Builder(config);\n  builder.build(config);\n}\nif (copy) {\n  utils.copySources(config.sources);\n}\nif (serve) {\n  const server = new Server();\n  server.serve(config.server);\n}\n",
     "static": true,
     "longname": "src/backed.js",
     "access": null,
@@ -116,35 +116,6 @@
   },
   {
     "__docId__": 5,
-    "kind": "function",
-    "name": "hasConfig",
-    "memberof": "src/backed.js",
-    "generator": false,
-    "async": false,
-    "static": true,
-    "longname": "src/backed.js~hasConfig",
-    "access": null,
-    "export": false,
-    "importPath": "backed-cli/src/backed.js",
-    "importStyle": null,
-    "description": null,
-    "lineNumber": 12,
-    "undocument": true,
-    "unknown": [
-      {
-        "tagName": "@_undocument",
-        "tagValue": ""
-      }
-    ],
-    "params": [],
-    "return": {
-      "types": [
-        "boolean"
-      ]
-    }
-  },
-  {
-    "__docId__": 6,
     "kind": "variable",
     "name": "build",
     "memberof": "src/backed.js",
@@ -155,7 +126,33 @@
     "importPath": "backed-cli/src/backed.js",
     "importStyle": null,
     "description": null,
-    "lineNumber": 27,
+    "lineNumber": 20,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 6,
+    "kind": "variable",
+    "name": "copy",
+    "memberof": "src/backed.js",
+    "static": true,
+    "longname": "src/backed.js~copy",
+    "access": null,
+    "export": false,
+    "importPath": "backed-cli/src/backed.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 21,
     "undocument": true,
     "unknown": [
       {
@@ -172,16 +169,16 @@
   {
     "__docId__": 7,
     "kind": "variable",
-    "name": "copy",
+    "name": "serve",
     "memberof": "src/backed.js",
     "static": true,
-    "longname": "src/backed.js~copy",
+    "longname": "src/backed.js~serve",
     "access": null,
     "export": false,
     "importPath": "backed-cli/src/backed.js",
     "importStyle": null,
     "description": null,
-    "lineNumber": 28,
+    "lineNumber": 22,
     "undocument": true,
     "unknown": [
       {
@@ -198,16 +195,16 @@
   {
     "__docId__": 8,
     "kind": "variable",
-    "name": "serve",
+    "name": "debug",
     "memberof": "src/backed.js",
     "static": true,
-    "longname": "src/backed.js~serve",
+    "longname": "src/backed.js~debug",
     "access": null,
     "export": false,
     "importPath": "backed-cli/src/backed.js",
     "importStyle": null,
     "description": null,
-    "lineNumber": 29,
+    "lineNumber": 23,
     "undocument": true,
     "unknown": [
       {
@@ -223,32 +220,6 @@
   },
   {
     "__docId__": 9,
-    "kind": "variable",
-    "name": "debug",
-    "memberof": "src/backed.js",
-    "static": true,
-    "longname": "src/backed.js~debug",
-    "access": null,
-    "export": false,
-    "importPath": "backed-cli/src/backed.js",
-    "importStyle": null,
-    "description": null,
-    "lineNumber": 30,
-    "undocument": true,
-    "unknown": [
-      {
-        "tagName": "@_undocument",
-        "tagValue": ""
-      }
-    ],
-    "type": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 10,
     "kind": "file",
     "name": "src/builder.js",
     "content": "  'use strict';\n  const {rollup} = require('rollup');\n  const json = require('rollup-plugin-json');\n  const _babel = require('rollup-plugin-babel');\n  import logger from './logger.js';\n  let cache;\n\n  export default class Builder {\n    build(config) {\n      if (config.src) {\n        logger.warn(`Deprecated::src, support ends @0.2.0 [visit](https://github.com/vandeurenglenn/backed-cli#README) to learn more or take a look at the [example](https://github.com/vandeurenglenn/backed-cli/config/backed.json)`);\n        this.handleFormats(config).then(through => {\n          this.bundle(through);\n        });\n      } else {\n        this.promiseBundles(config).then(bundles => {\n          for (let bundle of bundles) {\n            this.bundle(bundle);\n          }\n        }).catch(err => {\n          logger.error(err);\n        });\n      }\n    }\n\n    handleFormats(config) {\n      return new Promise((resolve, reject) => {\n        try {\n          if (config.format && typeof config.format !== 'string') {\n            for (let format of config.format) {\n              let dest = config.dest;\n              if (format !== 'iife') {\n                switch (format) {\n                  case 'cjs':\n                    dest = dest.replace('.js', '-node.js');\n                    break;\n                  case 'es':\n                  case 'amd':\n                    dest = dest.replace('.js', `-${format}.js`);\n                    break;\n                  default:\n                    break;\n                  // do nothing\n                }\n              }\n              config.dest = dest;\n              config.format = format;\n              resolve(config);\n            }\n          } else {\n            resolve(config);\n          }\n        } catch (err) {\n          reject(err);\n        }\n      });\n    }\n\n    promiseBundles(config) {\n      return new Promise((resolve, reject) => {\n        let bundles = [];\n        try {\n          for (let bundle of config.bundles) {\n            bundle.name = bundle.babel || config.name;\n            bundle.babel = bundle.babel || config.babel;\n            bundle.format = bundle.format || config.format || 'es';\n            bundles.push(this.handleFormats(bundle));\n          }\n\n          Promise.all(bundles).then(bundles => {\n            resolve(bundles);\n          });\n        } catch (err) {\n          reject(err);\n        }\n      });\n    }\n\n  /**\n   * @param {object} config\n   * @param {string} config.src path/to/js\n   * @param {string} config.dest destination to write to\n   * @param {string} config.format format to build ['es', 'iife', 'amd', 'cjs']\n   * @param {string} config.name the name of your element/app\n   * @param {string} config.moduleName the moduleName for your element/app (not needed for es & cjs)\n   * @param {boolean} config.sourceMap Wether or not to build sourceMaps defaults to 'true'\n   * @param {object} config.babel babel configuration [see](http://babeljs.io/docs/usage/babelrc/)\n   */\n    bundle(config = {src: null, dest: 'bundle.js', format: 'iife', name: null, babel: {}, moduleName: null, sourceMap: true}) {\n      rollup({\n        entry: `${process.cwd()}/${config.src}`,\n        // Use the previous bundle as starting point.\n        onwarn: warning => {\n          logger.warn(warning);\n        },\n        cache: cache\n      }).then(bundle => {\n      // Cache our bundle for later use (optional)\n        cache = bundle;\n        bundle.write({\n          format: config.format,\n          moduleName: config.moduleName,\n          sourceMap: config.sourceMap,\n          plugins: [\n            json(),\n            _babel(config.babel)\n          ],\n          dest: `${process.cwd()}/${config.dest}`\n        });\n        logger.succes(`${global.config.name}::build finished`);\n      }).catch(err => {\n        logger.error(err);\n      });\n    }\n}\n",
@@ -259,7 +230,7 @@
     "lineNumber": 1
   },
   {
-    "__docId__": 11,
+    "__docId__": 10,
     "kind": "variable",
     "name": "rollup",
     "memberof": "src/builder.js",
@@ -285,7 +256,7 @@
     }
   },
   {
-    "__docId__": 12,
+    "__docId__": 11,
     "kind": "variable",
     "name": "json",
     "memberof": "src/builder.js",
@@ -311,7 +282,7 @@
     }
   },
   {
-    "__docId__": 13,
+    "__docId__": 12,
     "kind": "variable",
     "name": "_babel",
     "memberof": "src/builder.js",
@@ -337,7 +308,7 @@
     }
   },
   {
-    "__docId__": 14,
+    "__docId__": 13,
     "kind": "class",
     "name": "Builder",
     "memberof": "src/builder.js",
@@ -359,7 +330,7 @@
     "interface": false
   },
   {
-    "__docId__": 15,
+    "__docId__": 14,
     "kind": "method",
     "name": "build",
     "memberof": "src/builder.js~Builder",
@@ -387,7 +358,7 @@
     ]
   },
   {
-    "__docId__": 16,
+    "__docId__": 15,
     "kind": "method",
     "name": "handleFormats",
     "memberof": "src/builder.js~Builder",
@@ -420,7 +391,7 @@
     }
   },
   {
-    "__docId__": 17,
+    "__docId__": 16,
     "kind": "method",
     "name": "promiseBundles",
     "memberof": "src/builder.js~Builder",
@@ -453,7 +424,7 @@
     }
   },
   {
-    "__docId__": 18,
+    "__docId__": 17,
     "kind": "method",
     "name": "bundle",
     "memberof": "src/builder.js~Builder",
@@ -548,10 +519,10 @@
     ]
   },
   {
-    "__docId__": 19,
+    "__docId__": 18,
     "kind": "file",
     "name": "src/config.js",
-    "content": "'use strict';\nconst {readFileSync} = require('fs');\nimport logger from './logger.js';\n\nexport default class Config {\n  constructor() {\n    this.importConfig().then(config => {\n      const name = this.importPackageName() || this.importBowerName();\n      return this.updateConfig(config, name);\n    });\n  }\n\n  /**\n   * wrapper around cjs require\n   * try's to read file from current working directory\n   * @param {string} path path to file/module\n   * @return {object|array|function|class} module or file\n   */\n  require(path) {\n    return new Promise((resolve, reject) => {\n      let root = process.cwd();\n      root += `/${path}`;\n      try {\n        let required = require(root);\n        resolve(required);\n      } catch (error) {\n        reject(error);\n      }\n    });\n  }\n\n  /**\n   * @return {object} value of 'backed.json'\n   */\n  importConfig() {\n    return new Promise((resolve, reject) => {\n      this.require('backed.json').then(config => {\n        resolve(config);\n      }).catch(() => {\n        logger.warn('backed.json:: not found, using default options.');\n        resolve({\n          name: 'your-element'\n        });\n      });\n    })\n  }\n\n  /**\n   * @return {string} name from 'package.json'\n   */\n  importPackageName() {\n    try {\n      return JSON.parse(readFileSync(`${process.cwd()}/package.json`)).name;\n    } catch(e) {\n      logger.warn('no package.json found');\n    }\n    return null;\n  }\n\n  /**\n   * @return {string} name from 'bower.json'\n   */\n  importBowerName() {\n    try {\n      return JSON.parse(readFileSync(`${process.cwd()}/bower.json`)).name;\n    } catch(e) {\n      logger.warn('no bower.json found');\n    }\n    return null;\n  }\n\n  /**\n   * @param {object} config - the config to be updated\n   * @param {string} name - the name of the element, component, etc\n   */\n  updateConfig(config, name) {\n    config.name = config.name || name;\n    config.format = config.format || 'es';\n    config.sourceMap = config.sourceMap || true;\n    config.server = config.server || {};\n    // TODO: create method for building atom app with atom-builder\n    // TODO: implement element, app & atom-app config\n    // config.server.element = config.element || {path: `${config.name}.js`};\n    // config.server.app = config.app || {path: `${config.name}.js`};\n    global.config = config;\n    return config;\n  }\n}\n",
+    "content": "'use strict';\nconst {readFileSync} = require('fs');\nconst path =  require('path');\nimport logger from './logger.js';\n\nexport default class Config {\n  constructor() {\n    this.importConfig().then(config => {\n      const name = this.importPackageName() || this.importBowerName();\n      return this.updateConfig(config, name);\n    });\n  }\n\n  /**\n   * wrapper around cjs require\n   * try's to read file from current working directory\n   * @param {string} path path to file/module\n   * @return {object|array|function|class} module or file\n   */\n  require(path) {\n    return new Promise((resolve, reject) => {\n      let root = process.cwd();\n      root += `/${path}`;\n      try {\n        let required = require(root);\n        resolve(required);\n      } catch (error) {\n        reject(error);\n      }\n    });\n  }\n\n  /**\n   * @return {object} value of 'backed.json'\n   */\n  importConfig() {\n    return new Promise((resolve, reject) => {\n      this.require('backed.json').then(config => {\n        resolve(config);\n      }).catch(() => {\n        logger.warn('backed.json:: not found, using default options.');\n        resolve({\n          name: path.posix.basename(__dirname.replace('/bin', ''))\n        });\n      });\n    })\n  }\n\n  /**\n   * @return {string} name from 'package.json'\n   */\n  importPackageName() {\n    try {\n      return JSON.parse(readFileSync(`${process.cwd()}/package.json`)).name;\n    } catch(e) {\n      if (global.debug) logger.warn('no package.json found');\n    }\n    return null;\n  }\n\n  /**\n   * @return {string} name from 'bower.json'\n   */\n  importBowerName() {\n    try {\n      return JSON.parse(readFileSync(`${process.cwd()}/bower.json`)).name;\n    } catch(e) {\n      if (global.debug) logger.warn('no bower.json found');\n    }\n    return null;\n  }\n\n  /**\n   * @param {object} config - the config to be updated\n   * @param {string} name - the name of the element, component, etc\n   */\n  updateConfig(config, name) {\n    config.name = config.name || name;\n    config.format = config.format || 'es';\n    config.sourceMap = config.sourceMap || true;\n    config.server = config.server || {};\n    // TODO: create method for building atom app with atom-builder\n    // TODO: implement element, app & atom-app config\n    // config.server.element = config.element || {path: `${config.name}.js`};\n    // config.server.app = config.app || {path: `${config.name}.js`};\n    global.config = config;\n    return config;\n  }\n}\n",
     "static": true,
     "longname": "src/config.js",
     "access": null,
@@ -559,7 +530,7 @@
     "lineNumber": 1
   },
   {
-    "__docId__": 20,
+    "__docId__": 19,
     "kind": "variable",
     "name": "readFileSync",
     "memberof": "src/config.js",
@@ -585,6 +556,32 @@
     }
   },
   {
+    "__docId__": 20,
+    "kind": "variable",
+    "name": "path",
+    "memberof": "src/config.js",
+    "static": true,
+    "longname": "src/config.js~path",
+    "access": null,
+    "export": false,
+    "importPath": "backed-cli/src/config.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 3,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
     "__docId__": 21,
     "kind": "class",
     "name": "Config",
@@ -596,7 +593,7 @@
     "importPath": "backed-cli/src/config.js",
     "importStyle": "Config",
     "description": null,
-    "lineNumber": 5,
+    "lineNumber": 6,
     "undocument": true,
     "unknown": [
       {
@@ -617,7 +614,7 @@
     "longname": "src/config.js~Config#constructor",
     "access": null,
     "description": null,
-    "lineNumber": 6,
+    "lineNumber": 7,
     "undocument": true,
     "unknown": [
       {
@@ -638,7 +635,7 @@
     "longname": "src/config.js~Config#require",
     "access": null,
     "description": "wrapper around cjs require\ntry's to read file from current working directory",
-    "lineNumber": 19,
+    "lineNumber": 20,
     "params": [
       {
         "nullable": null,
@@ -674,7 +671,7 @@
     "longname": "src/config.js~Config#importConfig",
     "access": null,
     "description": "",
-    "lineNumber": 35,
+    "lineNumber": 36,
     "params": [],
     "return": {
       "nullable": null,
@@ -696,7 +693,7 @@
     "longname": "src/config.js~Config#importPackageName",
     "access": null,
     "description": "",
-    "lineNumber": 51,
+    "lineNumber": 52,
     "params": [],
     "return": {
       "nullable": null,
@@ -718,7 +715,7 @@
     "longname": "src/config.js~Config#importBowerName",
     "access": null,
     "description": "",
-    "lineNumber": 63,
+    "lineNumber": 64,
     "params": [],
     "return": {
       "nullable": null,
@@ -740,7 +737,7 @@
     "longname": "src/config.js~Config#updateConfig",
     "access": null,
     "description": "",
-    "lineNumber": 76,
+    "lineNumber": 77,
     "params": [
       {
         "nullable": null,

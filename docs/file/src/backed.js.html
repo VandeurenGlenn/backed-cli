@@ -54,13 +54,6 @@ import Utils from &apos;./utils.js&apos;;
 const config = new Config();
 const utils = new Utils();
 
-const hasConfig = () =&gt; {
-  if (global.config === undefined) {
-    return false;
-  }
-  return true;
-};
-
 commander
   .version(version)
   .option(&apos;-b, --build&apos;, &apos;build your app/component&apos;)
@@ -74,19 +67,17 @@ let copy = commander.build || commander.copy;
 let serve = commander.serve;
 let debug = commander.debug;
 
-if (hasConfig()) {
-  global.debug = debug || config.debug;
-  if (build) {
-    const builder = new Builder(config);
-    builder.build(config);
-  }
-  if (copy) {
-    utils.copySources(config.sources);
-  }
-  if (serve) {
-    const server = new Server();
-    server.serve(config.server);
-  }
+global.debug = debug || config.debug;
+if (build) {
+  const builder = new Builder(config);
+  builder.build(config);
+}
+if (copy) {
+  utils.copySources(config.sources);
+}
+if (serve) {
+  const server = new Server();
+  server.serve(config.server);
 }
 </code></pre>
 

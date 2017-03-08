@@ -17,8 +17,8 @@
       "expectCount": 7,
       "actualCount": 5,
       "undocumentLines": [
-        5,
-        6
+        6,
+        7
       ]
     },
     "src/logger.js": {

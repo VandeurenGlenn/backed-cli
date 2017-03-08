@@ -45,6 +45,7 @@
 <div class="content" data-ice="content"><h1 data-ice="title">src/config.js</h1>
 <pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">&apos;use strict&apos;;
 const {readFileSync} = require(&apos;fs&apos;);
+const path =  require(&apos;path&apos;);
 import logger from &apos;./logger.js&apos;;
 
 export default class Config {
@@ -84,7 +85,7 @@ export default class Config {
       }).catch(() =&gt; {
         logger.warn(&apos;backed.json:: not found, using default options.&apos;);
         resolve({
-          name: &apos;your-element&apos;
+          name: path.posix.basename(__dirname.replace(&apos;/bin&apos;, &apos;&apos;))
         });
       });
     })
@@ -97,7 +98,7 @@ export default class Config {
     try {
       return JSON.parse(readFileSync(`${process.cwd()}/package.json`)).name;
     } catch(e) {
-      logger.warn(&apos;no package.json found&apos;);
+      if (global.debug) logger.warn(&apos;no package.json found&apos;);
     }
     return null;
   }
@@ -109,7 +110,7 @@ export default class Config {
     try {
       return JSON.parse(readFileSync(`${process.cwd()}/bower.json`)).name;
     } catch(e) {
-      logger.warn(&apos;no bower.json found&apos;);
+      if (global.debug) logger.warn(&apos;no bower.json found&apos;);
     }
     return null;
   }
