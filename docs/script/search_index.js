@@ -390,6 +390,12 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/builder.js~builder#constructor",
+    "class/src/builder.js~Builder.html#instance-constructor-constructor",
+    "src/builder.js~Builder#constructor",
+    "method"
+  ],
+  [
     "src/builder.js~builder#handleformats",
     "class/src/builder.js~Builder.html#instance-method-handleFormats",
     "src/builder.js~Builder#handleFormats",

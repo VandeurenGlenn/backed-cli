@@ -54,16 +54,23 @@ export default class {
    * @param {object} sources {src: [&quot;some/glob/exp&quot;], dest: &quot;some/dest&quot;}
    */
   copySources(sources) {
-    if (sources) {
-      let promises = [];
-      for (let source of sources) {
-        promises.push(this.copy(source.src, source.dest));
+    return new Promise((resolve, reject) =&gt; {
+      if (sources) {
+        try {
+          let promises = [];
+          for (let source of sources) {
+            promises.push(this.copy(source.src, source.dest));
+          }
+          Promise.all(promises).then(() =&gt; {
+            logger.succes(`${global.config.name}::copy finished`);
+            resolve();
+          });
+        } catch (error) {
+          logger.error(error);
+          reject(error);
+        }
       }
-      return Promise.all(promises).then(() =&gt; {
-        logger.succes(`${global.config.name}::copy finished`);
-      });
-    }
-    return;
+    });
   }
 
   /**

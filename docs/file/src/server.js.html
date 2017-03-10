@@ -102,7 +102,7 @@ export default class Server {
       // app.use(`/${server.elementLocation}`, express.static(
       //   this.appLocation(server.path, &apos;some-element.js&apos;)));
 
-      app.use(&apos;/dist&apos;, express.static(
+      app.use(&apos;/&apos;, express.static(
         this.appLocation(server.entry, &apos;dist&apos;)));
 
       app.use(&apos;/demo&apos;, express.static(
@@ -135,7 +135,7 @@ export default class Server {
         if (error) {
           return logger.warn(error);
         }
-        logger.log(`${global.config.name}::serving app from ${server.entry}`);
+        logger.log(`${global.config.name}::serving app from http://localhost:${server.port}/${server.entry.replace(&apos;/&apos;, &apos;&apos;)}`);
       });
     } else {
       return logger.warn(`${global.config.name}::server config not found [example](https://github.com/vandeurenglenn/backed-cli/config/backed.json)`);

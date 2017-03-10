@@ -45,14 +45,14 @@
 <div class="content" data-ice="content"><h1 data-ice="title">src/config.js</h1>
 <pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">&apos;use strict&apos;;
 const {readFileSync} = require(&apos;fs&apos;);
-const path =  require(&apos;path&apos;);
+const path = require(&apos;path&apos;);
 import logger from &apos;./logger.js&apos;;
 
 export default class Config {
-  constructor() {
+  constructor(iterator) {
     this.importConfig().then(config =&gt; {
       const name = this.importPackageName() || this.importBowerName();
-      return this.updateConfig(config, name);
+      iterator.next(this.updateConfig(config, name));
     });
   }
 
@@ -88,7 +88,7 @@ export default class Config {
           name: path.posix.basename(__dirname.replace(&apos;/bin&apos;, &apos;&apos;))
         });
       });
-    })
+    });
   }
 
   /**
@@ -97,8 +97,10 @@ export default class Config {
   importPackageName() {
     try {
       return JSON.parse(readFileSync(`${process.cwd()}/package.json`)).name;
-    } catch(e) {
-      if (global.debug) logger.warn(&apos;no package.json found&apos;);
+    } catch (e) {
+      if (global.debug) {
+        logger.warn(&apos;no package.json found&apos;);
+      }
     }
     return null;
   }
@@ -109,8 +111,10 @@ export default class Config {
   importBowerName() {
     try {
       return JSON.parse(readFileSync(`${process.cwd()}/bower.json`)).name;
-    } catch(e) {
-      if (global.debug) logger.warn(&apos;no bower.json found&apos;);
+    } catch (e) {
+      if (global.debug) {
+        logger.warn(&apos;no bower.json found&apos;);
+      }
     }
     return null;
   }
@@ -123,7 +127,7 @@ export default class Config {
     config.name = config.name || name;
     config.format = config.format || &apos;es&apos;;
     config.sourceMap = config.sourceMap || true;
-    config.server = config.server || {};
+    config.server = config.server || {port: 3000, entry: &apos;/&apos;, demo: &apos;demo&apos;};
     // TODO: create method for building atom app with atom-builder
     // TODO: implement element, app &amp; atom-app config
     // config.server.element = config.element || {path: `${config.name}.js`};

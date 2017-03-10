@@ -1,16 +1,17 @@
 {
-  "coverage": "46.15%",
-  "expectCount": 26,
+  "coverage": "44.44%",
+  "expectCount": 27,
   "actualCount": 12,
   "files": {
     "src/builder.js": {
-      "expectCount": 5,
+      "expectCount": 6,
       "actualCount": 1,
       "undocumentLines": [
+        6,
+        14,
         8,
-        9,
-        26,
-        59
+        39,
+        72
       ]
     },
     "src/config.js": {

@@ -45,27 +45,40 @@
 <div class="content" data-ice="content"><h1 data-ice="title">src/builder.js</h1>
 <pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">  &apos;use strict&apos;;
   const {rollup} = require(&apos;rollup&apos;);
-  const json = require(&apos;rollup-plugin-json&apos;);
-  const _babel = require(&apos;rollup-plugin-babel&apos;);
   import logger from &apos;./logger.js&apos;;
   let cache;
 
   export default class Builder {
+
+    constructor(config, iterator) {
+      this.build(config).then(() =&gt; {
+        iterator.next();
+      });
+    }
+
     build(config) {
-      if (config.src) {
-        logger.warn(`Deprecated::src, support ends @0.2.0 [visit](https://github.com/vandeurenglenn/backed-cli#README) to learn more or take a look at the [example](https://github.com/vandeurenglenn/backed-cli/config/backed.json)`);
-        this.handleFormats(config).then(through =&gt; {
-          this.bundle(through);
-        });
-      } else {
-        this.promiseBundles(config).then(bundles =&gt; {
-          for (let bundle of bundles) {
-            this.bundle(bundle);
-          }
-        }).catch(err =&gt; {
-          logger.error(err);
-        });
-      }
+      return new Promise((resolve, reject) =&gt; {
+        if (config.src) {
+          logger.warn(`Deprecated::src, support ends @0.2.0 [visit](https://github.com/vandeurenglenn/backed-cli#README) to learn more or take a look at the [example](https://github.com/vandeurenglenn/backed-cli/config/backed.json)`);
+          this.handleFormats(config).then(through =&gt; {
+            this.bundle(through).then(() =&gt; {
+              resolve();
+            });
+          });
+        } else {
+          this.promiseBundles(config).then(bundles =&gt; {
+            let promises = [];
+            for (let bundle of bundles) {
+              promises.push(this.bundle(bundle));
+            }
+            Promise.all(promises).then(() =&gt; {
+              resolve();
+            });
+          }).catch(error =&gt; {
+            reject(error);
+          });
+        }
+      });
     }
 
     handleFormats(config) {
@@ -129,9 +142,9 @@
    * @param {string} config.name the name of your element/app
    * @param {string} config.moduleName the moduleName for your element/app (not needed for es &amp; cjs)
    * @param {boolean} config.sourceMap Wether or not to build sourceMaps defaults to &apos;true&apos;
-   * @param {object} config.babel babel configuration [see](http://babeljs.io/docs/usage/babelrc/)
+   * @param {object} config.plugins rollup plugins to use [see](https://github.com/rollup/rollup/wiki/Plugins)
    */
-    bundle(config = {src: null, dest: &apos;bundle.js&apos;, format: &apos;iife&apos;, name: null, babel: {}, moduleName: null, sourceMap: true}) {
+    bundle(config = {src: null, dest: &apos;bundle.js&apos;, format: &apos;iife&apos;, name: null, plugins: [], moduleName: null, sourceMap: true}) {
       rollup({
         entry: `${process.cwd()}/${config.src}`,
         // Use the previous bundle as starting point.
@@ -146,10 +159,7 @@
           format: config.format,
           moduleName: config.moduleName,
           sourceMap: config.sourceMap,
-          plugins: [
-            json(),
-            _babel(config.babel)
-          ],
+          plugins: config.plugins,
           dest: `${process.cwd()}/${config.dest}`
         });
         logger.succes(`${global.config.name}::build finished`);

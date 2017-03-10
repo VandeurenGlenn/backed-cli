@@ -1,6 +1,6 @@
 {
   "name": "backed-cli",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "description": "The official command line interface for Backed",
   "homepage": "https://github.com/vandeurenglenn/backed-cli",
   "author": {
