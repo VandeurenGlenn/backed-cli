@@ -10,7 +10,6 @@ var plumber = require('gulp-plumber');
 var coveralls = require('gulp-coveralls');
 var rollup = require('rollup');
 var json = require('rollup-plugin-json');
-var babel = require('rollup-plugin-babel');
 var fs = require('fs');
 var del = require('del');
 var merge = require('merge-stream');
@@ -72,12 +71,12 @@ task('rollup:run', () => {
   return rollup.rollup({
     entry: 'src/backed.js',
      // Use the previous bundle as starting point.
-    cache: cache
+    cache: cache,
+    plugins: [json()]
   }).then(bundle => {
     var result = bundle.generate({
       format: 'iife',
-      moduleName: 'backed',
-      plugins: [json(), babel()]
+      moduleName: 'backed'
     });
      // Cache our bundle for later use (optional)
     cache = bundle;
