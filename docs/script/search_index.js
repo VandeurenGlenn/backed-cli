@@ -492,6 +492,12 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/server.js~server#handleoldoptions",
+    "class/src/server.js~Server.html#instance-method-handleOldOptions",
+    "src/server.js~Server#handleOldOptions",
+    "method"
+  ],
+  [
     "src/server.js~server#serve",
     "class/src/server.js~Server.html#instance-method-serve",
     "src/server.js~Server#serve",

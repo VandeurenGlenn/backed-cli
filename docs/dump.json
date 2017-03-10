@@ -1002,7 +1002,7 @@
     "__docId__": 36,
     "kind": "file",
     "name": "src/server.js",
-    "content": "'use strict';\nconst express = require('express');\n\nconst app = express();\n\nconst glob = require('glob');\n\nimport logger from './logger.js';\n\n/**\n * glob file path\n * @param {string} string\n */\nconst src = string => {\n  return new Promise((resolve, reject) => {\n    glob(string, (error, files) => {\n      if (error) {\n        reject(error);\n      }\n      if (files.length > 0) {\n        resolve(files);\n      }\n    });\n  });\n};\n\nexport default class Server {\n\n/**\n * @param {object} server - configuration\n * @param {string} server.entry path to where your build is located\n * @param {string} server.docs path to where your docs are located\n * @param {string} server.path src path of the component\n * @param {string} server.bowerPath path to bower_components\n * @param {string} server.nodeModulesPath path to node_modules\n * @param {string} server.demo path to the demo\n * @param {string} server.index path to your index.html file we serve a helper/docs index by default\n */\n  serve(server) {\n    if (server) {\n      if (server.elementLocation) {\n        logger.warn('Deprecated::server.elementLocation, support ends @0.2.0 [visit](https://github.com/vandeurenglenn/backed-cli#serve) to learn more');\n        app.use(`/${server.elementLocation}`, express.static(\n          this.appLocation(server.path, 'some-element.js')));\n      }\n      if (server.use) {\n        for (let use of server.use) {\n          app.use(use.path, express.static(this.appLocation(use.static || use.path)));\n        }\n      }\n      app.use('/bower_components', express.static(\n        this.appLocation(server.bowerPath, 'bower_components')));\n\n      app.use('/node_modules', express.static(\n        this.appLocation(server.nodeModulesPath, 'node_modules')));\n\n      // app.use(`/${server.elementLocation}`, express.static(\n      //   this.appLocation(server.path, 'some-element.js')));\n\n      app.use('/', express.static(\n        this.appLocation(server.entry, 'dist')));\n\n      app.use('/demo', express.static(\n        this.appLocation(server.demo, 'demo')));\n\n      app.use('/docs', express.static(\n        this.appLocation(server.docs, 'docs')));\n\n      app.use('/package.json', express.static(\n        this.appLocation('package.json')\n      ));\n\n      app.use('/bower.json', express.static(\n        this.appLocation('bower.json')\n      ));\n\n      // TODO: Add option to override index\n      app.use('/', express.static(__dirname.replace('bin', 'node_modules\\\\backed-client\\\\dist')));\n\n        // serve backed\n      app.use('/backed/docs', express.static(\n        __dirname.replace('bin', 'docs')));\n\n      // TODO: implement copyrighted by package author & package name if no file is found\n      src(process.cwd() + '/license.*').then(files => {\n        app.use('/license', express.static(files[0]));\n      });\n\n      app.listen(3000, error => {\n        if (error) {\n          return logger.warn(error);\n        }\n        logger.log(`${global.config.name}::serving app from http://localhost:${server.port}/${server.entry.replace('/', '')}`);\n      });\n    } else {\n      return logger.warn(`${global.config.name}::server config not found [example](https://github.com/vandeurenglenn/backed-cli/config/backed.json)`);\n    }\n  }\n\n  /**\n   * @param {string} path - location of the file\n   * @param {string} alternate - returns when path is undefined\n   * @param {string} disableAlternate - current working directory is ignored when true, defaults to false\n   */\n  appLocation(path, alternate, disableAlternate = false) {\n    let root = process.cwd();\n    if (!path && !disableAlternate) {\n      path = alternate;\n    } else if (!path && disableAlternate) {\n      // when we disable alternate we return the value of alternate\n      return alternate;\n    }\n    root += `\\\\${path}`;\n    return root;\n  }\n}\n",
+    "content": "'use strict';\nconst express = require('express');\n\nconst app = express();\n\nconst glob = require('glob');\n\nimport logger from './logger.js';\n\n/**\n * glob file path\n * @param {string} string\n */\nconst src = string => {\n  return new Promise((resolve, reject) => {\n    glob(string, (error, files) => {\n      if (error) {\n        reject(error);\n      }\n      if (files.length > 0) {\n        resolve(files);\n      }\n    });\n  });\n};\n\nexport default class Server {\n\n/**\n * @param {object} server - configuration\n * @param {string} server.entry path to where your build is located\n * @param {string} server.docs path to where your docs are located\n * @param {string} server.bowerPath path to bower_components\n * @param {string} server.nodeModulesPath path to node_modules\n * @param {string} server.demo path to the demo\n * @param {string} server.index path to your index.html file we serve a helper/docs index by default (not support for now)\n * @param {array} server.use static files to include [{path: some/path, static: some//path}] when static is undefined path will be used.\n */\n  serve(server = {\n    entry: '/',\n    demo: 'demo',\n    docs: 'docs',\n    use: [{path: null, static: null}],\n    bowerPath: 'bower_components',\n    nodeModulesPath: 'node_modules',\n    index: null}) {\n    if (server) {\n      this.handleOldOptions(server);\n      if (server.use) {\n        for (let use of server.use) {\n          app.use(use.path, express.static(this.appLocation(use.static || use.path)));\n        }\n      }\n      app.use('/bower_components', express.static(\n        this.appLocation(server.bowerPath, 'bower_components')));\n\n      app.use('/node_modules', express.static(\n        this.appLocation(server.nodeModulesPath, 'node_modules')));\n\n      // app.use(`/${server.elementLocation}`, express.static(\n      //   this.appLocation(server.path, 'some-element.js')));\n\n      app.use('/', express.static(\n        this.appLocation(server.entry)));\n\n      app.use('/demo', express.static(\n        this.appLocation(server.demo)));\n\n      app.use('/docs', express.static(\n        this.appLocation(server.docs)));\n\n      app.use('/package.json', express.static(\n        this.appLocation('package.json')\n      ));\n\n      app.use('/bower.json', express.static(\n        this.appLocation('bower.json')\n      ));\n\n      // TODO: Add option to override index\n      app.use('/', express.static(__dirname.replace('bin', 'node_modules\\\\backed-client\\\\dist')));\n\n        // serve backed\n      app.use('/backed/docs', express.static(\n        __dirname.replace('bin', 'docs')));\n\n      // TODO: implement copyrighted by package author & package name if no file is found\n      src(process.cwd() + '/license.*').then(files => {\n        app.use('/license', express.static(files[0]));\n      });\n\n      app.listen(3000, error => {\n        if (error) {\n          return logger.warn(error);\n        }\n        logger.log(`${global.config.name}::serving app from http://localhost:${server.port}/${server.entry.replace('/', '')}`);\n      });\n    } else {\n      return logger.warn(`${global.config.name}::server config not found [example](https://raw.githubusercontent.com/VandeurenGlenn/backed-cli/master/config/backed.json)`);\n    }\n  }\n\n  /**\n   * @param {string} path - location of the file\n   * @param {string} alternate - returns when path is undefined\n   * @param {string} disableAlternate - current working directory is ignored when true, defaults to false\n   */\n  appLocation(path, alternate, disableAlternate = false) {\n    let root = process.cwd();\n    if (!path && !disableAlternate) {\n      path = alternate;\n    } else if (!path && disableAlternate) {\n      // when we disable alternate we return the value of alternate\n      return alternate;\n    }\n    root += `\\\\${path}`;\n    return root;\n  }\n\n  handleOldOptions(options) {\n    if (options.path || options.elementLocation) {\n      logger.warn(`${options.path ? 'server.path' : 'server.elementLocation'} is no longer supported, [visit](https://github.com/vandeurenglenn/backed-cli#serve) to learn more'`);\n    }\n  }\n}\n",
     "static": true,
     "longname": "src/server.js",
     "access": null,
@@ -1192,16 +1192,6 @@
         ],
         "spread": false,
         "optional": false,
-        "name": "server.path",
-        "description": "src path of the component"
-      },
-      {
-        "nullable": null,
-        "types": [
-          "string"
-        ],
-        "spread": false,
-        "optional": false,
         "name": "server.bowerPath",
         "description": "path to bower_components"
       },
@@ -1233,7 +1223,17 @@
         "spread": false,
         "optional": false,
         "name": "server.index",
-        "description": "path to your index.html file we serve a helper/docs index by default"
+        "description": "path to your index.html file we serve a helper/docs index by default (not support for now)"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "array"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "server.use",
+        "description": "static files to include [{path: some/path, static: some//path}] when static is undefined path will be used."
       }
     ],
     "return": {
@@ -1253,7 +1253,7 @@
     "longname": "src/server.js~Server#appLocation",
     "access": null,
     "description": "",
-    "lineNumber": 105,
+    "lineNumber": 108,
     "params": [
       {
         "nullable": null,
@@ -1294,6 +1294,34 @@
   },
   {
     "__docId__": 44,
+    "kind": "method",
+    "name": "handleOldOptions",
+    "memberof": "src/server.js~Server",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/server.js~Server#handleOldOptions",
+    "access": null,
+    "description": null,
+    "lineNumber": 120,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "options",
+        "types": [
+          "*"
+        ]
+      }
+    ]
+  },
+  {
+    "__docId__": 45,
     "kind": "file",
     "name": "src/utils.js",
     "content": "'use strict';\nconst {writeFile, mkdir} = require('fs');\nconst vinylRead = require('vinyl-read');\nconst path = require('path');\nimport logger from './logger.js';\n\nexport default class {\n  /**\n   * @param {object} sources {src: [\"some/glob/exp\"], dest: \"some/dest\"}\n   */\n  copySources(sources) {\n    return new Promise((resolve, reject) => {\n      if (sources) {\n        try {\n          let promises = [];\n          for (let source of sources) {\n            promises.push(this.copy(source.src, source.dest));\n          }\n          Promise.all(promises).then(() => {\n            logger.succes(`${global.config.name}::copy finished`);\n            resolve();\n          });\n        } catch (error) {\n          logger.error(error);\n          reject(error);\n        }\n      }\n    });\n  }\n\n  /**\n   * returns a destination using [vinyl](https://github.com/gulpjs/vinyl) info\n   */\n  destinationFromFile(file) {\n    let dest = file.path;\n    dest = dest.replace(`${file.base}/`, '');\n    dest = dest.split(path.sep);\n    if (dest.length > 1) {\n      dest[0] = file.dest;\n    } else {\n      dest[1] = dest[0];\n      dest[0] = dest;\n    }\n    file.dest = dest.toString().replace(/,/g, '/');\n    return file;\n  }\n\n  /**\n   * @param {string} src \"some/src/path\"\n   * @param {string} dest \"some/dest/path\"\n   */\n  copy(src, dest) {\n    return new Promise(resolve => {\n      let promises = [];\n      vinylRead(src, {\n        cwd: process.cwd()\n      }).then(files => {\n        for (let file of files) {\n          file.dest = dest;\n          promises.push(this.write(this.destinationFromFile(file)));\n        }\n        Promise.all(promises).then(() => {\n          resolve();\n        });\n      });\n    });\n  }\n\n  /**\n   * @param {object} file {src: \"some/src/path\", dest: \"some/dest/path\"}\n   */\n  write(file) {\n    return new Promise((resolve, reject) => {\n      if (file) {\n        writeFile(file.dest, file.contents, err => {\n          if (err) {\n            if (global.debug) {\n              logger.warn(\n                  `subdirectory(s)::not existing\n                  Backed will now try to create ${file.dest}`\n                );\n            }\n            const dest = file.dest.replace(/\\/(?:.(?!\\/))+$/, '');\n            const paths = dest.split('/');\n            let prepath = '';\n            for (let path of paths) {\n              prepath += `${path}/`;\n              mkdir(prepath, err => {\n                if (err) {\n                  if (err.code !== 'EEXIST') {\n                    reject(err);\n                  }\n                }\n              });\n            }\n            this.write(file).then(() => {\n              resolve();\n            });\n          } else {\n            resolve();\n          }\n        });\n      } else {\n        resolve();\n      }\n    });\n  }\n}\n",
@@ -1304,7 +1332,7 @@
     "lineNumber": 1
   },
   {
-    "__docId__": 45,
+    "__docId__": 46,
     "kind": "variable",
     "name": "writeFile",
     "memberof": "src/utils.js",
@@ -1330,7 +1358,7 @@
     }
   },
   {
-    "__docId__": 46,
+    "__docId__": 47,
     "kind": "variable",
     "name": "vinylRead",
     "memberof": "src/utils.js",
@@ -1356,7 +1384,7 @@
     }
   },
   {
-    "__docId__": 47,
+    "__docId__": 48,
     "kind": "variable",
     "name": "path",
     "memberof": "src/utils.js",
@@ -1382,7 +1410,7 @@
     }
   },
   {
-    "__docId__": 48,
+    "__docId__": 49,
     "kind": "class",
     "name": "utils",
     "memberof": "src/utils.js",
@@ -1404,7 +1432,7 @@
     "interface": false
   },
   {
-    "__docId__": 49,
+    "__docId__": 50,
     "kind": "method",
     "name": "copySources",
     "memberof": "src/utils.js~utils",
@@ -1434,7 +1462,7 @@
     }
   },
   {
-    "__docId__": 50,
+    "__docId__": 51,
     "kind": "method",
     "name": "destinationFromFile",
     "memberof": "src/utils.js~utils",
@@ -1460,7 +1488,7 @@
     }
   },
   {
-    "__docId__": 51,
+    "__docId__": 52,
     "kind": "method",
     "name": "copy",
     "memberof": "src/utils.js~utils",
@@ -1500,7 +1528,7 @@
     }
   },
   {
-    "__docId__": 52,
+    "__docId__": 53,
     "kind": "method",
     "name": "write",
     "memberof": "src/utils.js~utils",
@@ -1530,7 +1558,7 @@
     }
   },
   {
-    "__docId__": 54,
+    "__docId__": 55,
     "kind": "external",
     "name": "Infinity",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Infinity",
@@ -1542,7 +1570,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 55,
+    "__docId__": 56,
     "kind": "external",
     "name": "NaN",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NaN",
@@ -1554,7 +1582,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 56,
+    "__docId__": 57,
     "kind": "external",
     "name": "undefined",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined",
@@ -1566,7 +1594,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 57,
+    "__docId__": 58,
     "kind": "external",
     "name": "null",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/null",
@@ -1578,7 +1606,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 58,
+    "__docId__": 59,
     "kind": "external",
     "name": "Object",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
@@ -1590,7 +1618,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 59,
+    "__docId__": 60,
     "kind": "external",
     "name": "object",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
@@ -1602,7 +1630,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 60,
+    "__docId__": 61,
     "kind": "external",
     "name": "Function",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function",
@@ -1614,7 +1642,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 61,
+    "__docId__": 62,
     "kind": "external",
     "name": "function",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function",
@@ -1626,7 +1654,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 62,
+    "__docId__": 63,
     "kind": "external",
     "name": "Boolean",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean",
@@ -1638,7 +1666,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 63,
+    "__docId__": 64,
     "kind": "external",
     "name": "boolean",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean",
@@ -1650,7 +1678,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 64,
+    "__docId__": 65,
     "kind": "external",
     "name": "Symbol",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol",
@@ -1662,7 +1690,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 65,
+    "__docId__": 66,
     "kind": "external",
     "name": "Error",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error",
@@ -1674,7 +1702,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 66,
+    "__docId__": 67,
     "kind": "external",
     "name": "EvalError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/EvalError",
@@ -1686,7 +1714,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 67,
+    "__docId__": 68,
     "kind": "external",
     "name": "InternalError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/InternalError",
@@ -1698,7 +1726,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 68,
+    "__docId__": 69,
     "kind": "external",
     "name": "RangeError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RangeError",
@@ -1710,7 +1738,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 69,
+    "__docId__": 70,
     "kind": "external",
     "name": "ReferenceError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ReferenceError",
@@ -1722,7 +1750,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 70,
+    "__docId__": 71,
     "kind": "external",
     "name": "SyntaxError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError",
@@ -1734,7 +1762,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 71,
+    "__docId__": 72,
     "kind": "external",
     "name": "TypeError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError",
@@ -1746,7 +1774,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 72,
+    "__docId__": 73,
     "kind": "external",
     "name": "URIError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/URIError",
@@ -1758,7 +1786,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 73,
+    "__docId__": 74,
     "kind": "external",
     "name": "Number",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number",
@@ -1770,7 +1798,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 74,
+    "__docId__": 75,
     "kind": "external",
     "name": "number",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number",
@@ -1782,7 +1810,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 75,
+    "__docId__": 76,
     "kind": "external",
     "name": "Date",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date",
@@ -1794,7 +1822,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 76,
+    "__docId__": 77,
     "kind": "external",
     "name": "String",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String",
@@ -1806,7 +1834,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 77,
+    "__docId__": 78,
     "kind": "external",
     "name": "string",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String",
@@ -1818,7 +1846,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 78,
+    "__docId__": 79,
     "kind": "external",
     "name": "RegExp",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp",
@@ -1830,7 +1858,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 79,
+    "__docId__": 80,
     "kind": "external",
     "name": "Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array",
@@ -1842,7 +1870,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 80,
+    "__docId__": 81,
     "kind": "external",
     "name": "Int8Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int8Array",
@@ -1854,7 +1882,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 81,
+    "__docId__": 82,
     "kind": "external",
     "name": "Uint8Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array",
@@ -1866,7 +1894,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 82,
+    "__docId__": 83,
     "kind": "external",
     "name": "Uint8ClampedArray",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8ClampedArray",
@@ -1878,7 +1906,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 83,
+    "__docId__": 84,
     "kind": "external",
     "name": "Int16Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int16Array",
@@ -1890,7 +1918,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 84,
+    "__docId__": 85,
     "kind": "external",
     "name": "Uint16Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint16Array",
@@ -1902,7 +1930,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 85,
+    "__docId__": 86,
     "kind": "external",
     "name": "Int32Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int32Array",
@@ -1914,7 +1942,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 86,
+    "__docId__": 87,
     "kind": "external",
     "name": "Uint32Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint32Array",
@@ -1926,7 +1954,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 87,
+    "__docId__": 88,
     "kind": "external",
     "name": "Float32Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float32Array",
@@ -1938,7 +1966,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 88,
+    "__docId__": 89,
     "kind": "external",
     "name": "Float64Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float64Array",
@@ -1950,7 +1978,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 89,
+    "__docId__": 90,
     "kind": "external",
     "name": "Map",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map",
@@ -1962,7 +1990,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 90,
+    "__docId__": 91,
     "kind": "external",
     "name": "Set",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set",
@@ -1974,7 +2002,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 91,
+    "__docId__": 92,
     "kind": "external",
     "name": "WeakMap",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap",
@@ -1986,7 +2014,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 92,
+    "__docId__": 93,
     "kind": "external",
     "name": "WeakSet",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet",
@@ -1998,7 +2026,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 93,
+    "__docId__": 94,
     "kind": "external",
     "name": "ArrayBuffer",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer",
@@ -2010,7 +2038,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 94,
+    "__docId__": 95,
     "kind": "external",
     "name": "DataView",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView",
@@ -2022,7 +2050,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 95,
+    "__docId__": 96,
     "kind": "external",
     "name": "JSON",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON",
@@ -2034,7 +2062,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 96,
+    "__docId__": 97,
     "kind": "external",
     "name": "Promise",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise",
@@ -2046,7 +2074,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 97,
+    "__docId__": 98,
     "kind": "external",
     "name": "Generator",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator",
@@ -2058,7 +2086,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 98,
+    "__docId__": 99,
     "kind": "external",
     "name": "GeneratorFunction",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/GeneratorFunction",
@@ -2070,7 +2098,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 99,
+    "__docId__": 100,
     "kind": "external",
     "name": "Reflect",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect",
@@ -2082,7 +2110,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 100,
+    "__docId__": 101,
     "kind": "external",
     "name": "Proxy",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy",
@@ -2095,7 +2123,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 102,
+    "__docId__": 103,
     "kind": "external",
     "name": "CanvasRenderingContext2D",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D",
@@ -2107,7 +2135,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 103,
+    "__docId__": 104,
     "kind": "external",
     "name": "DocumentFragment",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/DocumentFragment",
@@ -2119,7 +2147,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 104,
+    "__docId__": 105,
     "kind": "external",
     "name": "Element",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Element",
@@ -2131,7 +2159,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 105,
+    "__docId__": 106,
     "kind": "external",
     "name": "Event",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Event",
@@ -2143,7 +2171,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 106,
+    "__docId__": 107,
     "kind": "external",
     "name": "Node",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Node",
@@ -2155,7 +2183,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 107,
+    "__docId__": 108,
     "kind": "external",
     "name": "NodeList",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/NodeList",
@@ -2167,7 +2195,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 108,
+    "__docId__": 109,
     "kind": "external",
     "name": "XMLHttpRequest",
     "externalLink": "https://developer.mozilla.org/en/docs/Web/API/XMLHttpRequest",
@@ -2179,7 +2207,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 109,
+    "__docId__": 110,
     "kind": "external",
     "name": "AudioContext",
     "externalLink": "https://developer.mozilla.org/en/docs/Web/API/AudioContext",

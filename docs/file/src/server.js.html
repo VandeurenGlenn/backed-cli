@@ -75,19 +75,22 @@ export default class Server {
  * @param {object} server - configuration
  * @param {string} server.entry path to where your build is located
  * @param {string} server.docs path to where your docs are located
- * @param {string} server.path src path of the component
  * @param {string} server.bowerPath path to bower_components
  * @param {string} server.nodeModulesPath path to node_modules
  * @param {string} server.demo path to the demo
- * @param {string} server.index path to your index.html file we serve a helper/docs index by default
+ * @param {string} server.index path to your index.html file we serve a helper/docs index by default (not support for now)
+ * @param {array} server.use static files to include [{path: some/path, static: some//path}] when static is undefined path will be used.
  */
-  serve(server) {
+  serve(server = {
+    entry: &apos;/&apos;,
+    demo: &apos;demo&apos;,
+    docs: &apos;docs&apos;,
+    use: [{path: null, static: null}],
+    bowerPath: &apos;bower_components&apos;,
+    nodeModulesPath: &apos;node_modules&apos;,
+    index: null}) {
     if (server) {
-      if (server.elementLocation) {
-        logger.warn(&apos;Deprecated::server.elementLocation, support ends @0.2.0 [visit](https://github.com/vandeurenglenn/backed-cli#serve) to learn more&apos;);
-        app.use(`/${server.elementLocation}`, express.static(
-          this.appLocation(server.path, &apos;some-element.js&apos;)));
-      }
+      this.handleOldOptions(server);
       if (server.use) {
         for (let use of server.use) {
           app.use(use.path, express.static(this.appLocation(use.static || use.path)));
@@ -103,13 +106,13 @@ export default class Server {
       //   this.appLocation(server.path, &apos;some-element.js&apos;)));
 
       app.use(&apos;/&apos;, express.static(
-        this.appLocation(server.entry, &apos;dist&apos;)));
+        this.appLocation(server.entry)));
 
       app.use(&apos;/demo&apos;, express.static(
-        this.appLocation(server.demo, &apos;demo&apos;)));
+        this.appLocation(server.demo)));
 
       app.use(&apos;/docs&apos;, express.static(
-        this.appLocation(server.docs, &apos;docs&apos;)));
+        this.appLocation(server.docs)));
 
       app.use(&apos;/package.json&apos;, express.static(
         this.appLocation(&apos;package.json&apos;)
@@ -138,7 +141,7 @@ export default class Server {
         logger.log(`${global.config.name}::serving app from http://localhost:${server.port}/${server.entry.replace(&apos;/&apos;, &apos;&apos;)}`);
       });
     } else {
-      return logger.warn(`${global.config.name}::server config not found [example](https://github.com/vandeurenglenn/backed-cli/config/backed.json)`);
+      return logger.warn(`${global.config.name}::server config not found [example](https://raw.githubusercontent.com/VandeurenGlenn/backed-cli/master/config/backed.json)`);
     }
   }
 
@@ -157,6 +160,12 @@ export default class Server {
     }
     root += `\\${path}`;
     return root;
+  }
+
+  handleOldOptions(options) {
+    if (options.path || options.elementLocation) {
+      logger.warn(`${options.path ? &apos;server.path&apos; : &apos;server.elementLocation&apos;} is no longer supported, [visit](https://github.com/vandeurenglenn/backed-cli#serve) to learn more&apos;`);
+    }
   }
 }
 </code></pre>

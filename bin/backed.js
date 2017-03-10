@@ -180,19 +180,22 @@ class Server {
  * @param {object} server - configuration
  * @param {string} server.entry path to where your build is located
  * @param {string} server.docs path to where your docs are located
- * @param {string} server.path src path of the component
  * @param {string} server.bowerPath path to bower_components
  * @param {string} server.nodeModulesPath path to node_modules
  * @param {string} server.demo path to the demo
- * @param {string} server.index path to your index.html file we serve a helper/docs index by default
+ * @param {string} server.index path to your index.html file we serve a helper/docs index by default (not support for now)
+ * @param {array} server.use static files to include [{path: some/path, static: some//path}] when static is undefined path will be used.
  */
-  serve(server) {
+  serve(server = {
+    entry: '/',
+    demo: 'demo',
+    docs: 'docs',
+    use: [{path: null, static: null}],
+    bowerPath: 'bower_components',
+    nodeModulesPath: 'node_modules',
+    index: null}) {
     if (server) {
-      if (server.elementLocation) {
-        logger.warn('Deprecated::server.elementLocation, support ends @0.2.0 [visit](https://github.com/vandeurenglenn/backed-cli#serve) to learn more');
-        app.use(`/${server.elementLocation}`, express.static(
-          this.appLocation(server.path, 'some-element.js')));
-      }
+      this.handleOldOptions(server);
       if (server.use) {
         for (let use of server.use) {
           app.use(use.path, express.static(this.appLocation(use.static || use.path)));
@@ -208,13 +211,13 @@ class Server {
       //   this.appLocation(server.path, 'some-element.js')));
 
       app.use('/', express.static(
-        this.appLocation(server.entry, 'dist')));
+        this.appLocation(server.entry)));
 
       app.use('/demo', express.static(
-        this.appLocation(server.demo, 'demo')));
+        this.appLocation(server.demo)));
 
       app.use('/docs', express.static(
-        this.appLocation(server.docs, 'docs')));
+        this.appLocation(server.docs)));
 
       app.use('/package.json', express.static(
         this.appLocation('package.json')
@@ -243,7 +246,7 @@ class Server {
         logger.log(`${global.config.name}::serving app from http://localhost:${server.port}/${server.entry.replace('/', '')}`);
       });
     } else {
-      return logger.warn(`${global.config.name}::server config not found [example](https://github.com/vandeurenglenn/backed-cli/config/backed.json)`);
+      return logger.warn(`${global.config.name}::server config not found [example](https://raw.githubusercontent.com/VandeurenGlenn/backed-cli/master/config/backed.json)`);
     }
   }
 
@@ -262,6 +265,12 @@ class Server {
     }
     root += `\\${path}`;
     return root;
+  }
+
+  handleOldOptions(options) {
+    if (options.path || options.elementLocation) {
+      logger.warn(`${options.path ? 'server.path' : 'server.elementLocation'} is no longer supported, [visit](https://github.com/vandeurenglenn/backed-cli#serve) to learn more'`);
+    }
   }
 }
 
