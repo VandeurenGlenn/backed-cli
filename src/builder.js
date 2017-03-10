@@ -1,26 +1,39 @@
   'use strict';
   const {rollup} = require('rollup');
-  const json = require('rollup-plugin-json');
-  const _babel = require('rollup-plugin-babel');
   import logger from './logger.js';
   let cache;
 
   export default class Builder {
+
+    constructor(config, iterator) {
+      this.build(config).then(() => {
+        iterator.next();
+      });
+    }
+
     build(config) {
-      if (config.src) {
-        logger.warn(`Deprecated::src, support ends @0.2.0 [visit](https://github.com/vandeurenglenn/backed-cli#README) to learn more or take a look at the [example](https://github.com/vandeurenglenn/backed-cli/config/backed.json)`);
-        this.handleFormats(config).then(through => {
-          this.bundle(through);
-        });
-      } else {
-        this.promiseBundles(config).then(bundles => {
-          for (let bundle of bundles) {
-            this.bundle(bundle);
-          }
-        }).catch(err => {
-          logger.error(err);
-        });
-      }
+      return new Promise((resolve, reject) => {
+        if (config.src) {
+          logger.warn(`Deprecated::src, support ends @0.2.0 [visit](https://github.com/vandeurenglenn/backed-cli#README) to learn more or take a look at the [example](https://github.com/vandeurenglenn/backed-cli/config/backed.json)`);
+          this.handleFormats(config).then(through => {
+            this.bundle(through).then(() => {
+              resolve();
+            });
+          });
+        } else {
+          this.promiseBundles(config).then(bundles => {
+            let promises = [];
+            for (let bundle of bundles) {
+              promises.push(this.bundle(bundle));
+            }
+            Promise.all(promises).then(() => {
+              resolve();
+            });
+          }).catch(error => {
+            reject(error);
+          });
+        }
+      });
     }
 
     handleFormats(config) {
@@ -84,9 +97,9 @@
    * @param {string} config.name the name of your element/app
    * @param {string} config.moduleName the moduleName for your element/app (not needed for es & cjs)
    * @param {boolean} config.sourceMap Wether or not to build sourceMaps defaults to 'true'
-   * @param {object} config.babel babel configuration [see](http://babeljs.io/docs/usage/babelrc/)
+   * @param {object} config.plugins rollup plugins to use [see](https://github.com/rollup/rollup/wiki/Plugins)
    */
-    bundle(config = {src: null, dest: 'bundle.js', format: 'iife', name: null, babel: {}, moduleName: null, sourceMap: true}) {
+    bundle(config = {src: null, dest: 'bundle.js', format: 'iife', name: null, plugins: [], moduleName: null, sourceMap: true}) {
       rollup({
         entry: `${process.cwd()}/${config.src}`,
         // Use the previous bundle as starting point.
@@ -101,10 +114,7 @@
           format: config.format,
           moduleName: config.moduleName,
           sourceMap: config.sourceMap,
-          plugins: [
-            json(),
-            _babel(config.babel)
-          ],
+          plugins: config.plugins,
           dest: `${process.cwd()}/${config.dest}`
         });
         logger.succes(`${global.config.name}::build finished`);

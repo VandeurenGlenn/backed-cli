@@ -1,13 +1,13 @@
 'use strict';
 const {readFileSync} = require('fs');
-const path =  require('path');
+const path = require('path');
 import logger from './logger.js';
 
 export default class Config {
-  constructor() {
+  constructor(iterator) {
     this.importConfig().then(config => {
       const name = this.importPackageName() || this.importBowerName();
-      return this.updateConfig(config, name);
+      iterator.next(this.updateConfig(config, name));
     });
   }
 
@@ -43,7 +43,7 @@ export default class Config {
           name: path.posix.basename(__dirname.replace('/bin', ''))
         });
       });
-    })
+    });
   }
 
   /**
@@ -52,8 +52,10 @@ export default class Config {
   importPackageName() {
     try {
       return JSON.parse(readFileSync(`${process.cwd()}/package.json`)).name;
-    } catch(e) {
-      if (global.debug) logger.warn('no package.json found');
+    } catch (e) {
+      if (global.debug) {
+        logger.warn('no package.json found');
+      }
     }
     return null;
   }
@@ -64,8 +66,10 @@ export default class Config {
   importBowerName() {
     try {
       return JSON.parse(readFileSync(`${process.cwd()}/bower.json`)).name;
-    } catch(e) {
-      if (global.debug) logger.warn('no bower.json found');
+    } catch (e) {
+      if (global.debug) {
+        logger.warn('no bower.json found');
+      }
     }
     return null;
   }
@@ -78,7 +82,7 @@ export default class Config {
     config.name = config.name || name;
     config.format = config.format || 'es';
     config.sourceMap = config.sourceMap || true;
-    config.server = config.server || {};
+    config.server = config.server || {port: 3000, entry: '/', demo: 'demo'};
     // TODO: create method for building atom app with atom-builder
     // TODO: implement element, app & atom-app config
     // config.server.element = config.element || {path: `${config.name}.js`};

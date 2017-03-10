@@ -6,7 +6,6 @@ import Builder from './builder.js';
 import Server from './server.js';
 import Config from './config.js';
 import Utils from './utils.js';
-const config = new Config();
 const utils = new Utils();
 
 commander
@@ -21,16 +20,23 @@ let build = commander.build;
 let copy = commander.build || commander.copy;
 let serve = commander.serve;
 let debug = commander.debug;
+let iterator;
 
-global.debug = debug || config.debug;
-if (build) {
-  const builder = new Builder(config);
-  builder.build(config);
+function * run() {
+  const config = yield new Config(iterator);
+  global.debug = debug || config.debug;
+
+  if (build) {
+    yield new Builder(config, iterator);
+  }
+  if (copy) {
+    utils.copySources(config.sources);
+  }
+  if (serve) {
+    const server = new Server();
+    server.serve(config.server);
+  }
 }
-if (copy) {
-  utils.copySources(config.sources);
-}
-if (serve) {
-  const server = new Server();
-  server.serve(config.server);
-}
+
+iterator = run();
+iterator.next();
