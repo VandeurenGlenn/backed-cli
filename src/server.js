@@ -64,10 +64,10 @@ export default class Server {
         this.appLocation(server.entry)));
 
       app.use('/demo', express.static(
-        this.appLocation(server.demo)));
+        this.appLocation(server.demo, 'demo')));
 
       app.use('/docs', express.static(
-        this.appLocation(server.docs)));
+        this.appLocation(server.docs, 'docs')));
 
       app.use('/package.json', express.static(
         this.appLocation('package.json')

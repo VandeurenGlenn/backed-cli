@@ -101,12 +101,16 @@ task('rollup:after', () => {
 });
 
 task('clean', cb => {
-  del.sync(['.tmp/', 'bin/']);
+  del.sync(['.tmp/', 'bin/**/*']);
   cb();
+});
+
+task('copy', () => {
+  return src('src/workers/*.js').pipe(dest('bin/workers'));
 });
 
 task('rollup', series('rollup:before', 'rollup:run', 'rollup:after'));
 
-task('build', series('clean', 'rollup'));
+task('build', series('clean', 'rollup', 'copy'));
 task('prepublish', series('nsp', 'build'));
 task('default', series('static', 'test', 'coveralls'));

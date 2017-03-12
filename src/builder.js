@@ -1,68 +1,71 @@
   'use strict';
   const {rollup} = require('rollup');
+  const path = require('path');
+  const {fork} = require('child_process');
   import logger from './logger.js';
+  let iterator;
   let cache;
+  let warnings = [];
 
+  const logWorker = fork(path.join(__dirname, 'workers/log-worker.js'));
+
+  function * bundler(bundles, fn) {
+    for (let bundle of bundles) {
+      let dest = bundle.dest;
+      let format = bundle.format;
+      bundle = bundle.bundle;
+      bundle.dest = dest;
+      bundle.format = format;
+
+      yield fn(bundle);
+    }
+    logWorker.kill('SIGINT');
+    if (global.debug) {
+      for (let warning of warnings) {
+        logger.warn(warning);
+      }
+    }
+  }
   export default class Builder {
 
-    constructor(config, iterator) {
-      this.build(config).then(() => {
-        iterator.next();
+    constructor(config) {
+      logWorker.on('message', message => {
+        console.log(message);
       });
+
+      logWorker.send(logger._chalk('building', 'cyan'));
+      logWorker.send('start');
+      this.build(config);
     }
 
     build(config) {
-      return new Promise((resolve, reject) => {
-        if (config.src) {
-          logger.warn(`Deprecated::src, support ends @0.2.0 [visit](https://github.com/vandeurenglenn/backed-cli#README) to learn more or take a look at the [example](https://github.com/vandeurenglenn/backed-cli/config/backed.json)`);
-          this.handleFormats(config).then(through => {
-            this.bundle(through).then(() => {
-              resolve();
-            });
-          });
-        } else {
-          this.promiseBundles(config).then(bundles => {
-            let promises = [];
-            for (let bundle of bundles) {
-              promises.push(this.bundle(bundle));
-            }
-            Promise.all(promises).then(() => {
-              resolve();
-            });
-          }).catch(error => {
-            reject(error);
-          });
-        }
+      this.promiseBundles(config).then(bundles => {
+        iterator = bundler(bundles, this.bundle);
+        iterator.next();
+      }).catch(error => {
+        logger.warn(error);
       });
     }
 
-    handleFormats(config) {
+    handleFormats(bundle, format) {
       return new Promise((resolve, reject) => {
         try {
-          if (config.format && typeof config.format !== 'string') {
-            for (let format of config.format) {
-              let dest = config.dest;
-              if (format !== 'iife') {
-                switch (format) {
-                  case 'cjs':
-                    dest = dest.replace('.js', '-node.js');
-                    break;
-                  case 'es':
-                  case 'amd':
-                    dest = dest.replace('.js', `-${format}.js`);
-                    break;
-                  default:
-                    break;
-                  // do nothing
-                }
-              }
-              config.dest = dest;
-              config.format = format;
-              resolve(config);
+          let dest = bundle.dest;
+          if (format !== 'iife') {
+            switch (format) {
+              case 'cjs':
+                dest = bundle.dest.replace('.js', '-node.js');
+                break;
+              case 'es':
+              case 'amd':
+                dest = bundle.dest.replace('.js', `-${format}.js`);
+                break;
+              default:
+                break;
+                    // do nothing
             }
-          } else {
-            resolve(config);
           }
+          resolve({bundle: bundle, dest: dest, format: format});
         } catch (err) {
           reject(err);
         }
@@ -71,16 +74,21 @@
 
     promiseBundles(config) {
       return new Promise((resolve, reject) => {
-        let bundles = [];
+        let formats = [];
         try {
           for (let bundle of config.bundles) {
-            bundle.name = bundle.babel || config.name;
+            bundle.name = bundle.name || config.name;
             bundle.babel = bundle.babel || config.babel;
-            bundle.format = bundle.format || config.format || 'es';
-            bundles.push(this.handleFormats(bundle));
+            bundle.sourceMap = bundle.sourceMap || config.sourceMap;
+            if (config.format && typeof config.format !== 'string') {
+              for (let format of config.format) {
+                formats.push(this.handleFormats(bundle, format));
+              }
+            } else {
+              formats.push(this.handleFormats(bundle, config.format));
+            }
           }
-
-          Promise.all(bundles).then(bundles => {
+          Promise.all(formats).then(bundles => {
             resolve(bundles);
           });
         } catch (err) {
@@ -100,26 +108,30 @@
    * @param {object} config.plugins rollup plugins to use [see](https://github.com/rollup/rollup/wiki/Plugins)
    */
     bundle(config = {src: null, dest: 'bundle.js', format: 'iife', name: null, plugins: [], moduleName: null, sourceMap: true}) {
+      let plugins = config.plugins || [];
+      if (config.babel) {
+        const babel = require('rollup-plugin-babel');
+        plugins.push(babel(config.babel));
+      }
       rollup({
         entry: `${process.cwd()}/${config.src}`,
+        plugins: plugins,
+        cache: cache,
         // Use the previous bundle as starting point.
         onwarn: warning => {
-          logger.warn(warning);
-        },
-        cache: cache
+          warnings.push(warning);
+        }
       }).then(bundle => {
-      // Cache our bundle for later use (optional)
         cache = bundle;
         bundle.write({
+          // output format - 'amd', 'cjs', 'es', 'iife', 'umd'
           format: config.format,
           moduleName: config.moduleName,
           sourceMap: config.sourceMap,
-          plugins: config.plugins,
           dest: `${process.cwd()}/${config.dest}`
         });
-        logger.succes(`${global.config.name}::build finished`);
-      }).catch(err => {
-        logger.error(err);
+        logWorker.send(logger._chalk(`${global.config.name}::build finished`, 'cyan'));
+        iterator.next();
       });
     }
 }
