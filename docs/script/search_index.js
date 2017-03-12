@@ -532,5 +532,11 @@ window.esdocSearchIndex = [
     "class/src/utils.js~utils.html#instance-method-write",
     "src/utils.js~utils#write",
     "method"
+  ],
+  [
+    "src/workers/log-worker.js",
+    "file/src/workers/log-worker.js.html",
+    "src/workers/log-worker.js",
+    "file"
   ]
 ]

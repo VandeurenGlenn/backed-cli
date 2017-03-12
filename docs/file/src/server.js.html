@@ -109,10 +109,10 @@ export default class Server {
         this.appLocation(server.entry)));
 
       app.use(&apos;/demo&apos;, express.static(
-        this.appLocation(server.demo)));
+        this.appLocation(server.demo, &apos;demo&apos;)));
 
       app.use(&apos;/docs&apos;, express.static(
-        this.appLocation(server.docs)));
+        this.appLocation(server.docs, &apos;docs&apos;)));
 
       app.use(&apos;/package.json&apos;, express.static(
         this.appLocation(&apos;package.json&apos;)
