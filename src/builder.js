@@ -13,10 +13,9 @@
     for (let bundle of bundles) {
       let dest = bundle.dest;
       let format = bundle.format;
-      bundle = bundle.bundle;
+      bundle = bundle.bundle || bundle;
       bundle.dest = dest;
       bundle.format = format;
-
       yield fn(bundle);
     }
     logWorker.kill('SIGINT');
@@ -38,6 +37,23 @@
       this.build(config);
     }
 
+    /**
+     * convert hyphen to a javascript property srting
+     */
+    toJsProp(string) {
+      let parts = string.split('-');
+      if (parts.length > 1) {
+        string = parts[0];
+        for (let part of parts) {
+          if (parts[0] !== part) {
+            var upper = part.charAt(0).toUpperCase();
+            string += upper + part.slice(1).toLowerCase();
+          }
+        }
+      }
+      return string;
+    }
+
     build(config) {
       this.promiseBundles(config).then(bundles => {
         iterator = bundler(bundles, this.bundle);
@@ -51,7 +67,9 @@
       return new Promise((resolve, reject) => {
         try {
           let dest = bundle.dest;
-          if (format !== 'iife') {
+          if (format === 'iife' && !bundle.moduleName) {
+            bundle.moduleName = this.toJsProp(bundle.name);
+          } else {
             switch (format) {
               case 'cjs':
                 dest = bundle.dest.replace('.js', '-node.js');
@@ -72,20 +90,35 @@
       });
     }
 
+    handleFormat(bundle, format = undefined) {
+      return new Promise(resolve => {
+        if (format) {
+          bundle.format = format;
+        }
+        if (bundle.format === 'iife' && !bundle.moduleName) {
+          bundle.moduleName = this.toJsProp(bundle.name);
+        }
+        resolve(bundle);
+      });
+    }
+
     promiseBundles(config) {
       return new Promise((resolve, reject) => {
         let formats = [];
+        let bundles = config.bundles;
         try {
-          for (let bundle of config.bundles) {
+          for (let bundle of bundles) {
             bundle.name = bundle.name || config.name;
             bundle.babel = bundle.babel || config.babel;
             bundle.sourceMap = bundle.sourceMap || config.sourceMap;
-            if (config.format && typeof config.format !== 'string') {
+            if (config.format && typeof config.format !== 'string' && !bundle.format) {
               for (let format of config.format) {
                 formats.push(this.handleFormats(bundle, format));
               }
-            } else {
-              formats.push(this.handleFormats(bundle, config.format));
+            } else if (bundle.format) {
+              formats.push(this.handleFormat(bundle));
+            } else if (!bundle.format) {
+              formats.push(this.handleFormat(bundle, config.format));
             }
           }
           Promise.all(formats).then(bundles => {
