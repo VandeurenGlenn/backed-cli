@@ -58,10 +58,9 @@
     for (let bundle of bundles) {
       let dest = bundle.dest;
       let format = bundle.format;
-      bundle = bundle.bundle;
+      bundle = bundle.bundle || bundle;
       bundle.dest = dest;
       bundle.format = format;
-
       yield fn(bundle);
     }
     logWorker.kill(&apos;SIGINT&apos;);
@@ -83,6 +82,23 @@
       this.build(config);
     }
 
+    /**
+     * convert hyphen to a javascript property srting
+     */
+    toJsProp(string) {
+      let parts = string.split(&apos;-&apos;);
+      if (parts.length &gt; 1) {
+        string = parts[0];
+        for (let part of parts) {
+          if (parts[0] !== part) {
+            var upper = part.charAt(0).toUpperCase();
+            string += upper + part.slice(1).toLowerCase();
+          }
+        }
+      }
+      return string;
+    }
+
     build(config) {
       this.promiseBundles(config).then(bundles =&gt; {
         iterator = bundler(bundles, this.bundle);
@@ -96,7 +112,9 @@
       return new Promise((resolve, reject) =&gt; {
         try {
           let dest = bundle.dest;
-          if (format !== &apos;iife&apos;) {
+          if (format === &apos;iife&apos; &amp;&amp; !bundle.moduleName) {
+            bundle.moduleName = this.toJsProp(bundle.name);
+          } else {
             switch (format) {
               case &apos;cjs&apos;:
                 dest = bundle.dest.replace(&apos;.js&apos;, &apos;-node.js&apos;);
@@ -117,20 +135,35 @@
       });
     }
 
+    handleFormat(bundle, format = undefined) {
+      return new Promise(resolve =&gt; {
+        if (format) {
+          bundle.format = format;
+        }
+        if (bundle.format === &apos;iife&apos; &amp;&amp; !bundle.moduleName) {
+          bundle.moduleName = this.toJsProp(bundle.name);
+        }
+        resolve(bundle);
+      });
+    }
+
     promiseBundles(config) {
       return new Promise((resolve, reject) =&gt; {
         let formats = [];
+        let bundles = config.bundles;
         try {
-          for (let bundle of config.bundles) {
+          for (let bundle of bundles) {
             bundle.name = bundle.name || config.name;
             bundle.babel = bundle.babel || config.babel;
             bundle.sourceMap = bundle.sourceMap || config.sourceMap;
-            if (config.format &amp;&amp; typeof config.format !== &apos;string&apos;) {
+            if (config.format &amp;&amp; typeof config.format !== &apos;string&apos; &amp;&amp; !bundle.format) {
               for (let format of config.format) {
                 formats.push(this.handleFormats(bundle, format));
               }
-            } else {
-              formats.push(this.handleFormats(bundle, config.format));
+            } else if (bundle.format) {
+              formats.push(this.handleFormat(bundle));
+            } else if (!bundle.format) {
+              formats.push(this.handleFormat(bundle, config.format));
             }
           }
           Promise.all(formats).then(bundles =&gt; {

@@ -396,6 +396,12 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/builder.js~builder#handleformat",
+    "class/src/builder.js~Builder.html#instance-method-handleFormat",
+    "src/builder.js~Builder#handleFormat",
+    "method"
+  ],
+  [
     "src/builder.js~builder#handleformats",
     "class/src/builder.js~Builder.html#instance-method-handleFormats",
     "src/builder.js~Builder#handleFormats",
@@ -405,6 +411,12 @@ window.esdocSearchIndex = [
     "src/builder.js~builder#promisebundles",
     "class/src/builder.js~Builder.html#instance-method-promiseBundles",
     "src/builder.js~Builder#promiseBundles",
+    "method"
+  ],
+  [
+    "src/builder.js~builder#tojsprop",
+    "class/src/builder.js~Builder.html#instance-method-toJsProp",
+    "src/builder.js~Builder#toJsProp",
     "method"
   ],
   [
