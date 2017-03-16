@@ -1,6 +1,6 @@
 {
   "name": "backed-cli",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "The official command line interface for Backed",
   "homepage": "https://github.com/vandeurenglenn/backed-cli",
   "author": {
@@ -60,6 +60,7 @@
     "express": "^4.14.1",
     "glob": "^7.1.1",
     "inject-template": "^0.2.0",
+    "log-update": "^1.0.2",
     "rollup": "^0.41.4",
     "rollup-plugin-babel": "^2.7.1",
     "rollup-plugin-json": "^2.1.0",
