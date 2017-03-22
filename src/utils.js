@@ -32,16 +32,18 @@ export default class {
    * returns a destination using [vinyl](https://github.com/gulpjs/vinyl) info
    */
   destinationFromFile(file) {
-    let dest = file.path;
-    dest = dest.replace(`${file.base}/`, '');
+    let dest = path.win32.parse(file.path).dir;
+    dest = dest.replace(`${process.cwd()}\\`, '');
     dest = dest.split(path.sep);
     if (dest.length > 1) {
       dest[0] = file.dest;
     } else {
-      dest[1] = dest[0];
-      dest[0] = dest;
+      dest[0] = file.dest;
     }
-    file.dest = dest.toString().replace(/,/g, '/');
+    dest.push(path.win32.basename(file.path));
+    file.dest = dest.toString().replace(/,/g, '\\');
+
+    // return console.log(file.dest);
     return file;
   }
 
@@ -56,7 +58,7 @@ export default class {
         cwd: process.cwd()
       }).then(files => {
         for (let file of files) {
-          file.dest = dest;
+          file.dest = path.win32.normalize(dest);
           promises.push(this.write(this.destinationFromFile(file)));
         }
         Promise.all(promises).then(() => {
@@ -70,22 +72,24 @@ export default class {
    * @param {object} file {src: "some/src/path", dest: "some/dest/path"}
    */
   write(file) {
+    // console.log(file);
     return new Promise((resolve, reject) => {
       if (file) {
         writeFile(file.dest, file.contents, err => {
           if (err) {
+            console.log(err);
             if (global.debug) {
               logger.warn(
                   `subdirectory(s)::not existing
                   Backed will now try to create ${file.dest}`
                 );
             }
-            const dest = file.dest.replace(/\/(?:.(?!\/))+$/, '');
-            const paths = dest.split('/');
+            const dest = path.win32.dirname(file.dest);
+            const paths = dest.split('\\');
             let prepath = '';
             for (let path of paths) {
-              prepath += `${path}/`;
-              mkdir(prepath, err => {
+              prepath += `${path}\\`;
+              mkdir(process.cwd() + '\\' + prepath, err => {
                 if (err) {
                   if (err.code !== 'EEXIST') {
                     reject(err);
