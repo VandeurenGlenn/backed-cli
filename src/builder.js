@@ -19,7 +19,10 @@
       bundle.format = format;
       yield fn(bundle);
     }
-    logWorker.kill('SIGINT');
+    setTimeout(() => {
+      logWorker.kill('SIGINT');
+      _it.next();
+    }, 50);
     if (global.debug) {
       for (let warning of warnings) {
         logger.warn(warning);
@@ -163,6 +166,16 @@
         });
         logWorker.send(logger._chalk(`${global.config.name}::build finished`, 'cyan'));
         iterator.next();
+      }).catch(err => {
+        const code = err.code;
+        logWorker.send('pauze');
+        logger.error(err);
+        if (code === 'PLUGIN_ERROR' || code === 'UNRESOLVED_ENTRY') {
+          logWorker.kill('SIGINT');
+        } else {
+          logger.warn('trying to resume the build ...');
+          logWorker.send('resume');
+        }
       });
     }
 }
