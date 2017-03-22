@@ -6,6 +6,7 @@
   let iterator;
   let cache;
   let warnings = [];
+  let _it;
 
   const logWorker = fork(path.join(__dirname, 'workers/log-worker.js'));
 
@@ -27,14 +28,11 @@
   }
   export default class Builder {
 
-    constructor(config) {
-      logWorker.on('message', message => {
-        console.log(message);
-      });
-
+    constructor(config, it) {
       logWorker.send(logger._chalk('building', 'cyan'));
       logWorker.send('start');
       this.build(config);
+      _it = it;
     }
 
     /**
