@@ -109,6 +109,11 @@ task('copy', () => {
   return src('src/workers/*.js').pipe(dest('bin/workers'));
 });
 
+task('watch', () => {
+  watch('src/*.js', series('build'));
+  watch('src/workers/*.js', series('copy'));
+});
+
 task('rollup', series('rollup:before', 'rollup:run', 'rollup:after'));
 
 task('build', series('clean', 'rollup', 'copy'));
