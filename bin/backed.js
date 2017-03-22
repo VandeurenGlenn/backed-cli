@@ -33,6 +33,7 @@ const {rollup} = require('rollup');
   let iterator$1;
   let cache;
   let warnings = [];
+  let _it;
 
   const logWorker = fork(path.join(__dirname, 'workers/log-worker.js'));
 
@@ -45,7 +46,10 @@ const {rollup} = require('rollup');
       bundle.format = format;
       yield fn(bundle);
     }
-    logWorker.kill('SIGINT');
+    setTimeout(() => {
+      logWorker.kill('SIGINT');
+      _it.next();
+    }, 50);
     if (global.debug) {
       for (let warning of warnings) {
         logger.warn(warning);
@@ -54,14 +58,11 @@ const {rollup} = require('rollup');
   }
   class Builder {
 
-    constructor(config) {
-      logWorker.on('message', message => {
-        console.log(message);
-      });
-
+    constructor(config, it) {
       logWorker.send(logger._chalk('building', 'cyan'));
       logWorker.send('start');
       this.build(config);
+      _it = it;
     }
 
     /**
@@ -192,6 +193,16 @@ const {rollup} = require('rollup');
         });
         logWorker.send(logger._chalk(`${global.config.name}::build finished`, 'cyan'));
         iterator$1.next();
+      }).catch(err => {
+        const code = err.code;
+        logWorker.send('pauze');
+        logger.error(err);
+        if (code === 'PLUGIN_ERROR' || code === 'UNRESOLVED_ENTRY') {
+          logWorker.kill('SIGINT');
+        } else {
+          logger.warn('trying to resume the build ...');
+          logWorker.send('resume');
+        }
       });
     }
 }
@@ -202,10 +213,6 @@ const app = express();
 
 const glob = require('glob');
 
-/**
- * glob file path
- * @param {string} string
- */
 const src = string => {
   return new Promise((resolve, reject) => {
     glob(string, (error, files) => {
@@ -441,16 +448,18 @@ var Utils = class {
    * returns a destination using [vinyl](https://github.com/gulpjs/vinyl) info
    */
   destinationFromFile(file) {
-    let dest = file.path;
-    dest = dest.replace(`${file.base}/`, '');
+    let dest = path$2.win32.parse(file.path).dir;
+    dest = dest.replace(`${process.cwd()}\\`, '');
     dest = dest.split(path$2.sep);
     if (dest.length > 1) {
       dest[0] = file.dest;
     } else {
-      dest[1] = dest[0];
-      dest[0] = dest;
+      dest[0] = file.dest;
     }
-    file.dest = dest.toString().replace(/,/g, '/');
+    dest.push(path$2.win32.basename(file.path));
+    file.dest = dest.toString().replace(/,/g, '\\');
+
+    // return console.log(file.dest);
     return file;
   }
 
@@ -465,7 +474,7 @@ var Utils = class {
         cwd: process.cwd()
       }).then(files => {
         for (let file of files) {
-          file.dest = dest;
+          file.dest = path$2.win32.normalize(dest);
           promises.push(this.write(this.destinationFromFile(file)));
         }
         Promise.all(promises).then(() => {
@@ -479,22 +488,24 @@ var Utils = class {
    * @param {object} file {src: "some/src/path", dest: "some/dest/path"}
    */
   write(file) {
+    // console.log(file);
     return new Promise((resolve, reject) => {
       if (file) {
         writeFile(file.dest, file.contents, err => {
           if (err) {
+            console.log(err);
             if (global.debug) {
               logger.warn(
                   `subdirectory(s)::not existing
                   Backed will now try to create ${file.dest}`
                 );
             }
-            const dest = file.dest.replace(/\/(?:.(?!\/))+$/, '');
-            const paths = dest.split('/');
+            const dest = path$2.win32.dirname(file.dest);
+            const paths = dest.split('\\');
             let prepath = '';
             for (let path of paths) {
-              prepath += `${path}/`;
-              mkdir(prepath, err => {
+              prepath += `${path}\\`;
+              mkdir(process.cwd() + '\\' + prepath, err => {
                 if (err) {
                   if (err.code !== 'EEXIST') {
                     reject(err);

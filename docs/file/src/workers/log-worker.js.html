@@ -46,17 +46,44 @@
 <pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">&apos;use strict&apos;;
 const elegantSpinner = require(&apos;elegant-spinner&apos;);
 const logUpdate = require(&apos;log-update&apos;);
+const chalk = require(&apos;chalk&apos;);
 let frame = elegantSpinner();
 let text = &apos;Building&apos;;
 
+let running = false;
+let startTime;
+
+const time = () =&gt; {
+  return new Date().toLocaleTimeString();
+};
+
+const now = () =&gt; {
+  return Date.now();
+};
+
 let interval = () =&gt; {
   setInterval(() =&gt; {
-    logUpdate(`${text} ${frame()}`);
+    if (running) {
+      logUpdate(`[${time()}] ${text} ${frame()}`);
+    }
   }, 50);
 };
 process.on(&apos;message&apos;, message =&gt; {
   if (message === &apos;start&apos;) {
+    running = true;
+    startTime = now();
     interval();
+  } else if (message === &apos;pauze&apos;) {
+    running = false;
+  } else if (message === &apos;resume&apos;) {
+    running = true;
+  } else if (message.includes(&apos;finished&apos;)) {
+    frame = () =&gt; {
+      return &apos;&apos;;
+    };
+    let period = now() - startTime;
+    period /= 1000;
+    text = `${message} after: ${chalk.magenta(period + &apos; sec&apos;)}`;
   } else {
     text = message;
   }

@@ -51,6 +51,7 @@
   let iterator;
   let cache;
   let warnings = [];
+  let _it;
 
   const logWorker = fork(path.join(__dirname, &apos;workers/log-worker.js&apos;));
 
@@ -63,7 +64,10 @@
       bundle.format = format;
       yield fn(bundle);
     }
-    logWorker.kill(&apos;SIGINT&apos;);
+    setTimeout(() =&gt; {
+      logWorker.kill(&apos;SIGINT&apos;);
+      _it.next();
+    }, 50);
     if (global.debug) {
       for (let warning of warnings) {
         logger.warn(warning);
@@ -72,14 +76,11 @@
   }
   export default class Builder {
 
-    constructor(config) {
-      logWorker.on(&apos;message&apos;, message =&gt; {
-        console.log(message);
-      });
-
+    constructor(config, it) {
       logWorker.send(logger._chalk(&apos;building&apos;, &apos;cyan&apos;));
       logWorker.send(&apos;start&apos;);
       this.build(config);
+      _it = it;
     }
 
     /**
@@ -210,6 +211,16 @@
         });
         logWorker.send(logger._chalk(`${global.config.name}::build finished`, &apos;cyan&apos;));
         iterator.next();
+      }).catch(err =&gt; {
+        const code = err.code;
+        logWorker.send(&apos;pauze&apos;);
+        logger.error(err);
+        if (code === &apos;PLUGIN_ERROR&apos; || code === &apos;UNRESOLVED_ENTRY&apos;) {
+          logWorker.kill(&apos;SIGINT&apos;);
+        } else {
+          logger.warn(&apos;trying to resume the build ...&apos;);
+          logWorker.send(&apos;resume&apos;);
+        }
       });
     }
 }
