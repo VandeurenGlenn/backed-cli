@@ -1,6 +1,7 @@
 'use strict';
 const {readFileSync} = require('fs');
 const path = require('path');
+const {merge} = require('lodash');
 import logger from './logger.js';
 
 export default class Config {
@@ -9,6 +10,17 @@ export default class Config {
       const name = this.importPackageName() || this.importBowerName();
       iterator.next(this.updateConfig(config, name));
     });
+  }
+
+  get server() {
+    return {
+      port: 3000,
+      entry: '/',
+      demo: 'demo',
+      docs: 'docs',
+      bowerPath: 'bower_components',
+      nodeModulesPath: 'node_modules',
+      index: null};
   }
 
   /**
@@ -82,7 +94,7 @@ export default class Config {
     config.name = config.name || name;
     config.format = config.format || 'es';
     config.sourceMap = config.sourceMap || true;
-    config.server = config.server || {port: 3000, entry: '/', demo: 'demo'};
+    config.server = merge(this.server, config.server);
     // TODO: create method for building atom app with atom-builder
     // TODO: implement element, app & atom-app config
     // config.server.element = config.element || {path: `${config.name}.js`};
