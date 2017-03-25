@@ -19,10 +19,8 @@
       bundle.format = format;
       yield fn(bundle);
     }
-    setTimeout(() => {
-      logWorker.kill('SIGINT');
-      _it.next();
-    }, 50);
+    logWorker.kill('SIGINT');
+    _it.next();
     if (global.debug) {
       for (let warning of warnings) {
         logger.warn(warning);
@@ -165,7 +163,9 @@
           dest: `${process.cwd()}/${config.dest}`
         });
         logWorker.send(logger._chalk(`${global.config.name}::build finished`, 'cyan'));
-        iterator.next();
+        setTimeout(() => {
+          iterator.next();
+        }, 100);
       }).catch(err => {
         const code = err.code;
         logWorker.send('pauze');
