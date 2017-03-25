@@ -122,7 +122,6 @@ export default class {
       if (file) {
         writeFile(file.dest, file.contents, err =&gt; {
           if (err) {
-            console.log(err);
             if (global.debug) {
               logger.warn(
                   `subdirectory(s)::not existing

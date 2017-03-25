@@ -64,10 +64,8 @@
       bundle.format = format;
       yield fn(bundle);
     }
-    setTimeout(() =&gt; {
-      logWorker.kill(&apos;SIGINT&apos;);
-      _it.next();
-    }, 50);
+    logWorker.kill(&apos;SIGINT&apos;);
+    _it.next();
     if (global.debug) {
       for (let warning of warnings) {
         logger.warn(warning);
@@ -210,7 +208,9 @@
           dest: `${process.cwd()}/${config.dest}`
         });
         logWorker.send(logger._chalk(`${global.config.name}::build finished`, &apos;cyan&apos;));
-        iterator.next();
+        setTimeout(() =&gt; {
+          iterator.next();
+        }, 100);
       }).catch(err =&gt; {
         const code = err.code;
         logWorker.send(&apos;pauze&apos;);

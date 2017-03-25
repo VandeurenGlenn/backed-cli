@@ -46,6 +46,7 @@
 <pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">&apos;use strict&apos;;
 const {readFileSync} = require(&apos;fs&apos;);
 const path = require(&apos;path&apos;);
+const {merge} = require(&apos;lodash&apos;);
 import logger from &apos;./logger.js&apos;;
 
 export default class Config {
@@ -54,6 +55,17 @@ export default class Config {
       const name = this.importPackageName() || this.importBowerName();
       iterator.next(this.updateConfig(config, name));
     });
+  }
+
+  get server() {
+    return {
+      port: 3000,
+      entry: &apos;/&apos;,
+      demo: &apos;demo&apos;,
+      docs: &apos;docs&apos;,
+      bowerPath: &apos;bower_components&apos;,
+      nodeModulesPath: &apos;node_modules&apos;,
+      index: null};
   }
 
   /**
@@ -127,7 +139,7 @@ export default class Config {
     config.name = config.name || name;
     config.format = config.format || &apos;es&apos;;
     config.sourceMap = config.sourceMap || true;
-    config.server = config.server || {port: 3000, entry: &apos;/&apos;, demo: &apos;demo&apos;};
+    config.server = merge(this.server, config.server);
     // TODO: create method for building atom app with atom-builder
     // TODO: implement element, app &amp; atom-app config
     // config.server.element = config.element || {path: `${config.name}.js`};

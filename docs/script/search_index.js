@@ -456,6 +456,12 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/config.js~config#server",
+    "class/src/config.js~Config.html#instance-get-server",
+    "src/config.js~Config#server",
+    "member"
+  ],
+  [
     "src/config.js~config#updateconfig",
     "class/src/config.js~Config.html#instance-method-updateConfig",
     "src/config.js~Config#updateConfig",

@@ -96,17 +96,18 @@ export default class Server {
           app.use(use.path, express.static(this.appLocation(use.static || use.path)));
         }
       }
+
+      app.use(&apos;/&apos;, express.static(
+        this.appLocation(server.entry)));
+
       app.use(&apos;/bower_components&apos;, express.static(
         this.appLocation(server.bowerPath, &apos;bower_components&apos;)));
 
       app.use(&apos;/node_modules&apos;, express.static(
         this.appLocation(server.nodeModulesPath, &apos;node_modules&apos;)));
 
-      // app.use(`/${server.elementLocation}`, express.static(
-      //   this.appLocation(server.path, &apos;some-element.js&apos;)));
-
-      app.use(&apos;/&apos;, express.static(
-        this.appLocation(server.entry)));
+      app.use(&apos;/demo/node_modules&apos;, express.static(
+        this.appLocation(server.nodeModulesPath, &apos;node_modules&apos;)));
 
       app.use(&apos;/demo&apos;, express.static(
         this.appLocation(server.demo, &apos;demo&apos;)));

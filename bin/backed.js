@@ -46,10 +46,8 @@ const {rollup} = require('rollup');
       bundle.format = format;
       yield fn(bundle);
     }
-    setTimeout(() => {
-      logWorker.kill('SIGINT');
-      _it.next();
-    }, 50);
+    logWorker.kill('SIGINT');
+    _it.next();
     if (global.debug) {
       for (let warning of warnings) {
         logger.warn(warning);
@@ -192,7 +190,9 @@ const {rollup} = require('rollup');
           dest: `${process.cwd()}/${config.dest}`
         });
         logWorker.send(logger._chalk(`${global.config.name}::build finished`, 'cyan'));
-        iterator$1.next();
+        setTimeout(() => {
+          iterator$1.next();
+        }, 100);
       }).catch(err => {
         const code = err.code;
         logWorker.send('pauze');
@@ -213,6 +213,10 @@ const app = express();
 
 const glob = require('glob');
 
+/**
+ * glob file path
+ * @param {string} string
+ */
 const src = string => {
   return new Promise((resolve, reject) => {
     glob(string, (error, files) => {
@@ -253,17 +257,18 @@ class Server {
           app.use(use.path, express.static(this.appLocation(use.static || use.path)));
         }
       }
+
+      app.use('/', express.static(
+        this.appLocation(server.entry)));
+
       app.use('/bower_components', express.static(
         this.appLocation(server.bowerPath, 'bower_components')));
 
       app.use('/node_modules', express.static(
         this.appLocation(server.nodeModulesPath, 'node_modules')));
 
-      // app.use(`/${server.elementLocation}`, express.static(
-      //   this.appLocation(server.path, 'some-element.js')));
-
-      app.use('/', express.static(
-        this.appLocation(server.entry)));
+      app.use('/demo/node_modules', express.static(
+        this.appLocation(server.nodeModulesPath, 'node_modules')));
 
       app.use('/demo', express.static(
         this.appLocation(server.demo, 'demo')));
@@ -328,12 +333,24 @@ class Server {
 
 const {readFileSync} = require('fs');
 const path$1 = require('path');
+const {merge} = require('lodash');
 class Config {
   constructor(iterator) {
     this.importConfig().then(config => {
       const name = this.importPackageName() || this.importBowerName();
       iterator.next(this.updateConfig(config, name));
     });
+  }
+
+  get server() {
+    return {
+      port: 3000,
+      entry: '/',
+      demo: 'demo',
+      docs: 'docs',
+      bowerPath: 'bower_components',
+      nodeModulesPath: 'node_modules',
+      index: null};
   }
 
   /**
@@ -407,7 +424,7 @@ class Config {
     config.name = config.name || name;
     config.format = config.format || 'es';
     config.sourceMap = config.sourceMap || true;
-    config.server = config.server || {port: 3000, entry: '/', demo: 'demo'};
+    config.server = merge(this.server, config.server);
     // TODO: create method for building atom app with atom-builder
     // TODO: implement element, app & atom-app config
     // config.server.element = config.element || {path: `${config.name}.js`};
@@ -493,7 +510,6 @@ var Utils = class {
       if (file) {
         writeFile(file.dest, file.contents, err => {
           if (err) {
-            console.log(err);
             if (global.debug) {
               logger.warn(
                   `subdirectory(s)::not existing
