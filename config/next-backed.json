@@ -5,7 +5,20 @@
       "dest": "app/main.js"
     }, {
       "src": "src/renderer.js",
-      "dest": "app/renderer.js"
+      "dest": "app/renderer.js",
+      "babel": {
+        "presets": [
+          [
+            "es2015",
+            {
+              "modules": false
+            }
+          ]
+        ],
+        "plugins": [
+          "external-helpers"
+        ]
+      }
     }
   ],
   "sources": [
