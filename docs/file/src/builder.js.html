@@ -37,154 +37,149 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/logger.js~Logger.html">Logger</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/server.js~Server.html">Server</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/utils.js~utils.html">utils</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/watcher.js~Watcher.html">Watcher</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-builder">builder</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-logger">logger</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-server">server</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EventEmitter">EventEmitter</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-watcher">watcher</a></span></span></li>
 </ul>
 </div>
 </nav>
 
 <div class="content" data-ice="content"><h1 data-ice="title">src/builder.js</h1>
-<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">  &apos;use strict&apos;;
-  const {rollup} = require(&apos;rollup&apos;);
-  const path = require(&apos;path&apos;);
-  const {fork} = require(&apos;child_process&apos;);
-  import logger from &apos;./logger.js&apos;;
-  let iterator;
-  let cache;
-  let warnings = [];
-  let _it;
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">&apos;use strict&apos;;
+const {rollup} = require(&apos;rollup&apos;);
+const path = require(&apos;path&apos;);
+const {fork} = require(&apos;child_process&apos;);
+import logger from &apos;./logger.js&apos;;
+let iterator;
+let cache;
+let warnings = [];
 
-  const logWorker = fork(path.join(__dirname, &apos;workers/log-worker.js&apos;));
+const logWorker = fork(path.join(__dirname, &apos;workers/log-worker.js&apos;));
 
-  function * bundler(bundles, fn) {
-    for (let bundle of bundles) {
-      let dest = bundle.dest;
-      let format = bundle.format;
-      bundle = bundle.bundle || bundle;
-      bundle.dest = dest;
-      bundle.format = format;
-      yield fn(bundle);
-    }
+function * bundler(bundles, fn) {
+  let fns = [];
+  for (let bundle of bundles) {
+    let dest = bundle.dest;
+    bundle = bundle.bundle || bundle;
+    bundle.dest = dest;
+    fns.push(fn(bundle));
+  }
+
+  yield Promise.all(fns).then(bundles =&gt; {
     logWorker.kill(&apos;SIGINT&apos;);
-    _it.next();
     if (global.debug) {
       for (let warning of warnings) {
         logger.warn(warning);
       }
     }
-  }
-  export default class Builder {
-
-    constructor(config, it) {
-      logWorker.send(logger._chalk(&apos;building&apos;, &apos;cyan&apos;));
-      logWorker.send(&apos;start&apos;);
-      this.build(config);
-      _it = it;
-    }
-
-    /**
-     * convert hyphen to a javascript property srting
-     */
-    toJsProp(string) {
-      let parts = string.split(&apos;-&apos;);
-      if (parts.length &gt; 1) {
-        string = parts[0];
-        for (let part of parts) {
-          if (parts[0] !== part) {
-            var upper = part.charAt(0).toUpperCase();
-            string += upper + part.slice(1).toLowerCase();
-          }
-        }
-      }
-      return string;
-    }
-
-    build(config) {
-      this.promiseBundles(config).then(bundles =&gt; {
-        iterator = bundler(bundles, this.bundle);
-        iterator.next();
-      }).catch(error =&gt; {
-        logger.warn(error);
-      });
-    }
-
-    handleFormats(bundle, format) {
-      return new Promise((resolve, reject) =&gt; {
-        try {
-          let dest = bundle.dest;
-          if (format === &apos;iife&apos; &amp;&amp; !bundle.moduleName) {
-            bundle.moduleName = this.toJsProp(bundle.name);
-          } else {
-            switch (format) {
-              case &apos;cjs&apos;:
-                dest = bundle.dest.replace(&apos;.js&apos;, &apos;-node.js&apos;);
-                break;
-              case &apos;es&apos;:
-              case &apos;amd&apos;:
-                dest = bundle.dest.replace(&apos;.js&apos;, `-${format}.js`);
-                break;
-              default:
-                break;
-                    // do nothing
-            }
-          }
-          resolve({bundle: bundle, dest: dest, format: format});
-        } catch (err) {
-          reject(err);
-        }
-      });
-    }
-
-    handleFormat(bundle, format = undefined) {
-      return new Promise(resolve =&gt; {
-        if (format) {
-          bundle.format = format;
-        }
-        if (bundle.format === &apos;iife&apos; &amp;&amp; !bundle.moduleName) {
-          bundle.moduleName = this.toJsProp(bundle.name);
-        }
-        resolve(bundle);
-      });
-    }
-
-    promiseBundles(config) {
-      return new Promise((resolve, reject) =&gt; {
-        let formats = [];
-        let bundles = config.bundles;
-        try {
-          for (let bundle of bundles) {
-            bundle.name = bundle.name || config.name;
-            bundle.babel = bundle.babel || config.babel;
-            bundle.sourceMap = bundle.sourceMap || config.sourceMap;
-            if (config.format &amp;&amp; typeof config.format !== &apos;string&apos; &amp;&amp; !bundle.format) {
-              for (let format of config.format) {
-                formats.push(this.handleFormats(bundle, format));
-              }
-            } else if (bundle.format) {
-              formats.push(this.handleFormat(bundle));
-            } else if (!bundle.format) {
-              formats.push(this.handleFormat(bundle, config.format));
-            }
-          }
-          Promise.all(formats).then(bundles =&gt; {
-            resolve(bundles);
-          });
-        } catch (err) {
-          reject(err);
-        }
-      });
-    }
+    return bundles;
+  });
+}
+class Builder {
 
   /**
-   * @param {object} config
-   * @param {string} config.src path/to/js
-   * @param {string} config.dest destination to write to
-   * @param {string} config.format format to build [&apos;es&apos;, &apos;iife&apos;, &apos;amd&apos;, &apos;cjs&apos;]
-   * @param {string} config.name the name of your element/app
-   * @param {string} config.moduleName the moduleName for your element/app (not needed for es &amp; cjs)
-   * @param {boolean} config.sourceMap Wether or not to build sourceMaps defaults to &apos;true&apos;
-   * @param {object} config.plugins rollup plugins to use [see](https://github.com/rollup/rollup/wiki/Plugins)
+   * convert hyphen to a javascript property srting
    */
-    bundle(config = {src: null, dest: &apos;bundle.js&apos;, format: &apos;iife&apos;, name: null, plugins: [], moduleName: null, sourceMap: true}) {
+  toJsProp(string) {
+    let parts = string.split(&apos;-&apos;);
+    if (parts.length &gt; 1) {
+      string = parts[0];
+      for (let part of parts) {
+        if (parts[0] !== part) {
+          var upper = part.charAt(0).toUpperCase();
+          string += upper + part.slice(1).toLowerCase();
+        }
+      }
+    }
+    return string;
+  }
+
+  build(config) {
+    logWorker.send(&apos;start&apos;);
+    logWorker.send(logger._chalk(&apos;building&apos;, &apos;cyan&apos;));
+    return this.promiseBundles(config).then(bundles =&gt; {
+      iterator = bundler(bundles, this.bundle);
+      iterator.next();
+    }).catch(error =&gt; {
+      logger.warn(error);
+    });
+  }
+
+  handleFormats(bundle) {
+    return new Promise((resolve, reject) =&gt; {
+      try {
+        const format = bundle.format;
+        let dest = bundle.dest;
+        if (format === &apos;iife&apos; &amp;&amp; !bundle.moduleName) {
+          bundle.moduleName = this.toJsProp(bundle.name);
+        } else {
+          switch (format) {
+            case &apos;cjs&apos;:
+              dest = bundle.dest.replace(&apos;.js&apos;, &apos;-node.js&apos;);
+              break;
+            case &apos;es&apos;:
+            case &apos;amd&apos;:
+              dest = bundle.dest.replace(&apos;.js&apos;, `-${format}.js`);
+              break;
+            default:
+              break;
+                  // do nothing
+          }
+        }
+        resolve({bundle: bundle, dest: dest, format: format});
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
+  promiseBundles(config) {
+    return new Promise((resolve, reject) =&gt; {
+      let formats = [];
+      let bundles = config.bundles;
+      try {
+        for (let bundle of bundles) {
+          bundle.name = bundle.name || config.name;
+          bundle.babel = bundle.babel || config.babel;
+          bundle.sourceMap = bundle.sourceMap || config.sourceMap;
+          if (config.format &amp;&amp; typeof config.format !== &apos;string&apos; &amp;&amp; !bundle.format) {
+            for (let format of config.format) {
+              bundle.format = format;
+              formats.push(this.handleFormats(bundle));
+            }
+          } else if (bundle.format &amp;&amp; typeof bundle.format !== &apos;string&apos;) {
+            for (let format of bundle.format) {
+              bundle.format = format;
+              formats.push(this.handleFormats(bundle));
+            }
+          } else {
+            formats.push(this.handleFormats(bundle));
+          }
+        }
+        Promise.all(formats).then(bundles =&gt; {
+          resolve(bundles);
+        });
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
+/**
+ * @param {object} config
+ * @param {string} config.src path/to/js
+ * @param {string} config.dest destination to write to
+ * @param {string} config.format format to build [&apos;es&apos;, &apos;iife&apos;, &apos;amd&apos;, &apos;cjs&apos;]
+ * @param {string} config.name the name of your element/app
+ * @param {string} config.moduleName the moduleName for your element/app (not needed for es &amp; cjs)
+ * @param {boolean} config.sourceMap Wether or not to build sourceMaps defaults to &apos;true&apos;
+ * @param {object} config.plugins rollup plugins to use [see](https://github.com/rollup/rollup/wiki/Plugins)
+ */
+  bundle(config = {src: null, dest: &apos;bundle.js&apos;, format: &apos;iife&apos;, name: null, plugins: [], moduleName: null, sourceMap: true}) {
+    return new Promise((resolve, reject) =&gt; {
       let plugins = config.plugins || [];
       if (config.babel) {
         const babel = require(&apos;rollup-plugin-babel&apos;);
@@ -194,22 +189,22 @@
         entry: `${process.cwd()}/${config.src}`,
         plugins: plugins,
         cache: cache,
-        // Use the previous bundle as starting point.
+      // Use the previous bundle as starting point.
         onwarn: warning =&gt; {
           warnings.push(warning);
         }
       }).then(bundle =&gt; {
         cache = bundle;
         bundle.write({
-          // output format - &apos;amd&apos;, &apos;cjs&apos;, &apos;es&apos;, &apos;iife&apos;, &apos;umd&apos;
+        // output format - &apos;amd&apos;, &apos;cjs&apos;, &apos;es&apos;, &apos;iife&apos;, &apos;umd&apos;
           format: config.format,
           moduleName: config.moduleName,
           sourceMap: config.sourceMap,
           dest: `${process.cwd()}/${config.dest}`
         });
-        logWorker.send(logger._chalk(`${global.config.name}::build finished`, &apos;cyan&apos;));
+        logWorker.send(logger._chalk(`${config.name}::build finished`, &apos;cyan&apos;));
         setTimeout(() =&gt; {
-          iterator.next();
+          resolve();
         }, 100);
       }).catch(err =&gt; {
         const code = err.code;
@@ -221,9 +216,12 @@
           logger.warn(&apos;trying to resume the build ...&apos;);
           logWorker.send(&apos;resume&apos;);
         }
+        reject(err);
       });
-    }
+    });
+  }
 }
+export default new Builder();
 </code></pre>
 
 </div>

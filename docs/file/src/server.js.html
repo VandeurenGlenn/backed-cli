@@ -32,12 +32,15 @@
 <nav class="navigation" data-ice="nav"><div>
   <ul>
     
-  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~Builder.html">Builder</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/config.js~Config.html">Config</a></span></span></li>
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/config.js~Config.html">Config</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/logger.js~Logger.html">Logger</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/server.js~Server.html">Server</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/utils.js~utils.html">utils</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/watcher.js~Watcher.html">Watcher</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-logger">logger</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-server">server</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EventEmitter">EventEmitter</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-watcher">watcher</a></span></span></li>
 </ul>
 </div>
 </nav>
@@ -45,11 +48,13 @@
 <div class="content" data-ice="content"><h1 data-ice="title">src/server.js</h1>
 <pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">&apos;use strict&apos;;
 const express = require(&apos;express&apos;);
-
-const app = express();
-
+const http = require(&apos;http&apos;);
+const reload = require(&apos;reload&apos;);
 const glob = require(&apos;glob&apos;);
 
+const app = express();
+const server = http.createServer(app);
+const reloadServer = reload(server, app);
 import logger from &apos;./logger.js&apos;;
 
 /**
@@ -69,19 +74,19 @@ const src = string =&gt; {
   });
 };
 
-export default class Server {
+class Server {
 
 /**
- * @param {object} server - configuration
- * @param {string} server.entry path to where your build is located
- * @param {string} server.docs path to where your docs are located
- * @param {string} server.bowerPath path to bower_components
- * @param {string} server.nodeModulesPath path to node_modules
- * @param {string} server.demo path to the demo
- * @param {string} server.index path to your index.html file we serve a helper/docs index by default (not support for now)
- * @param {array} server.use static files to include [{path: some/path, static: some//path}] when static is undefined path will be used.
+ * @param {object} config - configuration
+ * @param {string} config.entry path to where your build is located
+ * @param {string} config.docs path to where your docs are located
+ * @param {string} config.bowerPath path to bower_components
+ * @param {string} config.nodeModulesPath path to node_modules
+ * @param {string} config.demo path to the demo
+ * @param {string} config.index path to your index.html file we serve a helper/docs index by default (not support for now)
+ * @param {array} config.use static files to include [{path: some/path, static: some//path}] when static is undefined path will be used.
  */
-  serve(server = {
+  serve(config = {
     entry: &apos;/&apos;,
     demo: &apos;demo&apos;,
     docs: &apos;docs&apos;,
@@ -89,31 +94,31 @@ export default class Server {
     bowerPath: &apos;bower_components&apos;,
     nodeModulesPath: &apos;node_modules&apos;,
     index: null}) {
-    if (server) {
-      this.handleOldOptions(server);
-      if (server.use) {
-        for (let use of server.use) {
+    if (config) {
+      this.handleOldOptions(config);
+      if (config.use) {
+        for (let use of config.use) {
           app.use(use.path, express.static(this.appLocation(use.static || use.path)));
         }
       }
 
       app.use(&apos;/&apos;, express.static(
-        this.appLocation(server.entry)));
+        this.appLocation(config.entry)));
 
       app.use(&apos;/bower_components&apos;, express.static(
-        this.appLocation(server.bowerPath, &apos;bower_components&apos;)));
+        this.appLocation(config.bowerPath, &apos;bower_components&apos;)));
 
       app.use(&apos;/node_modules&apos;, express.static(
-        this.appLocation(server.nodeModulesPath, &apos;node_modules&apos;)));
+        this.appLocation(config.nodeModulesPath, &apos;node_modules&apos;)));
 
       app.use(&apos;/demo/node_modules&apos;, express.static(
-        this.appLocation(server.nodeModulesPath, &apos;node_modules&apos;)));
+        this.appLocation(config.nodeModulesPath, &apos;node_modules&apos;)));
 
       app.use(&apos;/demo&apos;, express.static(
-        this.appLocation(server.demo, &apos;demo&apos;)));
+        this.appLocation(config.demo, &apos;demo&apos;)));
 
       app.use(&apos;/docs&apos;, express.static(
-        this.appLocation(server.docs, &apos;docs&apos;)));
+        this.appLocation(config.docs, &apos;docs&apos;)));
 
       app.use(&apos;/package.json&apos;, express.static(
         this.appLocation(&apos;package.json&apos;)
@@ -135,11 +140,11 @@ export default class Server {
         app.use(&apos;/license&apos;, express.static(files[0]));
       });
 
-      app.listen(3000, error =&gt; {
+      server.listen(3000, error =&gt; {
         if (error) {
           return logger.warn(error);
         }
-        logger.log(`${global.config.name}::serving app from http://localhost:${server.port}/${server.entry.replace(&apos;/&apos;, &apos;&apos;)}`);
+        logger.log(`${global.config.name}::serving app from http://localhost:${config.port}/${config.entry.replace(&apos;/&apos;, &apos;&apos;)}`);
       });
     } else {
       return logger.warn(`${global.config.name}::server config not found [example](https://raw.githubusercontent.com/VandeurenGlenn/backed-cli/master/config/backed.json)`);
@@ -168,7 +173,12 @@ export default class Server {
       logger.warn(`${options.path ? &apos;server.path&apos; : &apos;server.elementLocation&apos;} is no longer supported, [visit](https://github.com/vandeurenglenn/backed-cli#serve) to learn more&apos;`);
     }
   }
+
+  reload() {
+    reloadServer.reload();
+  }
 }
+export default new Server();
 </code></pre>
 
 </div>

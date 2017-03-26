@@ -32,17 +32,20 @@
 <nav class="navigation" data-ice="nav"><div>
   <ul>
     
-  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~Builder.html">Builder</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/config.js~Config.html">Config</a></span></span></li>
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/config.js~Config.html">Config</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/logger.js~Logger.html">Logger</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/server.js~Server.html">Server</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/utils.js~utils.html">utils</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/watcher.js~Watcher.html">Watcher</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-logger">logger</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-server">server</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EventEmitter">EventEmitter</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-watcher">watcher</a></span></span></li>
 </ul>
 </div>
 </nav>
 
-<div class="content" data-ice="content"><h1>Source <img data-ice="coverageBadge" src="./badge.svg"><span data-ice="totalCoverageCount" class="total-coverage-count">13/31</span></h1>
+<div class="content" data-ice="content"><h1>Source <img data-ice="coverageBadge" src="./badge.svg"><span data-ice="totalCoverageCount" class="total-coverage-count">11/31</span></h1>
 
 <table class="files-summary" data-ice="files" data-use-coverage="true">
   <thead>
@@ -58,28 +61,12 @@
   <tbody>
     
   <tr data-ice="file">
-      <td data-ice="filePath"><span><a href="file/src/backed.js.html">src/backed.js</a></span></td>
-      <td data-ice="identifier" class="identifiers">-</td>
-      <td class="coverage"><span data-ice="coverage">-</span></td>
-      <td style="display: none;" data-ice="size">1078 byte</td>
-      <td style="display: none;" data-ice="lines">42</td>
-      <td style="display: none;" data-ice="updated">2017-03-04 20:34:48 (UTC)</td>
-    </tr>
-<tr data-ice="file">
-      <td data-ice="filePath"><span><a href="file/src/builder.js.html#errorLines=104,30,32,56,65,92">src/builder.js</a></span></td>
-      <td data-ice="identifier" class="identifiers"><span><a href="class/src/builder.js~Builder.html">Builder</a></span></td>
-      <td class="coverage"><span data-ice="coverage">25 %</span><span data-ice="coverageCount" class="coverage-count">2/8</span></td>
-      <td style="display: none;" data-ice="size">5634 byte</td>
-      <td style="display: none;" data-ice="lines">181</td>
-      <td style="display: none;" data-ice="updated">2017-03-07 10:53:28 (UTC)</td>
-    </tr>
-<tr data-ice="file">
-      <td data-ice="filePath"><span><a href="file/src/config.js.html#errorLines=15,7,8">src/config.js</a></span></td>
+      <td data-ice="filePath"><span><a href="file/src/config.js.html#errorLines=20,31,7,8">src/config.js</a></span></td>
       <td data-ice="identifier" class="identifiers"><span><a href="class/src/config.js~Config.html">Config</a></span></td>
-      <td class="coverage"><span data-ice="coverage">62 %</span><span data-ice="coverageCount" class="coverage-count">5/8</span></td>
-      <td style="display: none;" data-ice="size">2735 byte</td>
-      <td style="display: none;" data-ice="lines">105</td>
-      <td style="display: none;" data-ice="updated">2017-03-05 01:31:32 (UTC)</td>
+      <td class="coverage"><span data-ice="coverage">55 %</span><span data-ice="coverageCount" class="coverage-count">5/9</span></td>
+      <td style="display: none;" data-ice="size">2986 byte</td>
+      <td style="display: none;" data-ice="lines">118</td>
+      <td style="display: none;" data-ice="updated">2017-03-01 14:01:01 (UTC)</td>
     </tr>
 <tr data-ice="file">
       <td data-ice="filePath"><span><a href="file/src/logger.js.html#errorLines=12,16,20,25,3,8">src/logger.js</a></span></td>
@@ -88,15 +75,16 @@
       <td class="coverage"><span data-ice="coverage">0 %</span><span data-ice="coverageCount" class="coverage-count">0/6</span></td>
       <td style="display: none;" data-ice="size">416 byte</td>
       <td style="display: none;" data-ice="lines">25</td>
-      <td style="display: none;" data-ice="updated">2017-02-03 01:02:07 (UTC)</td>
+      <td style="display: none;" data-ice="updated">2017-03-01 23:10:48 (UTC)</td>
     </tr>
 <tr data-ice="file">
-      <td data-ice="filePath"><span><a href="file/src/server.js.html#errorLines=121,27">src/server.js</a></span></td>
-      <td data-ice="identifier" class="identifiers"><span><a href="class/src/server.js~Server.html">Server</a></span></td>
-      <td class="coverage"><span data-ice="coverage">50 %</span><span data-ice="coverageCount" class="coverage-count">2/4</span></td>
-      <td style="display: none;" data-ice="size">4058 byte</td>
-      <td style="display: none;" data-ice="lines">126</td>
-      <td style="display: none;" data-ice="updated">2017-03-07 10:29:04 (UTC)</td>
+      <td data-ice="filePath"><span><a href="file/src/server.js.html#errorLines=123,129,133,29">src/server.js</a></span></td>
+      <td data-ice="identifier" class="identifiers"><span><a href="class/src/server.js~Server.html">Server</a></span>
+<span><a href="variable/index.html#static-variable-server">server</a></span></td>
+      <td class="coverage"><span data-ice="coverage">33 %</span><span data-ice="coverageCount" class="coverage-count">2/6</span></td>
+      <td style="display: none;" data-ice="size">4263 byte</td>
+      <td style="display: none;" data-ice="lines">133</td>
+      <td style="display: none;" data-ice="updated">2017-03-01 23:30:19 (UTC)</td>
     </tr>
 <tr data-ice="file">
       <td data-ice="filePath"><span><a href="file/src/utils.js.html#errorLines=7">src/utils.js</a></span></td>
@@ -104,15 +92,25 @@
       <td class="coverage"><span data-ice="coverage">80 %</span><span data-ice="coverageCount" class="coverage-count">4/5</span></td>
       <td style="display: none;" data-ice="size">2927 byte</td>
       <td style="display: none;" data-ice="lines">111</td>
-      <td style="display: none;" data-ice="updated">2017-03-06 20:22:43 (UTC)</td>
+      <td style="display: none;" data-ice="updated">2017-03-01 22:35:46 (UTC)</td>
     </tr>
 <tr data-ice="file">
-      <td data-ice="filePath"><span><a href="file/src/workers/log-worker.js.html">src/workers/log-worker.js</a></span></td>
+      <td data-ice="filePath"><span><a href="file/src/watcher.js.html#errorLines=12,14,49,5,66">src/watcher.js</a></span></td>
+      <td data-ice="identifier" class="identifiers"><span><a href="variable/index.html#static-variable-EventEmitter">EventEmitter</a></span>
+<span><a href="class/src/watcher.js~Watcher.html">Watcher</a></span>
+<span><a href="variable/index.html#static-variable-watcher">watcher</a></span></td>
+      <td class="coverage"><span data-ice="coverage">0 %</span><span data-ice="coverageCount" class="coverage-count">0/5</span></td>
+      <td style="display: none;" data-ice="size">2095 byte</td>
+      <td style="display: none;" data-ice="lines">66</td>
+      <td style="display: none;" data-ice="updated">2017-03-01 22:48:43 (UTC)</td>
+    </tr>
+<tr data-ice="file">
+      <td data-ice="filePath"><span><a href="file/src/workers/watcher-worker.js.html">src/workers/watcher-worker.js</a></span></td>
       <td data-ice="identifier" class="identifiers">-</td>
       <td class="coverage"><span data-ice="coverage">-</span></td>
-      <td style="display: none;" data-ice="size">962 byte</td>
-      <td style="display: none;" data-ice="lines">45</td>
-      <td style="display: none;" data-ice="updated">2017-03-07 10:44:48 (UTC)</td>
+      <td style="display: none;" data-ice="size">170 byte</td>
+      <td style="display: none;" data-ice="lines">9</td>
+      <td style="display: none;" data-ice="updated">2017-03-01 22:32:40 (UTC)</td>
     </tr>
 </tbody>
 </table>

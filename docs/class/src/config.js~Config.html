@@ -32,12 +32,15 @@
 <nav class="navigation" data-ice="nav"><div>
   <ul>
     
-  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~Builder.html">Builder</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/config.js~Config.html">Config</a></span></span></li>
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/config.js~Config.html">Config</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/logger.js~Logger.html">Logger</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/server.js~Server.html">Server</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/utils.js~utils.html">utils</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/watcher.js~Watcher.html">Watcher</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-logger">logger</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-server">server</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EventEmitter">EventEmitter</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-watcher">watcher</a></span></span></li>
 </ul>
 </div>
 </nav>
@@ -100,7 +103,7 @@
         <p>
           
           
-          <span data-ice="name"><span><a href="class/src/config.js~Config.html#instance-constructor-constructor">constructor</a></span></span><span data-ice="signature">(iterator: <span>*</span>)</span>
+          <span data-ice="name"><span><a href="class/src/config.js~Config.html#instance-constructor-constructor">constructor</a></span></span><span data-ice="signature">()</span>
         </p>
       </div>
       <div>
@@ -135,6 +138,33 @@
           
           
           <span data-ice="name"><span><a href="class/src/config.js~Config.html#instance-get-server">server</a></span></span><span data-ice="signature">: {&quot;port&quot;: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></span>, &quot;entry&quot;: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, &quot;demo&quot;: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, &quot;docs&quot;: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, &quot;bowerPath&quot;: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, &quot;nodeModulesPath&quot;: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, &quot;index&quot;: <span>*</span>}</span>
+        </p>
+      </div>
+      <div>
+        
+        
+        
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      <span class="kind" data-ice="kind">get</span>
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          <span data-ice="name"><span><a href="class/src/config.js~Config.html#instance-get-watch">watch</a></span></span><span data-ice="signature">: {&quot;src&quot;: <span>*</span>, &quot;options&quot;: <span>*</span>}</span>
         </p>
       </div>
       <div>
@@ -310,7 +340,7 @@ try&apos;s to read file from current working directory</p>
     
     
     
-    <span data-ice="name">constructor</span><span data-ice="signature">(iterator: <span>*</span>)</span>
+    <span data-ice="name">constructor</span><span data-ice="signature">()</span>
     <span class="right-info">
       
       
@@ -325,23 +355,7 @@ try&apos;s to read file from current working directory</p>
 
   
 
-  <div data-ice="properties"><div data-ice="properties">
-  <h4 data-ice="title">Params:</h4>
-  <table class="params">
-    <thead>
-    <tr><td>Name</td><td>Type</td><td>Attribute</td><td>Description</td></tr>
-    </thead>
-    <tbody>
-    
-    <tr data-ice="property" data-depth="0">
-      <td data-ice="name" data-depth="0">iterator</td>
-      <td data-ice="type"><span>*</span></td>
-      <td data-ice="appendix"></td>
-      <td data-ice="description"></td>
-    </tr>
-</tbody>
-  </table>
-</div>
+  <div data-ice="properties">
 </div>
 
   
@@ -376,7 +390,50 @@ try&apos;s to read file from current working directory</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/config.js.html#lineNumber15">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/config.js.html#lineNumber20">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  
+
+  
+
+  <div data-ice="properties">
+</div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-get-watch">
+    <span class="access" data-ice="access">public</span>
+    
+    <span class="kind" data-ice="kind">get</span>
+    
+    
+    
+    <span data-ice="name">watch</span><span data-ice="signature">: {&quot;src&quot;: <span>*</span>, &quot;options&quot;: <span>*</span>}</span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/config.js.html#lineNumber31">source</a></span></span>
     </span>
   </h3>
 
@@ -422,7 +479,7 @@ try&apos;s to read file from current working directory</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/config.js.html#lineNumber78">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/config.js.html#lineNumber90">source</a></span></span>
     </span>
   </h3>
 
@@ -478,7 +535,7 @@ try&apos;s to read file from current working directory</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/config.js.html#lineNumber48">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/config.js.html#lineNumber60">source</a></span></span>
     </span>
   </h3>
 
@@ -534,7 +591,7 @@ try&apos;s to read file from current working directory</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/config.js.html#lineNumber64">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/config.js.html#lineNumber76">source</a></span></span>
     </span>
   </h3>
 
@@ -590,7 +647,7 @@ try&apos;s to read file from current working directory</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/config.js.html#lineNumber32">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/config.js.html#lineNumber44">source</a></span></span>
     </span>
   </h3>
 
@@ -665,7 +722,7 @@ try&apos;s to read file from current working directory</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/config.js.html#lineNumber93">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/config.js.html#lineNumber105">source</a></span></span>
     </span>
   </h3>
 

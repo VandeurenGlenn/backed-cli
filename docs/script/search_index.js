@@ -1,15 +1,15 @@
 window.esdocSearchIndex = [
   [
-    "backed-cli/src/builder.js~builder",
-    "class/src/builder.js~Builder.html",
-    "<span>Builder</span> <span class=\"search-result-import-path\">backed-cli/src/builder.js</span>",
-    "class"
-  ],
-  [
     "backed-cli/src/config.js~config",
     "class/src/config.js~Config.html",
     "<span>Config</span> <span class=\"search-result-import-path\">backed-cli/src/config.js</span>",
     "class"
+  ],
+  [
+    "backed-cli/src/watcher.js~eventemitter",
+    "variable/index.html#static-variable-EventEmitter",
+    "<span>EventEmitter</span> <span class=\"search-result-import-path\">backed-cli/src/watcher.js</span>",
+    "variable"
   ],
   [
     "backed-cli/src/logger.js~logger",
@@ -24,9 +24,21 @@ window.esdocSearchIndex = [
     "class"
   ],
   [
+    "backed-cli/src/watcher.js~watcher",
+    "class/src/watcher.js~Watcher.html",
+    "<span>Watcher</span> <span class=\"search-result-import-path\">backed-cli/src/watcher.js</span>",
+    "class"
+  ],
+  [
     "backed-cli/src/logger.js~logger",
     "variable/index.html#static-variable-logger",
     "<span>logger</span> <span class=\"search-result-import-path\">backed-cli/src/logger.js</span>",
+    "variable"
+  ],
+  [
+    "backed-cli/src/server.js~server",
+    "variable/index.html#static-variable-server",
+    "<span>server</span> <span class=\"search-result-import-path\">backed-cli/src/server.js</span>",
     "variable"
   ],
   [
@@ -34,6 +46,12 @@ window.esdocSearchIndex = [
     "class/src/utils.js~utils.html",
     "<span>utils</span> <span class=\"search-result-import-path\">backed-cli/src/utils.js</span>",
     "class"
+  ],
+  [
+    "backed-cli/src/watcher.js~watcher",
+    "variable/index.html#static-variable-watcher",
+    "<span>watcher</span> <span class=\"search-result-import-path\">backed-cli/src/watcher.js</span>",
+    "variable"
   ],
   [
     "builtinexternal/ecmascriptexternal.js~array",
@@ -366,60 +384,6 @@ window.esdocSearchIndex = [
     "external"
   ],
   [
-    "src/backed.js",
-    "file/src/backed.js.html",
-    "src/backed.js",
-    "file"
-  ],
-  [
-    "src/builder.js",
-    "file/src/builder.js.html",
-    "src/builder.js",
-    "file"
-  ],
-  [
-    "src/builder.js~builder#build",
-    "class/src/builder.js~Builder.html#instance-method-build",
-    "src/builder.js~Builder#build",
-    "method"
-  ],
-  [
-    "src/builder.js~builder#bundle",
-    "class/src/builder.js~Builder.html#instance-method-bundle",
-    "src/builder.js~Builder#bundle",
-    "method"
-  ],
-  [
-    "src/builder.js~builder#constructor",
-    "class/src/builder.js~Builder.html#instance-constructor-constructor",
-    "src/builder.js~Builder#constructor",
-    "method"
-  ],
-  [
-    "src/builder.js~builder#handleformat",
-    "class/src/builder.js~Builder.html#instance-method-handleFormat",
-    "src/builder.js~Builder#handleFormat",
-    "method"
-  ],
-  [
-    "src/builder.js~builder#handleformats",
-    "class/src/builder.js~Builder.html#instance-method-handleFormats",
-    "src/builder.js~Builder#handleFormats",
-    "method"
-  ],
-  [
-    "src/builder.js~builder#promisebundles",
-    "class/src/builder.js~Builder.html#instance-method-promiseBundles",
-    "src/builder.js~Builder#promiseBundles",
-    "method"
-  ],
-  [
-    "src/builder.js~builder#tojsprop",
-    "class/src/builder.js~Builder.html#instance-method-toJsProp",
-    "src/builder.js~Builder#toJsProp",
-    "method"
-  ],
-  [
     "src/config.js",
     "file/src/config.js.html",
     "src/config.js",
@@ -466,6 +430,12 @@ window.esdocSearchIndex = [
     "class/src/config.js~Config.html#instance-method-updateConfig",
     "src/config.js~Config#updateConfig",
     "method"
+  ],
+  [
+    "src/config.js~config#watch",
+    "class/src/config.js~Config.html#instance-get-watch",
+    "src/config.js~Config#watch",
+    "member"
   ],
   [
     "src/logger.js",
@@ -516,6 +486,12 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/server.js~server#reload",
+    "class/src/server.js~Server.html#instance-method-reload",
+    "src/server.js~Server#reload",
+    "method"
+  ],
+  [
     "src/server.js~server#serve",
     "class/src/server.js~Server.html#instance-method-serve",
     "src/server.js~Server#serve",
@@ -552,9 +528,27 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
-    "src/workers/log-worker.js",
-    "file/src/workers/log-worker.js.html",
-    "src/workers/log-worker.js",
+    "src/watcher.js",
+    "file/src/watcher.js.html",
+    "src/watcher.js",
+    "file"
+  ],
+  [
+    "src/watcher.js~watcher#runworker",
+    "class/src/watcher.js~Watcher.html#instance-method-runWorker",
+    "src/watcher.js~Watcher#runWorker",
+    "method"
+  ],
+  [
+    "src/watcher.js~watcher#watch",
+    "class/src/watcher.js~Watcher.html#instance-method-watch",
+    "src/watcher.js~Watcher#watch",
+    "method"
+  ],
+  [
+    "src/workers/watcher-worker.js",
+    "file/src/workers/watcher-worker.js.html",
+    "src/workers/watcher-worker.js",
     "file"
   ]
 ]

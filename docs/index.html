@@ -32,12 +32,15 @@
 <nav class="navigation" data-ice="nav"><div>
   <ul>
     
-  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~Builder.html">Builder</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/config.js~Config.html">Config</a></span></span></li>
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/config.js~Config.html">Config</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/logger.js~Logger.html">Logger</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/server.js~Server.html">Server</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/utils.js~utils.html">utils</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/watcher.js~Watcher.html">Watcher</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-logger">logger</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-server">server</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EventEmitter">EventEmitter</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-watcher">watcher</a></span></span></li>
 </ul>
 </div>
 </nav>
@@ -65,6 +68,10 @@
 <h4 id="serve-serve-s-">Serve[--serve, -s]</h4>
 <p>Serve a localhost for your app/component</p>
 <pre><code class="lang-sh"><code class="source-code prettyprint">  backed --serve</code>
+</code></pre>
+<h4 id="watch-watch-w-">Watch[--watch, -w]</h4>
+<p>Watch for file changes, rebuilds &amp; reloads the app/component on change</p>
+<pre><code class="lang-sh"><code class="source-code prettyprint">  backed --watch</code>
 </code></pre>
 <h2 id="api">API</h2>
 <h3 id="backed-options-">backed[{options}]</h3>
@@ -112,6 +119,7 @@ Options: <code>src, dest, format, babel</code></p>
 Default: <code>iife</code><br>
 Options: <code>iife, es, cjs, amd</code></p>
 <p>The format to build.</p>
+<p><strong><em> TODO: deprecate </em></strong></p>
 <pre><code class="lang-json"><code class="source-code prettyprint">{
   &quot;format&quot;: &quot;es&quot;
 }
@@ -120,6 +128,18 @@ Options: <code>iife, es, cjs, amd</code></p>
 
 {
   &quot;format&quot;: [&quot;iife&quot;, &quot;es&quot;]
+}</code>
+</code></pre>
+<h4 id="watch-options-">watch[{options}]</h4>
+<p>Type: <code>array</code><br>
+Default: <code>./src</code><br>
+Options: <code>src, options</code><br></p>
+<p>options can be any <a href="https://github.com/paulmillr/chokidar">chokidar</a> option.</p>
+<pre><code class="lang-json"><code class="source-code prettyprint">{
+  &quot;watch&quot;: {
+    &quot;src&quot;: [&quot;./src&quot;],
+    &quot;options&quot;: {}
+  }
 }</code>
 </code></pre>
 <h4 id="server-documentation-not-finished-check-backed-json-https-github-com-vandeurenglenn-backed-cli-blob-master-config-backed-json-or-when-using-next-next-backed-json-https-github-com-vandeurenglenn-backed-cli-blob-master-config-next-backed-json-">server (documentation not finished check <a href="https://github.com/VandeurenGlenn/backed-cli/blob/master/config/backed.json">backed.json</a> or when using next <a href="https://github.com/VandeurenGlenn/backed-cli/blob/master/config/next-backed.json">next-backed.json</a>)</h4>

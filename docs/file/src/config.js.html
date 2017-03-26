@@ -32,12 +32,15 @@
 <nav class="navigation" data-ice="nav"><div>
   <ul>
     
-  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~Builder.html">Builder</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/config.js~Config.html">Config</a></span></span></li>
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/config.js~Config.html">Config</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/logger.js~Logger.html">Logger</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/server.js~Server.html">Server</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/utils.js~utils.html">utils</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/watcher.js~Watcher.html">Watcher</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-logger">logger</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-server">server</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EventEmitter">EventEmitter</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-watcher">watcher</a></span></span></li>
 </ul>
 </div>
 </nav>
@@ -50,10 +53,15 @@ const {merge} = require(&apos;lodash&apos;);
 import logger from &apos;./logger.js&apos;;
 
 export default class Config {
-  constructor(iterator) {
-    this.importConfig().then(config =&gt; {
-      const name = this.importPackageName() || this.importBowerName();
-      iterator.next(this.updateConfig(config, name));
+  constructor() {
+    return new Promise((resolve, reject) =&gt; {
+      this.importConfig().then(config =&gt; {
+        const name = this.importPackageName() ||
+                     this.importBowerName() ||
+                     process.cwd();
+
+        resolve(this.updateConfig(config, name));
+      });
     });
   }
 
@@ -66,6 +74,13 @@ export default class Config {
       bowerPath: &apos;bower_components&apos;,
       nodeModulesPath: &apos;node_modules&apos;,
       index: null};
+  }
+
+  get watch() {
+    return {
+      src: [&apos;./src&apos;],
+      options: {}
+    };
   }
 
   /**
@@ -114,7 +129,7 @@ export default class Config {
         logger.warn(&apos;no package.json found&apos;);
       }
     }
-    return null;
+    return undefined;
   }
 
   /**
@@ -128,7 +143,7 @@ export default class Config {
         logger.warn(&apos;no bower.json found&apos;);
       }
     }
-    return null;
+    return undefined;
   }
 
   /**
@@ -140,6 +155,7 @@ export default class Config {
     config.format = config.format || &apos;es&apos;;
     config.sourceMap = config.sourceMap || true;
     config.server = merge(this.server, config.server);
+    config.watch = merge(this.watch, config.watch);
     // TODO: create method for building atom app with atom-builder
     // TODO: implement element, app &amp; atom-app config
     // config.server.element = config.element || {path: `${config.name}.js`};
