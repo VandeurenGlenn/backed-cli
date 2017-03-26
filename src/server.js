@@ -1,10 +1,12 @@
 'use strict';
 const express = require('express');
-
-const app = express();
-
+const http = require('http');
+const reload = require('reload');
 const glob = require('glob');
 
+const app = express();
+const server = http.createServer(app);
+const reloadServer = reload(server, app);
 import logger from './logger.js';
 
 /**
@@ -24,19 +26,19 @@ const src = string => {
   });
 };
 
-export default class Server {
+class Server {
 
 /**
- * @param {object} server - configuration
- * @param {string} server.entry path to where your build is located
- * @param {string} server.docs path to where your docs are located
- * @param {string} server.bowerPath path to bower_components
- * @param {string} server.nodeModulesPath path to node_modules
- * @param {string} server.demo path to the demo
- * @param {string} server.index path to your index.html file we serve a helper/docs index by default (not support for now)
- * @param {array} server.use static files to include [{path: some/path, static: some//path}] when static is undefined path will be used.
+ * @param {object} config - configuration
+ * @param {string} config.entry path to where your build is located
+ * @param {string} config.docs path to where your docs are located
+ * @param {string} config.bowerPath path to bower_components
+ * @param {string} config.nodeModulesPath path to node_modules
+ * @param {string} config.demo path to the demo
+ * @param {string} config.index path to your index.html file we serve a helper/docs index by default (not support for now)
+ * @param {array} config.use static files to include [{path: some/path, static: some//path}] when static is undefined path will be used.
  */
-  serve(server = {
+  serve(config = {
     entry: '/',
     demo: 'demo',
     docs: 'docs',
@@ -44,31 +46,31 @@ export default class Server {
     bowerPath: 'bower_components',
     nodeModulesPath: 'node_modules',
     index: null}) {
-    if (server) {
-      this.handleOldOptions(server);
-      if (server.use) {
-        for (let use of server.use) {
+    if (config) {
+      this.handleOldOptions(config);
+      if (config.use) {
+        for (let use of config.use) {
           app.use(use.path, express.static(this.appLocation(use.static || use.path)));
         }
       }
 
       app.use('/', express.static(
-        this.appLocation(server.entry)));
+        this.appLocation(config.entry)));
 
       app.use('/bower_components', express.static(
-        this.appLocation(server.bowerPath, 'bower_components')));
+        this.appLocation(config.bowerPath, 'bower_components')));
 
       app.use('/node_modules', express.static(
-        this.appLocation(server.nodeModulesPath, 'node_modules')));
+        this.appLocation(config.nodeModulesPath, 'node_modules')));
 
       app.use('/demo/node_modules', express.static(
-        this.appLocation(server.nodeModulesPath, 'node_modules')));
+        this.appLocation(config.nodeModulesPath, 'node_modules')));
 
       app.use('/demo', express.static(
-        this.appLocation(server.demo, 'demo')));
+        this.appLocation(config.demo, 'demo')));
 
       app.use('/docs', express.static(
-        this.appLocation(server.docs, 'docs')));
+        this.appLocation(config.docs, 'docs')));
 
       app.use('/package.json', express.static(
         this.appLocation('package.json')
@@ -90,11 +92,11 @@ export default class Server {
         app.use('/license', express.static(files[0]));
       });
 
-      app.listen(3000, error => {
+      server.listen(3000, error => {
         if (error) {
           return logger.warn(error);
         }
-        logger.log(`${global.config.name}::serving app from http://localhost:${server.port}/${server.entry.replace('/', '')}`);
+        logger.log(`${global.config.name}::serving app from http://localhost:${config.port}/${config.entry.replace('/', '')}`);
       });
     } else {
       return logger.warn(`${global.config.name}::server config not found [example](https://raw.githubusercontent.com/VandeurenGlenn/backed-cli/master/config/backed.json)`);
@@ -123,4 +125,9 @@ export default class Server {
       logger.warn(`${options.path ? 'server.path' : 'server.elementLocation'} is no longer supported, [visit](https://github.com/vandeurenglenn/backed-cli#serve) to learn more'`);
     }
   }
+
+  reload() {
+    reloadServer.reload();
+  }
 }
+export default new Server();

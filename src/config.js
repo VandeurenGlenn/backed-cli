@@ -5,10 +5,15 @@ const {merge} = require('lodash');
 import logger from './logger.js';
 
 export default class Config {
-  constructor(iterator) {
-    this.importConfig().then(config => {
-      const name = this.importPackageName() || this.importBowerName();
-      iterator.next(this.updateConfig(config, name));
+  constructor() {
+    return new Promise((resolve, reject) => {
+      this.importConfig().then(config => {
+        const name = this.importPackageName() ||
+                     this.importBowerName() ||
+                     process.cwd();
+
+        resolve(this.updateConfig(config, name));
+      });
     });
   }
 
@@ -21,6 +26,13 @@ export default class Config {
       bowerPath: 'bower_components',
       nodeModulesPath: 'node_modules',
       index: null};
+  }
+
+  get watch() {
+    return {
+      src: ['./src'],
+      options: {}
+    };
   }
 
   /**
@@ -69,7 +81,7 @@ export default class Config {
         logger.warn('no package.json found');
       }
     }
-    return null;
+    return undefined;
   }
 
   /**
@@ -83,7 +95,7 @@ export default class Config {
         logger.warn('no bower.json found');
       }
     }
-    return null;
+    return undefined;
   }
 
   /**
@@ -95,6 +107,7 @@ export default class Config {
     config.format = config.format || 'es';
     config.sourceMap = config.sourceMap || true;
     config.server = merge(this.server, config.server);
+    config.watch = merge(this.watch, config.watch);
     // TODO: create method for building atom app with atom-builder
     // TODO: implement element, app & atom-app config
     // config.server.element = config.element || {path: `${config.name}.js`};

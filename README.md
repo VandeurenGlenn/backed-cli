@@ -30,6 +30,12 @@ Serve a localhost for your app/component
   backed --serve
 ```
 
+#### Watch[--watch, -w]
+Watch for file changes, rebuilds & reloads the app/component on change
+```sh
+  backed --watch
+```
+
 ## API
 
 ### backed[{options}]
@@ -83,6 +89,8 @@ Default: `iife`<br>
 Options: `iife, es, cjs, amd`
 
 The format to build.
+
+*** TODO: deprecate ***
 ```json
 {
   "format": "es"
@@ -92,6 +100,21 @@ The format to build.
 
 {
   "format": ["iife", "es"]
+}
+```
+
+#### watch[{options}]
+Type: `array`<br>
+Default: `./src`<br>
+Options: `src, options`<br>
+
+options can be any [chokidar](https://github.com/paulmillr/chokidar) option.
+```json
+{
+  "watch": {
+    "src": ["./src"],
+    "options": {}
+  }
 }
 ```
 

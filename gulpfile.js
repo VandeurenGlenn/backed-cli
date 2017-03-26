@@ -13,6 +13,7 @@ var json = require('rollup-plugin-json');
 var fs = require('fs');
 var del = require('del');
 var merge = require('merge-stream');
+var async = require('rollup-plugin-async');
 
 let cache;
 
@@ -72,7 +73,10 @@ task('rollup:run', () => {
     entry: 'src/backed.js',
      // Use the previous bundle as starting point.
     cache: cache,
-    plugins: [json()]
+    acorn: {
+      allowReserved: true
+    },
+    plugins: [json(), async()]
   }).then(bundle => {
     var result = bundle.generate({
       format: 'iife',
