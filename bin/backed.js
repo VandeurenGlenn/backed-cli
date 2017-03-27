@@ -36,11 +36,7 @@ class Config {
   constructor() {
     return new Promise((resolve, reject) => {
       this.importConfig().then(config => {
-        const name = this.importPackageName() ||
-                     this.importBowerName() ||
-                     process.cwd();
-
-        resolve(this.updateConfig(config, name));
+        resolve(this.updateConfig(config));
       });
     });
   }
@@ -87,14 +83,33 @@ class Config {
    */
   importConfig() {
     return new Promise((resolve, reject) => {
-      this.require('backed.json').then(config => {
-        resolve(config);
-      }).catch(() => {
-        logger.warn('backed.json:: not found, using default options.');
-        resolve({
-          name: path.posix.basename(__dirname.replace('/bin', ''))
-        });
-      });
+      function  generator(fn) {return __asyncGen(function*(){
+        const pkg = yield{__await: fn('package.json').catch(error => {
+          if (global.debug) {
+            logger.error(error);
+          }
+        })};
+        const config = yield{__await: fn('backed.json').catch(error => {
+          if (global.debug) {
+            logger.warn('backed.json::not found, ignore this when using backed in package.json');
+          }
+        })};
+        if (!config && !pkg) return resolve({name: process.cwd()});
+        if (config) {
+          let name = config.name;
+          if (!name && pkg && pkg.name && !pkg.backed) {
+            return resolve(merge(config, {name: pkg.name}))
+          } else if (!name && !pkg) {
+            return resolve(merge(config, {name: process.cwd()}))
+          }
+        }
+        if(pkg && pkg.backed) {
+          return resolve(merge(pkg.backed, {name: pkg.name}));
+        }
+        logger.warn('No backed.json or backed section in package.json, using default options.');
+      }())}
+      const it = generator(this.require);
+      it.next();
     });
   }
 
@@ -129,17 +144,23 @@ class Config {
   /**
    * @param {object} config - the config to be updated
    * @param {string} name - the name of the element, component, etc
+   *
+   * @example
+   * config.updateConfig({
+   *   bundles: [{
+   *     src: 'src',
+   *     dest: 'dist'
+   *   }]
+   * });
+   *
+   * @todo create method for building atom app with atom-builder
+   * @todo implement element, app & atom-app config
+   * @todo handle sourceMap at bundle level
    */
   updateConfig(config, name) {
-    config.name = config.name || name;
-    config.format = config.format || 'es';
     config.sourceMap = config.sourceMap || true;
     config.server = merge(this.server, config.server);
     config.watch = merge(this.watch, config.watch);
-    // TODO: create method for building atom app with atom-builder
-    // TODO: implement element, app & atom-app config
-    // config.server.element = config.element || {path: `${config.name}.js`};
-    // config.server.app = config.app || {path: `${config.name}.js`};
     global.config = config;
     return config;
   }
@@ -448,6 +469,9 @@ class Builder {
 }
 var builder = new Builder();
 
+
+//# sourceMappingURL=builder-es.js.map
+
 const express = require('express');
 const http = require('http');
 const reload = require('reload');
@@ -523,16 +547,16 @@ class Server {
         this.appLocation('package.json')
       ));
 
-      app.use('/bower.json', express.static(
-        this.appLocation('bower.json')
-      ));
+      // serve backed-cli documentation
+      app.use('/backed-cli/docs', express.static(
+        __dirname.replace('bin', 'docs')));
+
+      // serve backed documentation
+      app.use('/backed/docs', express.static(
+        this.appLocation('node_modules/backed/docs')));
 
       // TODO: Add option to override index
       app.use('/', express.static(__dirname.replace('bin', 'node_modules\\backed-client\\dist')));
-
-        // serve backed
-      app.use('/backed/docs', express.static(
-        __dirname.replace('bin', 'docs')));
 
       // TODO: implement copyrighted by package author & package name if no file is found
       src(process.cwd() + '/license.*').then(files => {
@@ -570,6 +594,8 @@ class Server {
   handleOldOptions(options) {
     if (options.path || options.elementLocation) {
       logger.warn(`${options.path ? 'server.path' : 'server.elementLocation'} is no longer supported, [visit](https://github.com/vandeurenglenn/backed-cli#serve) to learn more'`);
+    } else if (options.bowerPath) {
+      logger.warn('server.bowerPath::deprecated: removal planned @1.0.0+');
     }
   }
 
@@ -588,8 +614,15 @@ const {readFileSync: readFileSync$1, writeFileSync} = require('fs');
 const time = () => {
   return new Date().toLocaleTimeString();
 };
+
+/**
+ * @extends EventEmitter
+ */
 class Watcher extends EventEmitter {
 
+  /**
+   * @param {object} config {@link Config}
+   */
   watch(config) {
     return new Promise((resolve, reject) => {
       if (!config.watch) {
@@ -772,11 +805,11 @@ let watch = commander.watch;
 let build = commander.build;
 let copy = commander.build || commander.copy;
 let serve = commander.serve;
-let debug = commander.debug;
-
+global.debug = commander.debug;
+/**
+ * @param {object} config {@link Config}
+ */
 function  run(config) {return __asyncGen(function*(){
-  global.debug = debug || config.debug;
-
   if (build) {
     yield{__await: builder.build(config)};
   }
@@ -798,6 +831,7 @@ function  run(config) {return __asyncGen(function*(){
 }())}
 
 new Config().then(config => {
+  global.debug = commander.debug || config.debug;
   let it = run(config);
   it.next();
 });

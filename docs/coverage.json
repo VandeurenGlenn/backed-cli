@@ -1,27 +1,15 @@
 {
-  "coverage": "35.48%",
-  "expectCount": 31,
-  "actualCount": 11,
+  "coverage": "46.66%",
+  "expectCount": 30,
+  "actualCount": 14,
   "files": {
     "src/config.js": {
       "expectCount": 9,
-      "actualCount": 5,
+      "actualCount": 6,
       "undocumentLines": [
-        7,
-        8,
-        20,
-        31
-      ]
-    },
-    "src/watcher.js": {
-      "expectCount": 5,
-      "actualCount": 0,
-      "undocumentLines": [
-        5,
-        12,
-        49,
-        14,
-        66
+        19,
+        27,
+        38
       ]
     },
     "src/logger.js": {
@@ -42,8 +30,16 @@
       "undocumentLines": [
         29,
         123,
-        129,
-        133
+        131,
+        135
+      ]
+    },
+    "src/watcher.js": {
+      "expectCount": 4,
+      "actualCount": 2,
+      "undocumentLines": [
+        56,
+        73
       ]
     },
     "src/utils.js": {

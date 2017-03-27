@@ -9,8 +9,15 @@ import logger from './logger.js';
 const time = () => {
   return new Date().toLocaleTimeString();
 };
+
+/**
+ * @extends EventEmitter
+ */
 class Watcher extends EventEmitter {
 
+  /**
+   * @param {object} config {@link Config}
+   */
   watch(config) {
     return new Promise((resolve, reject) => {
       if (!config.watch) {

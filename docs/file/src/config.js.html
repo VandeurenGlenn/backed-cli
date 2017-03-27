@@ -39,7 +39,6 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/watcher.js~Watcher.html">Watcher</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-logger">logger</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-server">server</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EventEmitter">EventEmitter</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-watcher">watcher</a></span></span></li>
 </ul>
 </div>
@@ -52,15 +51,22 @@ const path = require(&apos;path&apos;);
 const {merge} = require(&apos;lodash&apos;);
 import logger from &apos;./logger.js&apos;;
 
+/**
+ * @param {string} config.name name off your project
+ * @param {string} config.server.entry path to where your build is located
+ * @param {string} config.server.entry path to where your build is located
+ * @param {string} config.server.docs path to where your docs are located
+ * @param {string} config.server.bowerPath path to bower_components
+ * @param {string} config.server.nodeModulesPath path to node_modules
+ * @param {string} config.server.demo path to the demo
+ * @param {string} config.server.index path to your index.html file we serve a helper/docs index by default (not support for now)
+ * @param {array} config.server.use static files to include [{path: some/path, static: some//path}] when static is undefined path will be used.
+ */
 export default class Config {
   constructor() {
     return new Promise((resolve, reject) =&gt; {
       this.importConfig().then(config =&gt; {
-        const name = this.importPackageName() ||
-                     this.importBowerName() ||
-                     process.cwd();
-
-        resolve(this.updateConfig(config, name));
+        resolve(this.updateConfig(config));
       });
     });
   }
@@ -107,14 +113,25 @@ export default class Config {
    */
   importConfig() {
     return new Promise((resolve, reject) =&gt; {
-      this.require(&apos;backed.json&apos;).then(config =&gt; {
-        resolve(config);
-      }).catch(() =&gt; {
-        logger.warn(&apos;backed.json:: not found, using default options.&apos;);
-        resolve({
-          name: path.posix.basename(__dirname.replace(&apos;/bin&apos;, &apos;&apos;))
-        });
-      });
+      async function * generator(fn) {
+        const config = await fn(&apos;backed.json&apos;);
+        const pkg = await fn(&apos;package.json&apos;);
+        if (!config &amp;&amp; !pkg) return resolve({name: process.cwd()});
+        if (config) {
+          let name = config.name;
+          if (!name &amp;&amp; pkg &amp;&amp; pkg.name &amp;&amp; !pkg.backed) {
+            return resolve(merge(config, {name: pkg.name}))
+          } else if (!name &amp;&amp; !pkg) {
+            return resolve(merge(config, {name: process.cwd()}))
+          }
+        }
+        if(pkg &amp;&amp; pkg.backed) {
+          return resolve(pkg.backed, {name: pkg.name});
+        }
+        logger.warn(&apos;No backed.json or backed section in package.json, using default options.&apos;);
+      }
+      const it = generator(this.require);
+      it.next();
     });
   }
 
@@ -149,17 +166,23 @@ export default class Config {
   /**
    * @param {object} config - the config to be updated
    * @param {string} name - the name of the element, component, etc
+   *
+   * @example
+   * config.updateConfig({
+   *   bundles: [{
+   *     src: &apos;src&apos;,
+   *     dest: &apos;dist&apos;
+   *   }]
+   * });
+   *
+   * @todo create method for building atom app with atom-builder
+   * @todo implement element, app &amp; atom-app config
+   * @todo handle sourceMap at bundle level
    */
   updateConfig(config, name) {
-    config.name = config.name || name;
-    config.format = config.format || &apos;es&apos;;
     config.sourceMap = config.sourceMap || true;
     config.server = merge(this.server, config.server);
     config.watch = merge(this.watch, config.watch);
-    // TODO: create method for building atom app with atom-builder
-    // TODO: implement element, app &amp; atom-app config
-    // config.server.element = config.element || {path: `${config.name}.js`};
-    // config.server.app = config.app || {path: `${config.name}.js`};
     global.config = config;
     return config;
   }

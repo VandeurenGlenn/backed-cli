@@ -39,7 +39,6 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/watcher.js~Watcher.html">Watcher</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-logger">logger</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-server">server</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EventEmitter">EventEmitter</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-watcher">watcher</a></span></span></li>
 </ul>
 </div>
@@ -124,16 +123,16 @@ class Server {
         this.appLocation(&apos;package.json&apos;)
       ));
 
-      app.use(&apos;/bower.json&apos;, express.static(
-        this.appLocation(&apos;bower.json&apos;)
-      ));
+      // serve backed-cli documentation
+      app.use(&apos;/backed-cli/docs&apos;, express.static(
+        __dirname.replace(&apos;bin&apos;, &apos;docs&apos;)));
+
+      // serve backed documentation
+      app.use(&apos;/backed/docs&apos;, express.static(
+        this.appLocation(&apos;node_modules/backed/docs&apos;)));
 
       // TODO: Add option to override index
       app.use(&apos;/&apos;, express.static(__dirname.replace(&apos;bin&apos;, &apos;node_modules\\backed-client\\dist&apos;)));
-
-        // serve backed
-      app.use(&apos;/backed/docs&apos;, express.static(
-        __dirname.replace(&apos;bin&apos;, &apos;docs&apos;)));
 
       // TODO: implement copyrighted by package author &amp; package name if no file is found
       src(process.cwd() + &apos;/license.*&apos;).then(files =&gt; {
@@ -171,6 +170,8 @@ class Server {
   handleOldOptions(options) {
     if (options.path || options.elementLocation) {
       logger.warn(`${options.path ? &apos;server.path&apos; : &apos;server.elementLocation&apos;} is no longer supported, [visit](https://github.com/vandeurenglenn/backed-cli#serve) to learn more&apos;`);
+    } else if (options.bowerPath) {
+      logger.warn(&apos;server.bowerPath::deprecated: removal planned @1.0.0+&apos;);
     }
   }
 

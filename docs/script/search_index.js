@@ -6,12 +6,6 @@ window.esdocSearchIndex = [
     "class"
   ],
   [
-    "backed-cli/src/watcher.js~eventemitter",
-    "variable/index.html#static-variable-EventEmitter",
-    "<span>EventEmitter</span> <span class=\"search-result-import-path\">backed-cli/src/watcher.js</span>",
-    "variable"
-  ],
-  [
     "backed-cli/src/logger.js~logger",
     "class/src/logger.js~Logger.html",
     "<span>Logger</span> <span class=\"search-result-import-path\">backed-cli/src/logger.js</span>",
@@ -384,6 +378,12 @@ window.esdocSearchIndex = [
     "external"
   ],
   [
+    "src/backed.js",
+    "file/src/backed.js.html",
+    "src/backed.js",
+    "file"
+  ],
+  [
     "src/config.js",
     "file/src/config.js.html",
     "src/config.js",
@@ -544,6 +544,12 @@ window.esdocSearchIndex = [
     "class/src/watcher.js~Watcher.html#instance-method-watch",
     "src/watcher.js~Watcher#watch",
     "method"
+  ],
+  [
+    "src/workers/log-worker.js",
+    "file/src/workers/log-worker.js.html",
+    "src/workers/log-worker.js",
+    "file"
   ],
   [
     "src/workers/watcher-worker.js",

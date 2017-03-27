@@ -1,6 +1,6 @@
 {
   "name": "backed-cli",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "The official command line interface for Backed",
   "homepage": "https://github.com/vandeurenglenn/backed-cli",
   "author": {
@@ -54,7 +54,7 @@
   "license": "CC-BY-NC-ND-4.0",
   "dependencies": {
     "backed-builder": "^1.0.6",
-    "backed-client": "vandeurenglenn/backed-client",
+    "backed-client": "^1.1.0",
     "chalk": "^1.1.3",
     "commander": "^2.9.0",
     "elegant-spinner": "^1.0.1",
@@ -71,6 +71,9 @@
   },
   "esdoc": {
     "source": "./src",
-    "destination": "./docs"
+    "destination": "./docs",
+    "experimentalProposal": {
+      "asyncGenerators": true
+    }
   }
 }
