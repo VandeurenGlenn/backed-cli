@@ -76,16 +76,16 @@ class Server {
         this.appLocation('package.json')
       ));
 
-      app.use('/bower.json', express.static(
-        this.appLocation('bower.json')
-      ));
+      // serve backed-cli documentation
+      app.use('/backed-cli/docs', express.static(
+        __dirname.replace('bin', 'docs')));
+
+      // serve backed documentation
+      app.use('/backed/docs', express.static(
+        this.appLocation('node_modules/backed/docs')));
 
       // TODO: Add option to override index
       app.use('/', express.static(__dirname.replace('bin', 'node_modules\\backed-client\\dist')));
-
-        // serve backed
-      app.use('/backed/docs', express.static(
-        __dirname.replace('bin', 'docs')));
 
       // TODO: implement copyrighted by package author & package name if no file is found
       src(process.cwd() + '/license.*').then(files => {
@@ -123,6 +123,8 @@ class Server {
   handleOldOptions(options) {
     if (options.path || options.elementLocation) {
       logger.warn(`${options.path ? 'server.path' : 'server.elementLocation'} is no longer supported, [visit](https://github.com/vandeurenglenn/backed-cli#serve) to learn more'`);
+    } else if (options.bowerPath) {
+      logger.warn('server.bowerPath::deprecated: removal planned @1.0.0+');
     }
   }
 
