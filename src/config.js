@@ -4,15 +4,22 @@ const path = require('path');
 const {merge} = require('lodash');
 import logger from './logger.js';
 
+/**
+ * @param {string} config.name name off your project
+ * @param {string} config.server.entry path to where your build is located
+ * @param {string} config.server.entry path to where your build is located
+ * @param {string} config.server.docs path to where your docs are located
+ * @param {string} config.server.bowerPath path to bower_components
+ * @param {string} config.server.nodeModulesPath path to node_modules
+ * @param {string} config.server.demo path to the demo
+ * @param {string} config.server.index path to your index.html file we serve a helper/docs index by default (not support for now)
+ * @param {array} config.server.use static files to include [{path: some/path, static: some//path}] when static is undefined path will be used.
+ */
 export default class Config {
   constructor() {
     return new Promise((resolve, reject) => {
       this.importConfig().then(config => {
-        const name = this.importPackageName() ||
-                     this.importBowerName() ||
-                     process.cwd();
-
-        resolve(this.updateConfig(config, name));
+        resolve(this.updateConfig(config));
       });
     });
   }
@@ -59,14 +66,33 @@ export default class Config {
    */
   importConfig() {
     return new Promise((resolve, reject) => {
-      this.require('backed.json').then(config => {
-        resolve(config);
-      }).catch(() => {
-        logger.warn('backed.json:: not found, using default options.');
-        resolve({
-          name: path.posix.basename(__dirname.replace('/bin', ''))
+      async function * generator(fn) {
+        const pkg = await fn('package.json').catch(error => {
+          if (global.debug) {
+            logger.error(error)
+          }
         });
-      });
+        const config = await fn('backed.json').catch(error => {
+          if (global.debug) {
+            logger.warn('backed.json::not found, ignore this when using backed in package.json')
+          }
+        });
+        if (!config && !pkg) return resolve({name: process.cwd()});
+        if (config) {
+          let name = config.name;
+          if (!name && pkg && pkg.name && !pkg.backed) {
+            return resolve(merge(config, {name: pkg.name}))
+          } else if (!name && !pkg) {
+            return resolve(merge(config, {name: process.cwd()}))
+          }
+        }
+        if(pkg && pkg.backed) {
+          return resolve(merge(pkg.backed, {name: pkg.name}));
+        }
+        logger.warn('No backed.json or backed section in package.json, using default options.');
+      }
+      const it = generator(this.require);
+      it.next();
     });
   }
 
@@ -101,17 +127,23 @@ export default class Config {
   /**
    * @param {object} config - the config to be updated
    * @param {string} name - the name of the element, component, etc
+   *
+   * @example
+   * config.updateConfig({
+   *   bundles: [{
+   *     src: 'src',
+   *     dest: 'dist'
+   *   }]
+   * });
+   *
+   * @todo create method for building atom app with atom-builder
+   * @todo implement element, app & atom-app config
+   * @todo handle sourceMap at bundle level
    */
   updateConfig(config, name) {
-    config.name = config.name || name;
-    config.format = config.format || 'es';
     config.sourceMap = config.sourceMap || true;
     config.server = merge(this.server, config.server);
     config.watch = merge(this.watch, config.watch);
-    // TODO: create method for building atom app with atom-builder
-    // TODO: implement element, app & atom-app config
-    // config.server.element = config.element || {path: `${config.name}.js`};
-    // config.server.app = config.app || {path: `${config.name}.js`};
     global.config = config;
     return config;
   }

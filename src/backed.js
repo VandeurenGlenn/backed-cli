@@ -22,11 +22,11 @@ let watch = commander.watch;
 let build = commander.build;
 let copy = commander.build || commander.copy;
 let serve = commander.serve;
-let debug = commander.debug;
-
+global.debug = commander.debug
+/**
+ * @param {object} config {@link Config}
+ */
 async function * run(config) {
-  global.debug = debug || config.debug;
-
   if (build) {
     await builder.build(config);
   }
@@ -48,6 +48,7 @@ async function * run(config) {
 }
 
 new Config().then(config => {
+  global.debug = commander.debug || config.debug;
   let it = run(config);
   it.next();
 });
