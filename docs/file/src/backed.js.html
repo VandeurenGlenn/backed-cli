@@ -50,7 +50,7 @@ const commander = require(&apos;commander&apos;);
 const {version} = require(&apos;./../package.json&apos;);
 
 import Config from &apos;./config.js&apos;;
-import builder from &apos;./../node_modules/backed-builder/dist/builder-es.js&apos;;
+import builder from &apos;./../node_modules/backed-builder/src/builder.js&apos;;
 import server from &apos;./server.js&apos;;
 import watcher from &apos;./watcher.js&apos;;
 import Utils from &apos;./utils.js&apos;;
@@ -69,14 +69,11 @@ let watch = commander.watch;
 let build = commander.build;
 let copy = commander.build || commander.copy;
 let serve = commander.serve;
-let debug = commander.debug;
-
+global.debug = commander.debug
 /**
  * @param {object} config {@link Config}
  */
 async function * run(config) {
-  global.debug = debug || config.debug;
-
   if (build) {
     await builder.build(config);
   }
@@ -98,6 +95,7 @@ async function * run(config) {
 }
 
 new Config().then(config =&gt; {
+  global.debug = commander.debug || config.debug;
   let it = run(config);
   it.next();
 });

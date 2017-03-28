@@ -1,15 +1,20 @@
 {
-  "coverage": "46.66%",
-  "expectCount": 30,
+  "coverage": "40%",
+  "expectCount": 35,
   "actualCount": 14,
   "files": {
     "src/config.js": {
-      "expectCount": 9,
+      "expectCount": 14,
       "actualCount": 6,
       "undocumentLines": [
+        24,
+        45,
+        23,
         19,
-        27,
-        38
+        22,
+        56,
+        35,
+        67
       ]
     },
     "src/logger.js": {

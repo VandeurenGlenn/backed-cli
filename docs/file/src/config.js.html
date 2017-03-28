@@ -66,9 +66,38 @@ export default class Config {
   constructor() {
     return new Promise((resolve, reject) =&gt; {
       this.importConfig().then(config =&gt; {
+        this.name = config.name;
+        this.cleanup = config.cleanup || true;
+        this.babel = config.babel || true;
+        if (config.bundles) {
+          for (let bundle of config.bundles) {
+            bundle.plugins = this.setupPlugins(bundle.plugins);
+          }
+        }
         resolve(this.updateConfig(config));
       });
     });
+  }
+
+  setupPlugins(plugins={}) {
+    const defaults = [&apos;babel&apos;, &apos;cleanup&apos;];
+    for (let key of defaults) {
+      if (this[key] &amp;&amp; !plugins[key]) {
+        plugins[key] = {};
+      }
+    }
+    return plugins;
+  }
+
+  get bundles() {
+    return [
+      {
+        src: `src/${this.name}.js`,
+        dest: `dist/${this.name}.js`,
+        plugins: this.setupPlugins(),
+        format: &apos;es&apos;
+      }
+    ]
   }
 
   get server() {
@@ -114,21 +143,31 @@ export default class Config {
   importConfig() {
     return new Promise((resolve, reject) =&gt; {
       async function * generator(fn) {
-        const config = await fn(&apos;backed.json&apos;);
-        const pkg = await fn(&apos;package.json&apos;);
-        if (!config &amp;&amp; !pkg) return resolve({name: process.cwd()});
+        const pkg = await fn(&apos;package.json&apos;).catch(error =&gt; {
+          if (global.debug) {
+            logger.error(error)
+          }
+        });
+        const config = await fn(&apos;backed.json&apos;).catch(error =&gt; {
+          if (global.debug) {
+            logger.warn(&apos;backed.json::not found, ignore this when using backed in package.json&apos;)
+          }
+        });
+        if (!config &amp;&amp; !pkg) {
+          logger.warn(&apos;No backed.json or backed section in package.json, using default options.&apos;);
+          return resolve({name: process.cwd()});
+        }
         if (config) {
           let name = config.name;
           if (!name &amp;&amp; pkg &amp;&amp; pkg.name &amp;&amp; !pkg.backed) {
-            return resolve(merge(config, {name: pkg.name}))
+            return resolve(merge(config, {name: pkg.name}));
           } else if (!name &amp;&amp; !pkg) {
             return resolve(merge(config, {name: process.cwd()}))
           }
         }
         if(pkg &amp;&amp; pkg.backed) {
-          return resolve(pkg.backed, {name: pkg.name});
+          return resolve(merge(pkg.backed, {name: pkg.name}));
         }
-        logger.warn(&apos;No backed.json or backed section in package.json, using default options.&apos;);
       }
       const it = generator(this.require);
       it.next();
@@ -181,6 +220,7 @@ export default class Config {
    */
   updateConfig(config, name) {
     config.sourceMap = config.sourceMap || true;
+    config.bundles = merge(this.bundles, config.bundles);
     config.server = merge(this.server, config.server);
     config.watch = merge(this.watch, config.watch);
     global.config = config;

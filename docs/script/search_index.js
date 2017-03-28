@@ -390,6 +390,24 @@ window.esdocSearchIndex = [
     "file"
   ],
   [
+    "src/config.js~config#babel",
+    "class/src/config.js~Config.html#instance-member-babel",
+    "src/config.js~Config#babel",
+    "member"
+  ],
+  [
+    "src/config.js~config#bundles",
+    "class/src/config.js~Config.html#instance-get-bundles",
+    "src/config.js~Config#bundles",
+    "member"
+  ],
+  [
+    "src/config.js~config#cleanup",
+    "class/src/config.js~Config.html#instance-member-cleanup",
+    "src/config.js~Config#cleanup",
+    "member"
+  ],
+  [
     "src/config.js~config#constructor",
     "class/src/config.js~Config.html#instance-constructor-constructor",
     "src/config.js~Config#constructor",
@@ -414,6 +432,12 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/config.js~config#name",
+    "class/src/config.js~Config.html#instance-member-name",
+    "src/config.js~Config#name",
+    "member"
+  ],
+  [
     "src/config.js~config#require",
     "class/src/config.js~Config.html#instance-method-require",
     "src/config.js~Config#require",
@@ -424,6 +448,12 @@ window.esdocSearchIndex = [
     "class/src/config.js~Config.html#instance-get-server",
     "src/config.js~Config#server",
     "member"
+  ],
+  [
+    "src/config.js~config#setupplugins",
+    "class/src/config.js~Config.html#instance-method-setupPlugins",
+    "src/config.js~Config#setupPlugins",
+    "method"
   ],
   [
     "src/config.js~config#updateconfig",

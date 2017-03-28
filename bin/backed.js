@@ -32,13 +32,53 @@ var logger = new Logger();
 const {readFileSync} = require('fs');
 const path = require('path');
 const {merge} = require('lodash');
+/**
+ * @param {string} config.name name off your project
+ * @param {string} config.server.entry path to where your build is located
+ * @param {string} config.server.entry path to where your build is located
+ * @param {string} config.server.docs path to where your docs are located
+ * @param {string} config.server.bowerPath path to bower_components
+ * @param {string} config.server.nodeModulesPath path to node_modules
+ * @param {string} config.server.demo path to the demo
+ * @param {string} config.server.index path to your index.html file we serve a helper/docs index by default (not support for now)
+ * @param {array} config.server.use static files to include [{path: some/path, static: some//path}] when static is undefined path will be used.
+ */
 class Config {
   constructor() {
     return new Promise((resolve, reject) => {
       this.importConfig().then(config => {
+        this.name = config.name;
+        this.cleanup = config.cleanup || true;
+        this.babel = config.babel || true;
+        if (config.bundles) {
+          for (let bundle of config.bundles) {
+            bundle.plugins = this.setupPlugins(bundle.plugins);
+          }
+        }
         resolve(this.updateConfig(config));
       });
     });
+  }
+
+  setupPlugins(plugins={}) {
+    const defaults = ['babel', 'cleanup'];
+    for (let key of defaults) {
+      if (this[key] && !plugins[key]) {
+        plugins[key] = {};
+      }
+    }
+    return plugins;
+  }
+
+  get bundles() {
+    return [
+      {
+        src: `src/${this.name}.js`,
+        dest: `dist/${this.name}.js`,
+        plugins: this.setupPlugins(),
+        format: 'es'
+      }
+    ]
   }
 
   get server() {
@@ -94,11 +134,14 @@ class Config {
             logger.warn('backed.json::not found, ignore this when using backed in package.json');
           }
         })};
-        if (!config && !pkg) return resolve({name: process.cwd()});
+        if (!config && !pkg) {
+          logger.warn('No backed.json or backed section in package.json, using default options.');
+          return resolve({name: process.cwd()});
+        }
         if (config) {
           let name = config.name;
           if (!name && pkg && pkg.name && !pkg.backed) {
-            return resolve(merge(config, {name: pkg.name}))
+            return resolve(merge(config, {name: pkg.name}));
           } else if (!name && !pkg) {
             return resolve(merge(config, {name: process.cwd()}))
           }
@@ -106,7 +149,6 @@ class Config {
         if(pkg && pkg.backed) {
           return resolve(merge(pkg.backed, {name: pkg.name}));
         }
-        logger.warn('No backed.json or backed section in package.json, using default options.');
       }())}
       const it = generator(this.require);
       it.next();
@@ -159,6 +201,7 @@ class Config {
    */
   updateConfig(config, name) {
     config.sourceMap = config.sourceMap || true;
+    config.bundles = merge(this.bundles, config.bundles);
     config.server = merge(this.server, config.server);
     config.watch = merge(this.watch, config.watch);
     global.config = config;
@@ -166,148 +209,9 @@ class Config {
   }
 }
 
-var asyncGenerator = function () {
-  function AwaitValue(value) {
-    this.value = value;
-  }
-
-  function AsyncGenerator(gen) {
-    var front, back;
-
-    function send(key, arg) {
-      return new Promise(function (resolve, reject) {
-        var request = {
-          key: key,
-          arg: arg,
-          resolve: resolve,
-          reject: reject,
-          next: null
-        };
-
-        if (back) {
-          back = back.next = request;
-        } else {
-          front = back = request;
-          resume(key, arg);
-        }
-      });
-    }
-
-    function resume(key, arg) {
-      try {
-        var result = gen[key](arg);
-        var value = result.value;
-
-        if (value instanceof AwaitValue) {
-          Promise.resolve(value.value).then(function (arg) {
-            resume("next", arg);
-          }, function (arg) {
-            resume("throw", arg);
-          });
-        } else {
-          settle(result.done ? "return" : "normal", result.value);
-        }
-      } catch (err) {
-        settle("throw", err);
-      }
-    }
-
-    function settle(type, value) {
-      switch (type) {
-        case "return":
-          front.resolve({
-            value: value,
-            done: true
-          });
-          break;
-
-        case "throw":
-          front.reject(value);
-          break;
-
-        default:
-          front.resolve({
-            value: value,
-            done: false
-          });
-          break;
-      }
-
-      front = front.next;
-
-      if (front) {
-        resume(front.key, front.arg);
-      } else {
-        back = null;
-      }
-    }
-
-    this._invoke = send;
-
-    if (typeof gen.return !== "function") {
-      this.return = undefined;
-    }
-  }
-
-  if (typeof Symbol === "function" && Symbol.asyncIterator) {
-    AsyncGenerator.prototype[Symbol.asyncIterator] = function () {
-      return this;
-    };
-  }
-
-  AsyncGenerator.prototype.next = function (arg) {
-    return this._invoke("next", arg);
-  };
-
-  AsyncGenerator.prototype.throw = function (arg) {
-    return this._invoke("throw", arg);
-  };
-
-  AsyncGenerator.prototype.return = function (arg) {
-    return this._invoke("return", arg);
-  };
-
-  return {
-    wrap: function (fn) {
-      return function () {
-        return new AsyncGenerator(fn.apply(this, arguments));
-      };
-    },
-    await: function (value) {
-      return new AwaitValue(value);
-    }
-  };
-}();
-
-let bundler = (() => {
-  var _ref = asyncGenerator.wrap(function* (bundles, fn, cb) {
-    let fns = [];
-    for (let bundle of bundles) {
-      let dest = bundle.dest;
-      bundle = bundle.bundle || bundle;
-      bundle.dest = dest;
-      fns.push(fn(bundle));
-    }
-
-    yield asyncGenerator.await(Promise.all(fns).then(function (bundles) {
-      logWorker.kill('SIGINT');
-      if (global.debug) {
-        for (let warning of warnings) {
-          logger$1.warn(warning);
-        }
-      }
-      cb(bundles);
-    }));
-  });
-
-  return function bundler(_x, _x2, _x3) {
-    return _ref.apply(this, arguments);
-  };
-})();
-
-const { rollup } = require('rollup');
+const {rollup} = require('rollup');
 const path$1 = require('path');
-const { fork } = require('child_process');
+const {fork} = require('child_process');
 const logger$1 = require('backed-logger');
 let iterator;
 let cache;
@@ -315,6 +219,27 @@ let warnings = [];
 
 const logWorker = fork(path$1.join(__dirname, 'workers/log-worker.js'));
 
+function  bundler(bundles, fn, cb) {return __asyncGen(function*(){
+  let fns = [];
+  for (let bundle of bundles) {
+    let dest = bundle.dest;
+    bundle = bundle.bundle || bundle;
+    bundle.dest = dest;
+    fns.push(fn(bundle));
+  }
+
+  yield{__await: Promise.all(fns).then(bundles => {
+    // TODO: Decide to implement or not, a method for transforming content
+    // TODO: When not transforming, return bundles.code or bundles...
+    logWorker.kill('SIGINT');
+    if (global.debug) {
+      for (let warning of warnings) {
+        logger$1.warn(warning);
+      }
+    }
+    cb(bundles);
+  }).catch(error => {logger$1.warn(error);})};
+}())}
 class Builder {
 
   /**
@@ -336,18 +261,17 @@ class Builder {
 
   build(config) {
     return new Promise((resolve, reject) => {
-      logWorker.send('start');
-      logWorker.send(logger$1._chalk('building', 'cyan'));
-      this.promiseBundles(config).then(bundles => {
-        iterator = bundler(bundles, this.bundle, bundles => {
-
-          resolve(bundles);
-        });
-        iterator.next();
-      }).catch(error => {
-        logger$1.warn(error);
-        reject(error);
+    logWorker.send('start');
+    logWorker.send(logger$1._chalk('building', 'cyan'));
+    this.promiseBundles(config).then(bundles => {
+      iterator = bundler(bundles, this.bundle, bundles => {
+        resolve(bundles);
       });
+      iterator.next();
+    }).catch(error => {
+      logger$1.warn(error);
+      reject(error);
+    });
     });
   }
 
@@ -356,10 +280,15 @@ class Builder {
       try {
         const format = bundle.format;
         let dest = bundle.dest;
-        if (format === 'iife' && !bundle.moduleName) {
-          bundle.moduleName = this.toJsProp(bundle.name);
-        } else {
+        let formats = [];
+        // TODO: Check for two iife configs, throw error!
+        if (bundle.shouldRename) {
           switch (format) {
+            case 'iife':
+              if (!bundle.moduleName) {
+                bundle.moduleName = this.toJsProp(bundle.name);
+              }
+              break;
             case 'cjs':
               dest = bundle.dest.replace('.js', '-node.js');
               break;
@@ -369,13 +298,55 @@ class Builder {
               break;
             default:
               break;
-            // do nothing
+              // do nothing
           }
         }
-        resolve({ bundle: bundle, dest: dest, format: format });
+        resolve({bundle: bundle, dest: dest, format: format});
       } catch (err) {
         reject(err);
       }
+    });
+  }
+
+  forBundles(bundles, cb) {
+    for (let bundle of bundles) {
+      cb(bundle);
+    }
+  }
+
+  /**
+   * Checks if another bundle has the same destintation, when true,
+   * checks if the formats are the same
+   * @param {array} bundles
+   *
+   * @example
+   * [{
+   *    dest: 'dist/index.js',
+   *    format: 'es'
+   *  }, {
+   *    dest: 'dist/index.js',
+   *    format: 'es'
+   *  }]
+   * // would result in true
+   */
+  compareBundles(bundles, cb) {
+    this.forBundles(bundles, bundle => {
+      // itterate trough the bundles
+      for (let i of bundles) {
+        // ensure we are not comaring against the same bundle
+        if (bundles.indexOf(i) !== bundles.indexOf(bundle)) {
+          // compare destination between the current bundle & other bundles;
+          if (i.dest === bundle.dest) {
+            // compare the format
+            if (i.format !== bundle.format) {
+              // rename dest so we don't conflict with other bundles
+              bundle.shouldRename = true;
+              return cb(bundle);
+            }
+          }
+        }
+      }
+      cb(bundle);
     });
   }
 
@@ -384,7 +355,7 @@ class Builder {
       let formats = [];
       let bundles = config.bundles;
       try {
-        for (let bundle of bundles) {
+        this.compareBundles(bundles, bundle => {
           bundle.name = bundle.name || config.name;
           bundle.babel = bundle.babel || config.babel;
           bundle.sourceMap = bundle.sourceMap || config.sourceMap;
@@ -393,15 +364,10 @@ class Builder {
               bundle.format = format;
               formats.push(this.handleFormats(bundle));
             }
-          } else if (bundle.format && typeof bundle.format !== 'string') {
-            for (let format of bundle.format) {
-              bundle.format = format;
-              formats.push(this.handleFormats(bundle));
-            }
           } else {
             formats.push(this.handleFormats(bundle));
           }
-        }
+        });
         Promise.all(formats).then(bundles => {
           resolve(bundles);
         });
@@ -411,35 +377,58 @@ class Builder {
     });
   }
 
-  /**
-   * @param {object} config
-   * @param {string} config.src path/to/js
-   * @param {string} config.dest destination to write to
-   * @param {string} config.format format to build ['es', 'iife', 'amd', 'cjs']
-   * @param {string} config.name the name of your element/app
-   * @param {string} config.moduleName the moduleName for your element/app (not needed for es & cjs)
-   * @param {boolean} config.sourceMap Wether or not to build sourceMaps defaults to 'true'
-   * @param {object} config.plugins rollup plugins to use [see](https://github.com/rollup/rollup/wiki/Plugins)
-   */
-  bundle(config = { src: null, dest: 'bundle.js', format: 'iife', name: null, plugins: [], moduleName: null, sourceMap: true }) {
+/**
+ * @param {object} config
+ * @param {string} config.src path/to/js
+ * @param {string} config.dest destination to write to
+ * @param {string} config.format format to build ['es', 'iife', 'amd', 'cjs']
+ * @param {string} config.name the name of your element/app
+ * @param {string} config.moduleName the moduleName for your element/app (not needed for es & cjs)
+ * @param {boolean} config.sourceMap Wether or not to build sourceMaps defaults to 'true'
+ * @param {object} config.clean Wether or not to remove comments, set line endings, etc
+ * @param {object} config.plugins rollup plugins to use [see](https://github.com/rollup/rollup/wiki/Plugins)
+ */
+  bundle(config = {src: null, dest: 'bundle.js', format: 'iife', name: null, plugins: [], moduleName: null, sourceMap: true, clean: true}) {
     return new Promise((resolve, reject) => {
-      let plugins = config.plugins || [];
-      if (config.babel) {
-        const babel = require('rollup-plugin-babel');
-        plugins.push(babel(config.babel));
+      let plugins = [];
+      // if (config.babel) {
+      //   const babel = require('rollup-plugin-babel');
+      //   plugins.push(babel(config.babel));
+      // }
+      let requiredPlugins = {};
+      for (let plugin of Object.keys(config.plugins)) {
+        let required;
+        try {
+          required = require(`rollup-plugin-${plugin}`);
+        } catch (error) {
+          try {
+            required = require(path$1.join(process.cwd(), `/node_modules/rollup-plugin-${plugin}`));
+          } catch (error) {
+            reject(error);
+          }
+        }
+        const conf = config.plugins[plugin];
+        requiredPlugins[plugin] = required;
+
+        plugins.push(requiredPlugins[plugin](conf));
+        // if (plugin[0]) {
+        //   this[plugin[0]] = require(plugin[0]);
+        //   plugins.push(this[plugin[0]](plugin[1]))
+        // }
       }
+
       rollup({
         entry: `${process.cwd()}/${config.src}`,
         plugins: plugins,
         cache: cache,
-        // Use the previous bundle as starting point.
+      // Use the previous bundle as starting point.
         onwarn: warning => {
           warnings.push(warning);
         }
       }).then(bundle => {
         cache = bundle;
         bundle.write({
-          // output format - 'amd', 'cjs', 'es', 'iife', 'umd'
+        // output format - 'amd', 'cjs', 'es', 'iife', 'umd'
           format: config.format,
           moduleName: config.moduleName,
           sourceMap: config.sourceMap,
@@ -449,7 +438,7 @@ class Builder {
           logWorker.send(logger$1._chalk(`${config.name}::build finished`, 'cyan'));
           logWorker.send('done');
           logWorker.on('message', () => {
-            resolve();
+            resolve(bundle);
           });
         }, 100);
       }).catch(err => {
@@ -468,9 +457,6 @@ class Builder {
   }
 }
 var builder = new Builder();
-
-
-//# sourceMappingURL=builder-es.js.map
 
 const express = require('express');
 const http = require('http');
