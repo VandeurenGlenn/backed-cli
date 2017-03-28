@@ -19,9 +19,38 @@ export default class Config {
   constructor() {
     return new Promise((resolve, reject) => {
       this.importConfig().then(config => {
+        this.name = config.name;
+        this.cleanup = config.cleanup || true;
+        this.babel = config.babel || true;
+        if (config.bundles) {
+          for (let bundle of config.bundles) {
+            bundle.plugins = this.setupPlugins(bundle.plugins);
+          }
+        }
         resolve(this.updateConfig(config));
       });
     });
+  }
+
+  setupPlugins(plugins={}) {
+    const defaults = ['babel', 'cleanup'];
+    for (let key of defaults) {
+      if (this[key] && !plugins[key]) {
+        plugins[key] = {};
+      }
+    }
+    return plugins;
+  }
+
+  get bundles() {
+    return [
+      {
+        src: `src/${this.name}.js`,
+        dest: `dist/${this.name}.js`,
+        plugins: this.setupPlugins(),
+        format: 'es'
+      }
+    ]
   }
 
   get server() {
@@ -77,11 +106,14 @@ export default class Config {
             logger.warn('backed.json::not found, ignore this when using backed in package.json')
           }
         });
-        if (!config && !pkg) return resolve({name: process.cwd()});
+        if (!config && !pkg) {
+          logger.warn('No backed.json or backed section in package.json, using default options.');
+          return resolve({name: process.cwd()});
+        }
         if (config) {
           let name = config.name;
           if (!name && pkg && pkg.name && !pkg.backed) {
-            return resolve(merge(config, {name: pkg.name}))
+            return resolve(merge(config, {name: pkg.name}));
           } else if (!name && !pkg) {
             return resolve(merge(config, {name: process.cwd()}))
           }
@@ -89,7 +121,6 @@ export default class Config {
         if(pkg && pkg.backed) {
           return resolve(merge(pkg.backed, {name: pkg.name}));
         }
-        logger.warn('No backed.json or backed section in package.json, using default options.');
       }
       const it = generator(this.require);
       it.next();
@@ -142,6 +173,7 @@ export default class Config {
    */
   updateConfig(config, name) {
     config.sourceMap = config.sourceMap || true;
+    config.bundles = merge(this.bundles, config.bundles);
     config.server = merge(this.server, config.server);
     config.watch = merge(this.watch, config.watch);
     global.config = config;
