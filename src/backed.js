@@ -3,7 +3,7 @@ const commander = require('commander');
 const {version} = require('./../package.json');
 
 import Config from './config.js';
-import builder from './../node_modules/backed-builder/dist/builder-es.js';
+import builder from './../node_modules/backed-builder/src/builder.js';
 import server from './server.js';
 import watcher from './watcher.js';
 import Utils from './utils.js';
