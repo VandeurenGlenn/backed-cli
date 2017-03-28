@@ -385,16 +385,11 @@ class Builder {
  * @param {string} config.name the name of your element/app
  * @param {string} config.moduleName the moduleName for your element/app (not needed for es & cjs)
  * @param {boolean} config.sourceMap Wether or not to build sourceMaps defaults to 'true'
- * @param {object} config.clean Wether or not to remove comments, set line endings, etc
  * @param {object} config.plugins rollup plugins to use [see](https://github.com/rollup/rollup/wiki/Plugins)
  */
-  bundle(config = {src: null, dest: 'bundle.js', format: 'iife', name: null, plugins: [], moduleName: null, sourceMap: true, clean: true}) {
+  bundle(config = {src: null, dest: 'bundle.js', format: 'iife', name: null, plugins: [], moduleName: null, sourceMap: true}) {
     return new Promise((resolve, reject) => {
       let plugins = [];
-      // if (config.babel) {
-      //   const babel = require('rollup-plugin-babel');
-      //   plugins.push(babel(config.babel));
-      // }
       let requiredPlugins = {};
       for (let plugin of Object.keys(config.plugins)) {
         let required;
@@ -411,10 +406,6 @@ class Builder {
         requiredPlugins[plugin] = required;
 
         plugins.push(requiredPlugins[plugin](conf));
-        // if (plugin[0]) {
-        //   this[plugin[0]] = require(plugin[0]);
-        //   plugins.push(this[plugin[0]](plugin[1]))
-        // }
       }
 
       rollup({
