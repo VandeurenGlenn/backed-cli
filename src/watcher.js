@@ -25,42 +25,54 @@ class Watcher extends EventEmitter {
         reject('nothing to watch');
         return process.kill(process.pid, 'SIGINT');
       }
-      logger.log(`[${time()}] ${logger._chalk('Configuring demo', 'cyan')}`);
-
-      if (config.server) {
-        let demoPath = path.join(process.cwd(), config.server.demo);
-
-        if (!demoPath.includes('index.html')) {
-          demoPath = path.join(demoPath, 'index.html');
-        }
-        let demo = readFileSync(demoPath, 'utf-8');
-        if (!demo.includes('/reload/reload.js')) {
-          demo = demo.replace('</body>', '\t<script src="/reload/reload.js"></script>\n</body>');
-          writeFileSync(demoPath, demo);
-        }
-      }
+      this.server = config.server;
+      this.configureDemo(this.server);
 
       logger.log(`[${time()}] ${logger._chalk('Starting initial build', 'cyan')}`);
       this.runWorker(config);
 
       logger.log(`[${time()}] ${logger._chalk('Watching files for changes', 'cyan')}`);
-      const watcher = chokidar.watch(config.watch.src, config.watch.options);
-      watcher.on('change', () => {
-        this.runWorker(config);
-      });
 
+      let watchers = {};
+      for (let watch of config.watch) {
+        watchers[watch.task] = chokidar.watch(watch.src, watch.options);
+        watchers[watch.task].on('change', () => {
+          this.runWorker(watch.task, config);
+        });
+      }
       resolve();
     });
   }
 
-  runWorker(config) {
+  configureDemo(server) {
+    logger.log(`[${time()}] ${logger._chalk('Configuring demo', 'cyan')}`);
+
+    if (server) {
+      let demoPath = path.join(process.cwd(), server.demo);
+
+      if (!demoPath.includes('index.html')) {
+        demoPath = path.join(demoPath, 'index.html');
+      }
+      let demo = readFileSync(demoPath, 'utf-8');
+      if (!demo.includes('/reload/reload.js')) {
+        demo = demo.replace('</body>', '\t<script src="/reload/reload.js"></script>\n</body>');
+        writeFileSync(demoPath, demo);
+      }
+    }
+  }
+
+  runWorker(task, config) {
     let worker;
     worker = fork(path.join(__dirname, 'workers/watcher-worker.js'));
     worker.on('message', message => {
+      if (message === 'done') {
+        this.configureDemo(this.server);
+        message = 'reload';
+      }
       logger.log(`[${time()}] ${logger._chalk('Reloading browser', 'cyan')}`);
       this.emit(message);
     });
-    worker.send(config);
+    worker.send({task: task, config: config});
   }
 
   // on(event, fn) {

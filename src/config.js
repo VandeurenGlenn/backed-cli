@@ -65,10 +65,11 @@ export default class Config {
   }
 
   get watch() {
-    return {
+    return [{
+      task: 'build',
       src: ['./src'],
       options: {}
-    };
+    }];
   }
 
   /**

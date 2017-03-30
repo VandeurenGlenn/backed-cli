@@ -473,6 +473,13 @@ backed-client@^1.1.0:
   dependencies:
     backed "^0.2.1"
 
+backed-fs@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/backed-fs/-/backed-fs-1.0.2.tgz#c27de530744b9827901af0b7150a4cedfbdf9d8b"
+  dependencies:
+    backed-logger "^1.0.1"
+    vinyl-read "^1.0.0"
+
 backed-logger@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/backed-logger/-/backed-logger-1.0.1.tgz#3acec0f9b684148a9c1a2373a386598cb41b5ec8"
@@ -850,7 +857,7 @@ death@~1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/death/-/death-1.0.0.tgz#4d46e15488d4b636b699f0671b04632d752fd2de"
 
-debug@2, debug@2.6.3, debug@^2.1.1, debug@^2.1.3, debug@^2.2.0:
+debug@2, debug@2.6.3, debug@^2.1.3, debug@^2.2.0:
   version "2.6.3"
   resolved "https://registry.yarnpkg.com/debug/-/debug-2.6.3.tgz#0f7eb8c30965ec08c72accfa0130c8b79984141d"
   dependencies:
@@ -862,7 +869,7 @@ debug@2.2.0, debug@~2.2.0:
   dependencies:
     ms "0.7.1"
 
-debug@2.6.1:
+debug@2.6.1, debug@^2.1.1:
   version "2.6.1"
   resolved "https://registry.yarnpkg.com/debug/-/debug-2.6.1.tgz#79855090ba2c4e3115cc7d8769491d58f0491351"
   dependencies:

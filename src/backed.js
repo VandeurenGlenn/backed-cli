@@ -1,13 +1,13 @@
 process.title = 'backed';
 const commander = require('commander');
 const {version} = require('./../package.json');
+const fs = require('backed-fs');
 
 import Config from './config.js';
 import builder from './../node_modules/backed-builder/src/builder.js';
 import server from './server.js';
 import watcher from './watcher.js';
-import Utils from './utils.js';
-const utils = new Utils();
+
 
 commander
   .version(version)
@@ -32,7 +32,7 @@ async function * run(config) {
   }
 
   if (copy) {
-    await utils.copySources(config.sources);
+    await fs.copySources(config.sources);
   }
 
   if (watch) {
