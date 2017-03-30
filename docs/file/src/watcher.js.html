@@ -35,7 +35,6 @@
   <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/config.js~Config.html">Config</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/logger.js~Logger.html">Logger</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/server.js~Server.html">Server</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/utils.js~utils.html">utils</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/watcher.js~Watcher.html">Watcher</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-logger">logger</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-server">server</a></span></span></li>
@@ -72,42 +71,54 @@ class Watcher extends EventEmitter {
         reject(&apos;nothing to watch&apos;);
         return process.kill(process.pid, &apos;SIGINT&apos;);
       }
-      logger.log(`[${time()}] ${logger._chalk(&apos;Configuring demo&apos;, &apos;cyan&apos;)}`);
-
-      if (config.server) {
-        let demoPath = path.join(process.cwd(), config.server.demo);
-
-        if (!demoPath.includes(&apos;index.html&apos;)) {
-          demoPath = path.join(demoPath, &apos;index.html&apos;);
-        }
-        let demo = readFileSync(demoPath, &apos;utf-8&apos;);
-        if (!demo.includes(&apos;/reload/reload.js&apos;)) {
-          demo = demo.replace(&apos;&lt;/body&gt;&apos;, &apos;\t&lt;script src=&quot;/reload/reload.js&quot;&gt;&lt;/script&gt;\n&lt;/body&gt;&apos;);
-          writeFileSync(demoPath, demo);
-        }
-      }
+      this.server = config.server;
+      this.configureDemo(this.server);
 
       logger.log(`[${time()}] ${logger._chalk(&apos;Starting initial build&apos;, &apos;cyan&apos;)}`);
       this.runWorker(config);
 
       logger.log(`[${time()}] ${logger._chalk(&apos;Watching files for changes&apos;, &apos;cyan&apos;)}`);
-      const watcher = chokidar.watch(config.watch.src, config.watch.options);
-      watcher.on(&apos;change&apos;, () =&gt; {
-        this.runWorker(config);
-      });
 
+      let watchers = {};
+      for (let watch of config.watch) {
+        watchers[watch.task] = chokidar.watch(watch.src, watch.options);
+        watchers[watch.task].on(&apos;change&apos;, () =&gt; {
+          this.runWorker(watch.task, config);
+        });
+      }
       resolve();
     });
   }
 
-  runWorker(config) {
+  configureDemo(server) {
+    logger.log(`[${time()}] ${logger._chalk(&apos;Configuring demo&apos;, &apos;cyan&apos;)}`);
+
+    if (server) {
+      let demoPath = path.join(process.cwd(), server.demo);
+
+      if (!demoPath.includes(&apos;index.html&apos;)) {
+        demoPath = path.join(demoPath, &apos;index.html&apos;);
+      }
+      let demo = readFileSync(demoPath, &apos;utf-8&apos;);
+      if (!demo.includes(&apos;/reload/reload.js&apos;)) {
+        demo = demo.replace(&apos;&lt;/body&gt;&apos;, &apos;\t&lt;script src=&quot;/reload/reload.js&quot;&gt;&lt;/script&gt;\n&lt;/body&gt;&apos;);
+        writeFileSync(demoPath, demo);
+      }
+    }
+  }
+
+  runWorker(task, config) {
     let worker;
     worker = fork(path.join(__dirname, &apos;workers/watcher-worker.js&apos;));
     worker.on(&apos;message&apos;, message =&gt; {
+      if (message === &apos;done&apos;) {
+        this.configureDemo(this.server);
+        message = &apos;reload&apos;;
+      }
       logger.log(`[${time()}] ${logger._chalk(&apos;Reloading browser&apos;, &apos;cyan&apos;)}`);
       this.emit(message);
     });
-    worker.send(config);
+    worker.send({task: task, config: config});
   }
 
   // on(event, fn) {

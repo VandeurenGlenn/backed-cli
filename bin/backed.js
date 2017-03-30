@@ -93,10 +93,11 @@ class Config {
   }
 
   get watch() {
-    return {
+    return [{
+      task: 'build',
       src: ['./src'],
       options: {}
-    };
+    }];
   }
 
   /**
@@ -607,42 +608,54 @@ class Watcher extends EventEmitter {
         reject('nothing to watch');
         return process.kill(process.pid, 'SIGINT');
       }
-      logger.log(`[${time()}] ${logger._chalk('Configuring demo', 'cyan')}`);
-
-      if (config.server) {
-        let demoPath = path$2.join(process.cwd(), config.server.demo);
-
-        if (!demoPath.includes('index.html')) {
-          demoPath = path$2.join(demoPath, 'index.html');
-        }
-        let demo = readFileSync$1(demoPath, 'utf-8');
-        if (!demo.includes('/reload/reload.js')) {
-          demo = demo.replace('</body>', '\t<script src="/reload/reload.js"></script>\n</body>');
-          writeFileSync(demoPath, demo);
-        }
-      }
+      this.server = config.server;
+      this.configureDemo(this.server);
 
       logger.log(`[${time()}] ${logger._chalk('Starting initial build', 'cyan')}`);
       this.runWorker(config);
 
       logger.log(`[${time()}] ${logger._chalk('Watching files for changes', 'cyan')}`);
-      const watcher = chokidar.watch(config.watch.src, config.watch.options);
-      watcher.on('change', () => {
-        this.runWorker(config);
-      });
 
+      let watchers = {};
+      for (let watch of config.watch) {
+        watchers[watch.task] = chokidar.watch(watch.src, watch.options);
+        watchers[watch.task].on('change', () => {
+          this.runWorker(watch.task, config);
+        });
+      }
       resolve();
     });
   }
 
-  runWorker(config) {
+  configureDemo(server) {
+    logger.log(`[${time()}] ${logger._chalk('Configuring demo', 'cyan')}`);
+
+    if (server) {
+      let demoPath = path$2.join(process.cwd(), server.demo);
+
+      if (!demoPath.includes('index.html')) {
+        demoPath = path$2.join(demoPath, 'index.html');
+      }
+      let demo = readFileSync$1(demoPath, 'utf-8');
+      if (!demo.includes('/reload/reload.js')) {
+        demo = demo.replace('</body>', '\t<script src="/reload/reload.js"></script>\n</body>');
+        writeFileSync(demoPath, demo);
+      }
+    }
+  }
+
+  runWorker(task, config) {
     let worker;
     worker = fork$1(path$2.join(__dirname, 'workers/watcher-worker.js'));
     worker.on('message', message => {
+      if (message === 'done') {
+        this.configureDemo(this.server);
+        message = 'reload';
+      }
       logger.log(`[${time()}] ${logger._chalk('Reloading browser', 'cyan')}`);
       this.emit(message);
     });
-    worker.send(config);
+    worker.send({task: task, config: config});
   }
 
   // on(event, fn) {
@@ -654,120 +667,10 @@ class Watcher extends EventEmitter {
 }
 var watcher = new Watcher();
 
-const {writeFile, mkdir} = require('fs');
-const vinylRead = require('vinyl-read');
-const path$3 = require('path');
-var Utils = class {
-  /**
-   * @param {object} sources {src: ["some/glob/exp"], dest: "some/dest"}
-   */
-  copySources(sources) {
-    return new Promise((resolve, reject) => {
-      if (sources) {
-        try {
-          let promises = [];
-          for (let source of sources) {
-            promises.push(this.copy(source.src, source.dest));
-          }
-          Promise.all(promises).then(() => {
-            logger.succes(`${global.config.name}::copy finished`);
-            resolve();
-          });
-        } catch (error) {
-          logger.error(error);
-          reject(error);
-        }
-      }
-    });
-  }
-
-  /**
-   * returns a destination using [vinyl](https://github.com/gulpjs/vinyl) info
-   */
-  destinationFromFile(file) {
-    let dest = path$3.win32.parse(file.path).dir;
-    dest = dest.replace(`${process.cwd()}\\`, '');
-    dest = dest.split(path$3.sep);
-    if (dest.length > 1) {
-      dest[0] = file.dest;
-    } else {
-      dest[0] = file.dest;
-    }
-    dest.push(path$3.win32.basename(file.path));
-    file.dest = dest.toString().replace(/,/g, '\\');
-
-    // return console.log(file.dest);
-    return file;
-  }
-
-  /**
-   * @param {string} src "some/src/path"
-   * @param {string} dest "some/dest/path"
-   */
-  copy(src, dest) {
-    return new Promise(resolve => {
-      let promises = [];
-      vinylRead(src, {
-        cwd: process.cwd()
-      }).then(files => {
-        for (let file of files) {
-          file.dest = path$3.win32.normalize(dest);
-          promises.push(this.write(this.destinationFromFile(file)));
-        }
-        Promise.all(promises).then(() => {
-          resolve();
-        });
-      });
-    });
-  }
-
-  /**
-   * @param {object} file {src: "some/src/path", dest: "some/dest/path"}
-   */
-  write(file) {
-    // console.log(file);
-    return new Promise((resolve, reject) => {
-      if (file) {
-        writeFile(file.dest, file.contents, err => {
-          if (err) {
-            if (global.debug) {
-              logger.warn(
-                  `subdirectory(s)::not existing
-                  Backed will now try to create ${file.dest}`
-                );
-            }
-            const dest = path$3.win32.dirname(file.dest);
-            const paths = dest.split('\\');
-            let prepath = '';
-            for (let path of paths) {
-              prepath += `${path}\\`;
-              mkdir(process.cwd() + '\\' + prepath, err => {
-                if (err) {
-                  if (err.code !== 'EEXIST') {
-                    reject(err);
-                  }
-                }
-              });
-            }
-            this.write(file).then(() => {
-              resolve();
-            });
-          } else {
-            resolve();
-          }
-        });
-      } else {
-        resolve();
-      }
-    });
-  }
-};
-
 process.title = 'backed';
 const commander = require('commander');
 const {version} = require('./../package.json');
-
-const utils = new Utils();
+const fs = require('backed-fs');
 
 commander
   .version(version)
@@ -792,7 +695,7 @@ function  run(config) {return __asyncGen(function*(){
   }
 
   if (copy) {
-    yield{__await: utils.copySources(config.sources)};
+    yield{__await: fs.copySources(config.sources)};
   }
 
   if (watch) {

@@ -36,12 +36,6 @@ window.esdocSearchIndex = [
     "variable"
   ],
   [
-    "backed-cli/src/utils.js~utils",
-    "class/src/utils.js~utils.html",
-    "<span>utils</span> <span class=\"search-result-import-path\">backed-cli/src/utils.js</span>",
-    "class"
-  ],
-  [
     "backed-cli/src/watcher.js~watcher",
     "variable/index.html#static-variable-watcher",
     "<span>watcher</span> <span class=\"search-result-import-path\">backed-cli/src/watcher.js</span>",
@@ -528,46 +522,28 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
-    "src/utils.js",
-    "file/src/utils.js.html",
-    "src/utils.js",
-    "file"
-  ],
-  [
-    "src/utils.js~utils#copy",
-    "class/src/utils.js~utils.html#instance-method-copy",
-    "src/utils.js~utils#copy",
-    "method"
-  ],
-  [
-    "src/utils.js~utils#copysources",
-    "class/src/utils.js~utils.html#instance-method-copySources",
-    "src/utils.js~utils#copySources",
-    "method"
-  ],
-  [
-    "src/utils.js~utils#destinationfromfile",
-    "class/src/utils.js~utils.html#instance-method-destinationFromFile",
-    "src/utils.js~utils#destinationFromFile",
-    "method"
-  ],
-  [
-    "src/utils.js~utils#write",
-    "class/src/utils.js~utils.html#instance-method-write",
-    "src/utils.js~utils#write",
-    "method"
-  ],
-  [
     "src/watcher.js",
     "file/src/watcher.js.html",
     "src/watcher.js",
     "file"
   ],
   [
+    "src/watcher.js~watcher#configuredemo",
+    "class/src/watcher.js~Watcher.html#instance-method-configureDemo",
+    "src/watcher.js~Watcher#configureDemo",
+    "method"
+  ],
+  [
     "src/watcher.js~watcher#runworker",
     "class/src/watcher.js~Watcher.html#instance-method-runWorker",
     "src/watcher.js~Watcher#runWorker",
     "method"
+  ],
+  [
+    "src/watcher.js~watcher#server",
+    "class/src/watcher.js~Watcher.html#instance-member-server",
+    "src/watcher.js~Watcher#server",
+    "member"
   ],
   [
     "src/watcher.js~watcher#watch",
