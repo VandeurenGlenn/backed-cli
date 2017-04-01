@@ -457,9 +457,9 @@ bach@^1.0.0:
     async-settle "^1.0.0"
     now-and-later "^1.0.0"
 
-backed-builder@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/backed-builder/-/backed-builder-1.1.0.tgz#1fdcd17450c8cbf5678199b7bfa9bc0abaf55568"
+backed-builder@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/backed-builder/-/backed-builder-1.2.0.tgz#37ebf19e3ec08bfbd8282984522c12349aa7d7ae"
   dependencies:
     backed-logger "^1.0.1"
     chalk "^1.1.3"
