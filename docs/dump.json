@@ -224,7 +224,7 @@
     "__docId__": 9,
     "kind": "file",
     "name": "src/config.js",
-    "content": "'use strict';\nconst {readFileSync} = require('fs');\nconst path = require('path');\nconst {merge} = require('lodash');\nimport logger from './logger.js';\n\n/**\n * @param {string} config.name name off your project\n * @param {string} config.server.entry path to where your build is located\n * @param {string} config.server.entry path to where your build is located\n * @param {string} config.server.docs path to where your docs are located\n * @param {string} config.server.bowerPath path to bower_components\n * @param {string} config.server.nodeModulesPath path to node_modules\n * @param {string} config.server.demo path to the demo\n * @param {string} config.server.index path to your index.html file we serve a helper/docs index by default (not support for now)\n * @param {array} config.server.use static files to include [{path: some/path, static: some//path}] when static is undefined path will be used.\n */\nexport default class Config {\n  constructor() {\n    return new Promise((resolve, reject) => {\n      this.importConfig().then(config => {\n        this.name = config.name;\n        this.cleanup = config.cleanup || true;\n        this.babel = config.babel || true;\n        if (config.bundles) {\n          for (let bundle of config.bundles) {\n            bundle.plugins = this.setupPlugins(bundle.plugins);\n          }\n        }\n        resolve(this.updateConfig(config));\n      });\n    });\n  }\n\n  setupPlugins(plugins={}) {\n    const defaults = ['babel', 'cleanup'];\n    for (let key of defaults) {\n      if (this[key] && !plugins[key]) {\n        plugins[key] = {};\n      }\n    }\n    return plugins;\n  }\n\n  get bundles() {\n    return [\n      {\n        src: `src/${this.name}.js`,\n        dest: `dist/${this.name}.js`,\n        plugins: this.setupPlugins(),\n        format: 'es'\n      }\n    ]\n  }\n\n  get server() {\n    return {\n      port: 3000,\n      entry: '/',\n      demo: 'demo',\n      docs: 'docs',\n      bowerPath: 'bower_components',\n      nodeModulesPath: 'node_modules',\n      index: null};\n  }\n\n  get watch() {\n    return [{\n      task: 'build',\n      src: ['./src'],\n      options: {}\n    }];\n  }\n\n  /**\n   * wrapper around cjs require\n   * try's to read file from current working directory\n   * @param {string} path path to file/module\n   * @return {object|array|function|class} module or file\n   */\n  require(path) {\n    return new Promise((resolve, reject) => {\n      let root = process.cwd();\n      root += `/${path}`;\n      try {\n        let required = require(root);\n        resolve(required);\n      } catch (error) {\n        reject(error);\n      }\n    });\n  }\n\n  /**\n   * @return {object} value of 'backed.json'\n   */\n  importConfig() {\n    return new Promise((resolve, reject) => {\n      async function * generator(fn) {\n        const pkg = await fn('package.json').catch(error => {\n          if (global.debug) {\n            logger.error(error)\n          }\n        });\n        const config = await fn('backed.json').catch(error => {\n          if (global.debug) {\n            logger.warn('backed.json::not found, ignore this when using backed in package.json')\n          }\n        });\n        if (!config && !pkg) {\n          logger.warn('No backed.json or backed section in package.json, using default options.');\n          return resolve({name: process.cwd()});\n        }\n        if (config) {\n          let name = config.name;\n          if (!name && pkg && pkg.name && !pkg.backed) {\n            return resolve(merge(config, {name: pkg.name}));\n          } else if (!name && !pkg) {\n            return resolve(merge(config, {name: process.cwd()}))\n          }\n        }\n        if(pkg && pkg.backed) {\n          return resolve(merge(pkg.backed, {name: pkg.name}));\n        }\n      }\n      const it = generator(this.require);\n      it.next();\n    });\n  }\n\n  /**\n   * @return {string} name from 'package.json'\n   */\n  importPackageName() {\n    try {\n      return JSON.parse(readFileSync(`${process.cwd()}/package.json`)).name;\n    } catch (e) {\n      if (global.debug) {\n        logger.warn('no package.json found');\n      }\n    }\n    return undefined;\n  }\n\n  /**\n   * @return {string} name from 'bower.json'\n   */\n  importBowerName() {\n    try {\n      return JSON.parse(readFileSync(`${process.cwd()}/bower.json`)).name;\n    } catch (e) {\n      if (global.debug) {\n        logger.warn('no bower.json found');\n      }\n    }\n    return undefined;\n  }\n\n  /**\n   * @param {object} config - the config to be updated\n   * @param {string} name - the name of the element, component, etc\n   *\n   * @example\n   * config.updateConfig({\n   *   bundles: [{\n   *     src: 'src',\n   *     dest: 'dist'\n   *   }]\n   * });\n   *\n   * @todo create method for building atom app with atom-builder\n   * @todo implement element, app & atom-app config\n   * @todo handle sourceMap at bundle level\n   */\n  updateConfig(config, name) {\n    config.sourceMap = config.sourceMap || true;\n    config.bundles = merge(this.bundles, config.bundles);\n    config.server = merge(this.server, config.server);\n    config.watch = merge(this.watch, config.watch);\n    global.config = config;\n    return config;\n  }\n}\n",
+    "content": "'use strict';\nconst {readFileSync} = require('fs');\nconst path = require('path');\nconst {merge} = require('lodash');\nimport logger from './logger.js';\n\n/**\n * @param {string} config.name name off your project\n * @param {string} config.server.entry path to where your build is located\n * @param {string} config.server.entry path to where your build is located\n * @param {string} config.server.docs path to where your docs are located\n * @param {string} config.server.bowerPath path to bower_components\n * @param {string} config.server.nodeModulesPath path to node_modules\n * @param {string} config.server.demo path to the demo\n * @param {string} config.server.index path to your index.html file we serve a helper/docs index by default (not support for now)\n * @param {array} config.server.use static files to include [{path: some/path, static: some//path}] when static is undefined path will be used.\n */\nexport default class Config {\n  constructor() {\n    return new Promise((resolve, reject) => {\n      this.importConfig().then(config => {\n        this.name = config.name;\n        this.cleanup = config.cleanup || true;\n        this.babel = config.babel || true;\n        if (config.bundles) {\n          for (let bundle of config.bundles) {\n            bundle.plugins = this.setupPlugins(bundle.plugins);\n          }\n        }\n        resolve(this.updateConfig(config));\n      });\n    });\n  }\n\n  setupPlugins(plugins={}) {\n    const defaults = ['babel', 'cleanup'];\n    for (let key of defaults) {\n      if (this[key] && !plugins[key]) {\n        plugins[key] = {};\n      }\n    }\n    return plugins;\n  }\n\n  get bundles() {\n    return [\n      {\n        src: `src/${this.name}.js`,\n        dest: `dist/${this.name}.js`,\n        format: 'es'\n      }\n    ]\n  }\n\n  get server() {\n    return {\n      port: 3000,\n      entry: '/',\n      demo: 'demo',\n      docs: 'docs',\n      bowerPath: 'bower_components',\n      nodeModulesPath: 'node_modules',\n      index: null};\n  }\n\n  get watch() {\n    return [{\n      task: 'build',\n      src: ['./src'],\n      options: {}\n    }];\n  }\n\n  /**\n   * wrapper around cjs require\n   * try's to read file from current working directory\n   * @param {string} path path to file/module\n   * @return {object|array|function|class} module or file\n   */\n  require(path) {\n    return new Promise((resolve, reject) => {\n      let root = process.cwd();\n      root += `/${path}`;\n      try {\n        let required = require(root);\n        resolve(required);\n      } catch (error) {\n        reject(error);\n      }\n    });\n  }\n\n  /**\n   * @return {object} value of 'backed.json'\n   */\n  importConfig() {\n    return new Promise((resolve, reject) => {\n      async function * generator(fn) {\n        const pkg = await fn('package.json').catch(error => {\n          if (global.debug) {\n            logger.error(error)\n          }\n        });\n        const config = await fn('backed.json').catch(error => {\n          if (global.debug) {\n            logger.warn('backed.json::not found, ignore this when using backed in package.json')\n          }\n        });\n        if (!config && !pkg) {\n          logger.warn('No backed.json or backed section in package.json, using default options.');\n          return resolve({name: process.cwd()});\n        }\n        if (config) {\n          let name = config.name;\n          if (!name && pkg && pkg.name && !pkg.backed) {\n            return resolve(merge(config, {name: pkg.name}));\n          } else if (!name && !pkg) {\n            return resolve(merge(config, {name: process.cwd()}))\n          }\n        }\n        if(pkg && pkg.backed) {\n          return resolve(merge(pkg.backed, {name: pkg.name}));\n        }\n      }\n      const it = generator(this.require);\n      it.next();\n    });\n  }\n\n  /**\n   * @return {string} name from 'package.json'\n   */\n  importPackageName() {\n    try {\n      return JSON.parse(readFileSync(`${process.cwd()}/package.json`)).name;\n    } catch (e) {\n      if (global.debug) {\n        logger.warn('no package.json found');\n      }\n    }\n    return undefined;\n  }\n\n  /**\n   * @return {string} name from 'bower.json'\n   */\n  importBowerName() {\n    try {\n      return JSON.parse(readFileSync(`${process.cwd()}/bower.json`)).name;\n    } catch (e) {\n      if (global.debug) {\n        logger.warn('no bower.json found');\n      }\n    }\n    return undefined;\n  }\n\n  /**\n   * @param {object} config - the config to be updated\n   * @param {string} name - the name of the element, component, etc\n   *\n   * @example\n   * config.updateConfig({\n   *   bundles: [{\n   *     src: 'src',\n   *     dest: 'dist'\n   *   }]\n   * });\n   *\n   * @todo create method for building atom app with atom-builder\n   * @todo implement element, app & atom-app config\n   * @todo handle sourceMap at bundle level\n   */\n  updateConfig(config, name) {\n    config.sourceMap = config.sourceMap || true;\n    config.bundles = merge(this.bundles, config.bundles);\n    config.server = merge(this.server, config.server);\n    config.watch = merge(this.watch, config.watch);\n    global.config = config;\n    return config;\n  }\n}\n",
     "static": true,
     "longname": "src/config.js",
     "access": null,
@@ -578,7 +578,7 @@
     "longname": "src/config.js~Config#server",
     "access": null,
     "description": null,
-    "lineNumber": 56,
+    "lineNumber": 55,
     "undocument": true,
     "unknown": [
       {
@@ -603,7 +603,7 @@
     "longname": "src/config.js~Config#watch",
     "access": null,
     "description": null,
-    "lineNumber": 67,
+    "lineNumber": 66,
     "undocument": true,
     "unknown": [
       {
@@ -628,7 +628,7 @@
     "longname": "src/config.js~Config#require",
     "access": null,
     "description": "wrapper around cjs require\ntry's to read file from current working directory",
-    "lineNumber": 81,
+    "lineNumber": 80,
     "params": [
       {
         "nullable": null,
@@ -664,7 +664,7 @@
     "longname": "src/config.js~Config#importConfig",
     "access": null,
     "description": "",
-    "lineNumber": 97,
+    "lineNumber": 96,
     "params": [],
     "return": {
       "nullable": null,
@@ -686,7 +686,7 @@
     "longname": "src/config.js~Config#importPackageName",
     "access": null,
     "description": "",
-    "lineNumber": 134,
+    "lineNumber": 133,
     "params": [],
     "return": {
       "nullable": null,
@@ -708,7 +708,7 @@
     "longname": "src/config.js~Config#importBowerName",
     "access": null,
     "description": "",
-    "lineNumber": 148,
+    "lineNumber": 147,
     "params": [],
     "return": {
       "nullable": null,
@@ -733,7 +733,7 @@
     "examples": [
       "config.updateConfig({\n  bundles: [{\n    src: 'src',\n    dest: 'dist'\n  }]\n});"
     ],
-    "lineNumber": 175,
+    "lineNumber": 174,
     "todo": [
       "create method for building atom app with atom-builder",
       "implement element, app & atom-app config",

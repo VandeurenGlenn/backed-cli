@@ -2,7 +2,13 @@
   "bundles": [
     {
       "src": "src/backed-cli",
-      "dest": "dist/backed-cli.js"
+      "dest": "dist/backed-cli.js",
+      "plugins": {
+        "inject-template": {}
+      },
+      "external": [
+        "lodash"
+      ]
     }
   ],
   "format": "es",
@@ -10,5 +16,10 @@
   "sources": {
     "src": ["*/templates/*"],
     "dest": "dist/templates"
-  }
+  },
+  "watch": [{
+    "task": "build",
+    "src": ["./src"],
+    "options": {}
+  }]
 }
