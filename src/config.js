@@ -47,7 +47,6 @@ export default class Config {
       {
         src: `src/${this.name}.js`,
         dest: `dist/${this.name}.js`,
-        plugins: this.setupPlugins(),
         format: 'es'
       }
     ]
