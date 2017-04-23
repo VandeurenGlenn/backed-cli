@@ -2,7 +2,7 @@
 const {readFileSync} = require('fs');
 const path = require('path');
 const {merge} = require('lodash');
-import logger from './logger.js';
+const logger = require('backed-logger');
 
 /**
  * @param {string} config.name name off your project
@@ -160,7 +160,7 @@ export default class Config {
    * @param {string} name - the name of the element, component, etc
    *
    * @example
-   * config.updateConfig({
+    * config.updateConfig({
    *   bundles: [{
    *     src: 'src',
    *     dest: 'dist'

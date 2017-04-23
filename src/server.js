@@ -7,7 +7,7 @@ const glob = require('glob');
 const app = express();
 const server = http.createServer(app);
 const reloadServer = reload(server, app);
-import logger from './logger.js';
+const logger = require('backed-logger');
 
 /**
  * glob file path

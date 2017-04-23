@@ -5,7 +5,7 @@ const path = require('path');
 const EventEmitter = require('events');
 const {readFileSync, writeFileSync} = require('fs');
 // const {merge} = require('lodash');
-import logger from './logger.js';
+const logger = require('backed-logger');
 const time = () => {
   return new Date().toLocaleTimeString();
 };
