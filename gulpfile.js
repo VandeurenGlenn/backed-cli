@@ -10,6 +10,7 @@ var plumber = require('gulp-plumber');
 var coveralls = require('gulp-coveralls');
 var rollup = require('rollup');
 var json = require('rollup-plugin-json');
+var babel = require('rollup-plugin-babel');
 var fs = require('fs');
 var del = require('del');
 var merge = require('merge-stream');
@@ -76,10 +77,10 @@ task('rollup:run', () => {
     acorn: {
       allowReserved: true
     },
-    plugins: [json(), async()]
+    plugins: [json(), async(), babel({runtimeHelpers: true})]
   }).then(bundle => {
     var result = bundle.generate({
-      format: 'iife',
+      format: 'cjs',
       moduleName: 'backed'
     });
      // Cache our bundle for later use (optional)
@@ -95,8 +96,7 @@ task('rollup:before', cb => {
 
 task('rollup:after', () => {
   var string = fs.readFileSync('.tmp/backed.js').toString();
-  string = string.replace('(function', `#!/usr/bin/env node
-(function`);
+  string = string.replace(`'use strict';`, `#!/usr/bin/env node`);
   fs.unlinkSync('.tmp/backed.js');
   fs.writeFileSync('.tmp/backed.js', string);
   var cli = src('.tmp/backed.js').pipe(dest('bin'));
