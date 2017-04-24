@@ -1,3 +1,4 @@
+'use strict';
 process.title = 'backed';
 const commander = require('commander');
 const {version} = require('./../package.json');

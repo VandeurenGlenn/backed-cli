@@ -6,12 +6,6 @@ window.esdocSearchIndex = [
     "class"
   ],
   [
-    "backed-cli/src/logger.js~logger",
-    "class/src/logger.js~Logger.html",
-    "<span>Logger</span> <span class=\"search-result-import-path\">backed-cli/src/logger.js</span>",
-    "class"
-  ],
-  [
     "backed-cli/src/server.js~server",
     "class/src/server.js~Server.html",
     "<span>Server</span> <span class=\"search-result-import-path\">backed-cli/src/server.js</span>",
@@ -22,12 +16,6 @@ window.esdocSearchIndex = [
     "class/src/watcher.js~Watcher.html",
     "<span>Watcher</span> <span class=\"search-result-import-path\">backed-cli/src/watcher.js</span>",
     "class"
-  ],
-  [
-    "backed-cli/src/logger.js~logger",
-    "variable/index.html#static-variable-logger",
-    "<span>logger</span> <span class=\"search-result-import-path\">backed-cli/src/logger.js</span>",
-    "variable"
   ],
   [
     "backed-cli/src/server.js~server",
@@ -460,36 +448,6 @@ window.esdocSearchIndex = [
     "class/src/config.js~Config.html#instance-get-watch",
     "src/config.js~Config#watch",
     "member"
-  ],
-  [
-    "src/logger.js",
-    "file/src/logger.js.html",
-    "src/logger.js",
-    "file"
-  ],
-  [
-    "src/logger.js~logger#error",
-    "class/src/logger.js~Logger.html#instance-method-error",
-    "src/logger.js~Logger#error",
-    "method"
-  ],
-  [
-    "src/logger.js~logger#log",
-    "class/src/logger.js~Logger.html#instance-method-log",
-    "src/logger.js~Logger#log",
-    "method"
-  ],
-  [
-    "src/logger.js~logger#succes",
-    "class/src/logger.js~Logger.html#instance-method-succes",
-    "src/logger.js~Logger#succes",
-    "method"
-  ],
-  [
-    "src/logger.js~logger#warn",
-    "class/src/logger.js~Logger.html#instance-method-warn",
-    "src/logger.js~Logger#warn",
-    "method"
   ],
   [
     "src/server.js",

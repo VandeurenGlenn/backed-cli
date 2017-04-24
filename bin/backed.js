@@ -1,37 +1,48 @@
 #!/usr/bin/env node
-(function () {
-'use strict';
 
-function __asyncGen(g){var q=[],T=["next","throw","return"],I={};for(var i=0;i<3;i++){I[T[i]]=a.bind(0,i);}I[Symbol?Symbol.asyncIterator||(Symbol.asyncIterator=Symbol()):"@@asyncIterator"]=function (){return this};function a(t,v){return new Promise(function(s,j){q.push([s,j,v,t]);q.length===1&&c(v,t);})}function c(v,t){try{var r=g[T[t|0]](v),w=r.value&&r.value.__await;w?Promise.resolve(w).then(c,d):n(r,0);}catch(e){n(e,1);}}function d(e){c(e,1);}function n(r,s){q.shift()[s](r);q.length&&c(q[0][2],q[0][3]);}return I}
+function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-const chalk = require('chalk');
-class Logger {
-  _chalk(text, color = 'white') {
-    return chalk[color](text);
-  }
+var _regeneratorRuntime = _interopDefault(require('babel-runtime/regenerator'));
+var _classCallCheck = _interopDefault(require('babel-runtime/helpers/classCallCheck'));
+var _createClass = _interopDefault(require('babel-runtime/helpers/createClass'));
+var _possibleConstructorReturn = _interopDefault(require('babel-runtime/helpers/possibleConstructorReturn'));
+var _inherits = _interopDefault(require('babel-runtime/helpers/inherits'));
 
-  log(text) {
-    console.log(this._chalk(text));
-  }
-
-  warn(text) {
-    console.warn(this._chalk(text, 'yellow'));
-  }
-
-  error(text) {
-    console.error(this._chalk(text, 'red'));
-  }
-
-  succes(text) {
-    console.log(this._chalk(text, 'cyan'));
-  }
-
+function __asyncGen(g) {
+  var q = [],
+      T = ["next", "throw", "return"],
+      I = {};for (var i = 0; i < 3; i++) {
+    I[T[i]] = a.bind(0, i);
+  }I[Symbol ? Symbol.asyncIterator || (Symbol.asyncIterator = Symbol()) : "@@asyncIterator"] = function () {
+    return this;
+  };function a(t, v) {
+    return new Promise(function (s, j) {
+      q.push([s, j, v, t]);q.length === 1 && c(v, t);
+    });
+  }function c(v, t) {
+    try {
+      var r = g[T[t | 0]](v),
+          w = r.value && r.value.__await;w ? Promise.resolve(w).then(c, d) : n(r, 0);
+    } catch (e) {
+      n(e, 1);
+    }
+  }function d(e) {
+    c(e, 1);
+  }function n(r, s) {
+    q.shift()[s](r);q.length && c(q[0][2], q[0][3]);
+  }return I;
 }
-var logger = new Logger();
 
-const {readFileSync} = require('fs');
-const path = require('path');
-const {merge} = require('lodash');
+var _require$1 = require('fs');
+var readFileSync = _require$1.readFileSync;
+
+var path = require('path');
+
+var _require2 = require('lodash');
+var merge = _require2.merge;
+
+var logger = require('backed-logger');
+
 /**
  * @param {string} config.name name off your project
  * @param {string} config.server.entry path to where your build is located
@@ -43,432 +54,777 @@ const {merge} = require('lodash');
  * @param {string} config.server.index path to your index.html file we serve a helper/docs index by default (not support for now)
  * @param {array} config.server.use static files to include [{path: some/path, static: some//path}] when static is undefined path will be used.
  */
-class Config {
-  constructor() {
-    return new Promise((resolve, reject) => {
-      this.importConfig().then(config => {
-        this.name = config.name;
-        this.cleanup = config.cleanup || true;
-        this.babel = config.babel || true;
+
+var Config = function () {
+  function Config() {
+    var _this = this;
+
+    _classCallCheck(this, Config);
+
+    return new Promise(function (resolve, reject) {
+      _this.importConfig().then(function (config) {
+        _this.name = config.name;
+        _this.cleanup = config.cleanup || true;
+        _this.babel = config.babel || true;
         if (config.bundles) {
-          for (let bundle of config.bundles) {
-            bundle.plugins = this.setupPlugins(bundle.plugins);
+          var _iteratorNormalCompletion = true;
+          var _didIteratorError = false;
+          var _iteratorError = undefined;
+
+          try {
+            for (var _iterator = config.bundles[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+              var bundle = _step.value;
+
+              bundle.plugins = _this.setupPlugins(bundle.plugins);
+            }
+          } catch (err) {
+            _didIteratorError = true;
+            _iteratorError = err;
+          } finally {
+            try {
+              if (!_iteratorNormalCompletion && _iterator.return) {
+                _iterator.return();
+              }
+            } finally {
+              if (_didIteratorError) {
+                throw _iteratorError;
+              }
+            }
           }
         }
-        resolve(this.updateConfig(config));
+        resolve(_this.updateConfig(config));
       });
     });
   }
 
-  setupPlugins(plugins={}) {
-    const defaults = ['babel', 'cleanup'];
-    for (let key of defaults) {
-      if (this[key] && !plugins[key]) {
-        plugins[key] = {};
-      }
-    }
-    return plugins;
-  }
+  _createClass(Config, [{
+    key: 'setupPlugins',
+    value: function setupPlugins() {
+      var plugins = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
-  get bundles() {
-    return [
-      {
-        src: `src/${this.name}.js`,
-        dest: `dist/${this.name}.js`,
-        format: 'es'
-      }
-    ]
-  }
+      var defaults = ['babel', 'cleanup'];
+      var _iteratorNormalCompletion2 = true;
+      var _didIteratorError2 = false;
+      var _iteratorError2 = undefined;
 
-  get server() {
-    return {
-      port: 3000,
-      entry: '/',
-      demo: 'demo',
-      docs: 'docs',
-      bowerPath: 'bower_components',
-      nodeModulesPath: 'node_modules',
-      index: null};
-  }
-
-  get watch() {
-    return [{
-      task: 'build',
-      src: ['./src'],
-      options: {}
-    }];
-  }
-
-  /**
-   * wrapper around cjs require
-   * try's to read file from current working directory
-   * @param {string} path path to file/module
-   * @return {object|array|function|class} module or file
-   */
-  require(path) {
-    return new Promise((resolve, reject) => {
-      let root = process.cwd();
-      root += `/${path}`;
       try {
-        let required = require(root);
-        resolve(required);
-      } catch (error) {
-        reject(error);
-      }
-    });
-  }
+        for (var _iterator2 = defaults[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+          var key = _step2.value;
 
-  /**
-   * @return {object} value of 'backed.json'
-   */
-  importConfig() {
-    return new Promise((resolve, reject) => {
-      function  generator(fn) {return __asyncGen(function*(){
-        const pkg = yield{__await: fn('package.json').catch(error => {
-          if (global.debug) {
-            logger.error(error);
-          }
-        })};
-        const config = yield{__await: fn('backed.json').catch(error => {
-          if (global.debug) {
-            logger.warn('backed.json::not found, ignore this when using backed in package.json');
-          }
-        })};
-        if (!config && !pkg) {
-          logger.warn('No backed.json or backed section in package.json, using default options.');
-          return resolve({name: process.cwd()});
-        }
-        if (config) {
-          let name = config.name;
-          if (!name && pkg && pkg.name && !pkg.backed) {
-            return resolve(merge(config, {name: pkg.name}));
-          } else if (!name && !pkg) {
-            return resolve(merge(config, {name: process.cwd()}))
+          if (this[key] && !plugins[key]) {
+            plugins[key] = {};
           }
         }
-        if(pkg && pkg.backed) {
-          return resolve(merge(pkg.backed, {name: pkg.name}));
+      } catch (err) {
+        _didIteratorError2 = true;
+        _iteratorError2 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion2 && _iterator2.return) {
+            _iterator2.return();
+          }
+        } finally {
+          if (_didIteratorError2) {
+            throw _iteratorError2;
+          }
         }
-      }())}
-      const it = generator(this.require);
-      it.next();
-    });
-  }
-
-  /**
-   * @return {string} name from 'package.json'
-   */
-  importPackageName() {
-    try {
-      return JSON.parse(readFileSync(`${process.cwd()}/package.json`)).name;
-    } catch (e) {
-      if (global.debug) {
-        logger.warn('no package.json found');
       }
+
+      return plugins;
     }
-    return undefined;
-  }
+  }, {
+    key: 'require',
 
-  /**
-   * @return {string} name from 'bower.json'
-   */
-  importBowerName() {
-    try {
-      return JSON.parse(readFileSync(`${process.cwd()}/bower.json`)).name;
-    } catch (e) {
-      if (global.debug) {
-        logger.warn('no bower.json found');
+
+    /**
+     * wrapper around cjs require
+     * try's to read file from current working directory
+     * @param {string} path path to file/module
+     * @return {object|array|function|class} module or file
+     */
+    value: function (_require3) {
+      function require(_x) {
+        return _require3.apply(this, arguments);
       }
+
+      require.toString = function () {
+        return _require3.toString();
+      };
+
+      return require;
+    }(function (path) {
+      return new Promise(function (resolve, reject) {
+        var root = process.cwd();
+        root += '/' + path;
+        try {
+          var required = require(root);
+          resolve(required);
+        } catch (error) {
+          reject(error);
+        }
+      });
+    })
+
+    /**
+     * @return {object} value of 'backed.json'
+     */
+
+  }, {
+    key: 'importConfig',
+    value: function importConfig() {
+      var _this2 = this;
+
+      return new Promise(function (resolve, reject) {
+        function generator(fn) {
+          return __asyncGen(_regeneratorRuntime.mark(function _callee() {
+            var pkg, config, name;
+            return _regeneratorRuntime.wrap(function _callee$(_context) {
+              while (1) {
+                switch (_context.prev = _context.next) {
+                  case 0:
+                    _context.next = 2;
+                    return { __await: fn('package.json').catch(function (error) {
+                        if (global.debug) {
+                          logger.error(error);
+                        }
+                      }) };
+
+                  case 2:
+                    pkg = _context.sent;
+                    _context.next = 5;
+                    return { __await: fn('backed.json').catch(function (error) {
+                        if (global.debug) {
+                          logger.warn('backed.json::not found, ignore this when using backed in package.json');
+                        }
+                      }) };
+
+                  case 5:
+                    config = _context.sent;
+
+                    if (!(!config && !pkg)) {
+                      _context.next = 9;
+                      break;
+                    }
+
+                    logger.warn('No backed.json or backed section in package.json, using default options.');
+                    return _context.abrupt('return', resolve({ name: process.cwd() }));
+
+                  case 9:
+                    if (!config) {
+                      _context.next = 17;
+                      break;
+                    }
+
+                    name = config.name;
+
+                    if (!(!name && pkg && pkg.name && !pkg.backed)) {
+                      _context.next = 15;
+                      break;
+                    }
+
+                    return _context.abrupt('return', resolve(merge(config, { name: pkg.name })));
+
+                  case 15:
+                    if (!(!name && !pkg)) {
+                      _context.next = 17;
+                      break;
+                    }
+
+                    return _context.abrupt('return', resolve(merge(config, { name: process.cwd() })));
+
+                  case 17:
+                    if (!(pkg && pkg.backed)) {
+                      _context.next = 19;
+                      break;
+                    }
+
+                    return _context.abrupt('return', resolve(merge(pkg.backed, { name: pkg.name })));
+
+                  case 19:
+                  case 'end':
+                    return _context.stop();
+                }
+              }
+            }, _callee, this);
+          })());
+        }
+        var it = generator(_this2.require);
+        it.next();
+      });
     }
-    return undefined;
-  }
 
-  /**
-   * @param {object} config - the config to be updated
-   * @param {string} name - the name of the element, component, etc
-   *
-   * @example
-   * config.updateConfig({
-   *   bundles: [{
-   *     src: 'src',
-   *     dest: 'dist'
-   *   }]
-   * });
-   *
-   * @todo create method for building atom app with atom-builder
-   * @todo implement element, app & atom-app config
-   * @todo handle sourceMap at bundle level
-   */
-  updateConfig(config, name) {
-    config.sourceMap = config.sourceMap || true;
-    config.bundles = merge(this.bundles, config.bundles);
-    config.server = merge(this.server, config.server);
-    config.watch = merge(this.watch, config.watch);
-    global.config = config;
-    return config;
-  }
-}
+    /**
+     * @return {string} name from 'package.json'
+     */
 
-const {rollup} = require('rollup');
-const path$1 = require('path');
-const {fork} = require('child_process');
-const logger$1 = require('backed-logger');
-let iterator;
-let cache;
-let warnings = [];
+  }, {
+    key: 'importPackageName',
+    value: function importPackageName() {
+      try {
+        return JSON.parse(readFileSync(process.cwd() + '/package.json')).name;
+      } catch (e) {
+        if (global.debug) {
+          logger.warn('no package.json found');
+        }
+      }
+      return undefined;
+    }
 
-const logWorker = fork(path$1.join(__dirname, 'workers/log-worker.js'));
+    /**
+     * @return {string} name from 'bower.json'
+     */
+
+  }, {
+    key: 'importBowerName',
+    value: function importBowerName() {
+      try {
+        return JSON.parse(readFileSync(process.cwd() + '/bower.json')).name;
+      } catch (e) {
+        if (global.debug) {
+          logger.warn('no bower.json found');
+        }
+      }
+      return undefined;
+    }
+
+    /**
+     * @param {object} config - the config to be updated
+     * @param {string} name - the name of the element, component, etc
+     *
+     * @example
+      * config.updateConfig({
+     *   bundles: [{
+     *     src: 'src',
+     *     dest: 'dist'
+     *   }]
+     * });
+     *
+     * @todo create method for building atom app with atom-builder
+     * @todo implement element, app & atom-app config
+     * @todo handle sourceMap at bundle level
+     */
+
+  }, {
+    key: 'updateConfig',
+    value: function updateConfig(config, name) {
+      config.sourceMap = config.sourceMap || true;
+      config.bundles = merge(this.bundles, config.bundles);
+      config.server = merge(this.server, config.server);
+      config.watch = merge(this.watch, config.watch);
+      global.config = config;
+      return config;
+    }
+  }, {
+    key: 'bundles',
+    get: function get() {
+      return [{
+        src: 'src/' + this.name + '.js',
+        dest: 'dist/' + this.name + '.js',
+        format: 'es'
+      }];
+    }
+  }, {
+    key: 'server',
+    get: function get() {
+      return {
+        port: 3000,
+        entry: '/',
+        demo: 'demo',
+        docs: 'docs',
+        bowerPath: 'bower_components',
+        nodeModulesPath: 'node_modules',
+        index: null };
+    }
+  }, {
+    key: 'watch',
+    get: function get() {
+      return [{
+        task: 'build',
+        src: ['./src'],
+        options: {}
+      }];
+    }
+  }]);
+
+  return Config;
+}();
+
+var _require$2 = require('rollup');
+var rollup = _require$2.rollup;
+
+var path$1 = require('path');
+
+var _require2$1 = require('child_process');
+var fork = _require2$1.fork;
+
+var logger$1 = require('backed-logger');
+var iterator = void 0;
+var cache = void 0;
+var warnings = [];
+
+var logWorker = fork(path$1.join(__dirname, 'workers/log-worker.js'));
 /**
  * convert hyphen to a javascript property srting
  */
-const toJsProp = string => {
-  let parts = string.split('-');
+var toJsProp = function toJsProp(string) {
+  var parts = string.split('-');
   if (parts.length > 1) {
     string = parts[0];
-    for (let part of parts) {
-      if (parts[0] !== part) {
-        var upper = part.charAt(0).toUpperCase();
-        string += upper + part.slice(1).toLowerCase();
+    var _iteratorNormalCompletion = true;
+    var _didIteratorError = false;
+    var _iteratorError = undefined;
+
+    try {
+      for (var _iterator = parts[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+        var part = _step.value;
+
+        if (parts[0] !== part) {
+          var upper = part.charAt(0).toUpperCase();
+          string += upper + part.slice(1).toLowerCase();
+        }
+      }
+    } catch (err) {
+      _didIteratorError = true;
+      _iteratorError = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion && _iterator.return) {
+          _iterator.return();
+        }
+      } finally {
+        if (_didIteratorError) {
+          throw _iteratorError;
+        }
       }
     }
   }
   return string;
 };
 
-function  bundler(bundles, fn, cb) {return __asyncGen(function*(){
-  let fns = [];
-  for (let bundle of bundles) {
-    let dest = bundle.dest;
-    bundle = bundle.bundle || bundle;
-    bundle.dest = dest;
-    fns.push(fn(bundle));
-  }
+function bundler(bundles, fn, cb) {
+  return __asyncGen(_regeneratorRuntime.mark(function _callee() {
+    var fns, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, bundle, dest;
 
-  yield{__await: Promise.all(fns).then(bundles => {
-    // TODO: Decide to implement or not, a method for transforming content
-    // TODO: When not transforming, return bundles.code or bundles...
-    logWorker.kill('SIGINT');
-    if (global.debug) {
-      for (let warning of warnings) {
-        logger$1.warn(warning);
-      }
-    }
-    cb(bundles);
-  }).catch(error => {
-    logWorker.kill('SIGINT');
-    logger$1.error(error);
-  })};
-}())}
-class Builder {
+    return _regeneratorRuntime.wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            fns = [];
+            _iteratorNormalCompletion2 = true;
+            _didIteratorError2 = false;
+            _iteratorError2 = undefined;
+            _context.prev = 4;
 
-  build(config) {
-    return new Promise((resolve, reject) => {
-    logWorker.send('start');
-    logWorker.send(logger$1._chalk('building', 'cyan'));
-    this.promiseBundles(config).then(bundles => {
-      iterator = bundler(bundles, this.bundle, bundles => {
-        resolve(bundles);
-      });
-      iterator.next();
-    }).catch(error => {
-      logger$1.warn(error);
-      reject(error);
-    });
-    });
-  }
+            for (_iterator2 = bundles[Symbol.iterator](); !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+              bundle = _step2.value;
+              dest = bundle.dest;
 
-  handleFormats(bundle) {
-    return new Promise((resolve, reject) => {
-      try {
-        const format = bundle.format;
-        let dest = bundle.dest;
-        let formats = [];
-        // TODO: Check for two iife configs, throw error!
-        if (bundle.shouldRename) {
-          switch (format) {
-            case 'iife':
-              if (!bundle.moduleName) {
-                bundle.moduleName = toJsProp(bundle.name);
-              }
-              break;
-            case 'cjs':
-              dest = bundle.dest.replace('.js', '-node.js');
-              break;
-            case 'es':
-            case 'amd':
-              dest = bundle.dest.replace('.js', `-${format}.js`);
-              break;
-            default:
-              break;
-              // do nothing
-          }
-        }
-        resolve({bundle: bundle, dest: dest, format: format});
-      } catch (err) {
-        reject(err);
-      }
-    });
-  }
-
-  forBundles(bundles, cb) {
-    for (let bundle of bundles) {
-      cb(bundle);
-    }
-  }
-
-  /**
-   * Checks if another bundle has the same destintation, when true,
-   * checks if the formats are the same
-   * @param {array} bundles
-   *
-   * @example
-   * [{
-   *    dest: 'dist/index.js',
-   *    format: 'es'
-   *  }, {
-   *    dest: 'dist/index.js',
-   *    format: 'es'
-   *  }]
-   * // would result in true
-   */
-  compareBundles(bundles, cb) {
-    this.forBundles(bundles, bundle => {
-      // itterate trough the bundles
-      for (let i of bundles) {
-        // ensure we are not comaring against the same bundle
-        if (bundles.indexOf(i) !== bundles.indexOf(bundle)) {
-          // compare destination between the current bundle & other bundles;
-          if (i.dest === bundle.dest) {
-            // compare the format
-            if (i.format !== bundle.format) {
-              // rename dest so we don't conflict with other bundles
-              bundle.shouldRename = true;
-              return cb(bundle);
+              bundle = bundle.bundle || bundle;
+              bundle.dest = dest;
+              fns.push(fn(bundle));
             }
-          }
-        }
-      }
-      cb(bundle);
-    });
-  }
 
-  promiseBundles(config) {
-    return new Promise((resolve, reject) => {
-      let formats = [];
-      let bundles = config.bundles;
-      try {
-        this.compareBundles(bundles, bundle => {
-          bundle.name = bundle.name || config.name;
-          bundle.babel = bundle.babel || config.babel;
-          bundle.sourceMap = bundle.sourceMap || config.sourceMap;
-          if (config.format && typeof config.format !== 'string' && !bundle.format) {
-            for (let format of config.format) {
-              bundle.format = format;
-              formats.push(this.handleFormats(bundle));
+            _context.next = 12;
+            break;
+
+          case 8:
+            _context.prev = 8;
+            _context.t0 = _context['catch'](4);
+            _didIteratorError2 = true;
+            _iteratorError2 = _context.t0;
+
+          case 12:
+            _context.prev = 12;
+            _context.prev = 13;
+
+            if (!_iteratorNormalCompletion2 && _iterator2.return) {
+              _iterator2.return();
             }
-          } else {
-            formats.push(this.handleFormats(bundle));
-          }
-        });
-        Promise.all(formats).then(bundles => {
-          resolve(bundles);
-        });
-      } catch (err) {
-        reject(err);
+
+          case 15:
+            _context.prev = 15;
+
+            if (!_didIteratorError2) {
+              _context.next = 18;
+              break;
+            }
+
+            throw _iteratorError2;
+
+          case 18:
+            return _context.finish(15);
+
+          case 19:
+            return _context.finish(12);
+
+          case 20:
+            _context.next = 22;
+            return { __await: Promise.all(fns).then(function (bundles) {
+                // TODO: Decide to implement or not, a method for transforming content
+                // TODO: When not transforming, return bundles.code or bundles...
+                logWorker.kill('SIGINT');
+                if (global.debug) {
+                  var _iteratorNormalCompletion3 = true;
+                  var _didIteratorError3 = false;
+                  var _iteratorError3 = undefined;
+
+                  try {
+                    for (var _iterator3 = warnings[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                      var warning = _step3.value;
+
+                      logger$1.warn(warning);
+                    }
+                  } catch (err) {
+                    _didIteratorError3 = true;
+                    _iteratorError3 = err;
+                  } finally {
+                    try {
+                      if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                        _iterator3.return();
+                      }
+                    } finally {
+                      if (_didIteratorError3) {
+                        throw _iteratorError3;
+                      }
+                    }
+                  }
+                }
+                cb(bundles);
+              }).catch(function (error) {
+                logWorker.kill('SIGINT');
+                logger$1.error(error);
+              }) };
+
+          case 22:
+          case 'end':
+            return _context.stop();
+        }
       }
-    });
-  }
-
-/**
- * @param {object} config
- * @param {string} config.src path/to/js
- * @param {string} config.dest destination to write to
- * @param {string} config.format format to build ['es', 'iife', 'amd', 'cjs']
- * @param {string} config.name the name of your element/app
- * @param {string} config.moduleName the moduleName for your element/app (not needed for es & cjs)
- * @param {boolean} config.sourceMap Wether or not to build sourceMaps defaults to 'true'
- * @param {object} config.plugins rollup plugins to use [see](https://github.com/rollup/rollup/wiki/Plugins)
- */
-  bundle(config = {src: null, dest: 'bundle.js', format: 'iife', name: null, plugins: [], moduleName: null, sourceMap: true, external: []}) {
-    return new Promise((resolve, reject) => {
-      let plugins = [];
-      let requiredPlugins = {};
-
-      for (let plugin of Object.keys(config.plugins)) {
-        let required;
-        try {
-          required = require(`rollup-plugin-${plugin}`);
-        } catch (error) {
-          try {
-            required = require(path$1.join(process.cwd(), `/node_modules/rollup-plugin-${plugin}`));
-          } catch (error) {
-            reject(error);
-          }
-        }
-        const conf = config.plugins[plugin];
-        const name = toJsProp(plugin);
-        requiredPlugins[name] = required;
-
-        plugins.push(requiredPlugins[name](conf));
-      }
-
-      rollup({
-        entry: `${process.cwd()}/${config.src}`,
-        plugins: plugins,
-        external: config.external,
-        cache: cache,
-      // Use the previous bundle as starting point.
-        onwarn: warning => {
-          warnings.push(warning);
-        }
-      }).then(bundle => {
-        cache = bundle;
-        bundle.write({
-        // output format - 'amd', 'cjs', 'es', 'iife', 'umd'
-          format: config.format,
-          moduleName: config.moduleName,
-          sourceMap: config.sourceMap,
-          dest: `${process.cwd()}/${config.dest}`
-        });
-        setTimeout(() => {
-          logWorker.send(logger$1._chalk(`${config.name}::build finished`, 'cyan'));
-          logWorker.send('done');
-          logWorker.on('message', () => {
-            resolve(bundle);
-          });
-        }, 100);
-      }).catch(err => {
-        const code = err.code;
-        logWorker.send('pauze');
-        logger$1.error(err);
-        if (code === 'PLUGIN_ERROR' || code === 'UNRESOLVED_ENTRY') {
-          logWorker.kill('SIGINT');
-        } else {
-          logger$1.warn('trying to resume the build ...');
-          logWorker.send('resume');
-        }
-        reject(err);
-      });
-    });
-  }
+    }, _callee, this, [[4, 8, 12, 20], [13,, 15, 19]]);
+  })());
 }
+
+var Builder = function () {
+  function Builder() {
+    _classCallCheck(this, Builder);
+  }
+
+  _createClass(Builder, [{
+    key: 'build',
+    value: function build(config) {
+      var _this = this;
+
+      return new Promise(function (resolve, reject) {
+        logWorker.send('start');
+        logWorker.send(logger$1._chalk('building', 'cyan'));
+        _this.promiseBundles(config).then(function (bundles) {
+          iterator = bundler(bundles, _this.bundle, function (bundles) {
+            resolve(bundles);
+          });
+          iterator.next();
+        }).catch(function (error) {
+          logger$1.warn(error);
+          reject(error);
+        });
+      });
+    }
+  }, {
+    key: 'handleFormats',
+    value: function handleFormats(bundle) {
+      return new Promise(function (resolve, reject) {
+        try {
+          var format = bundle.format;
+          var dest = bundle.dest;
+          var formats = [];
+          // TODO: Check for two iife configs, throw error!
+          if (bundle.shouldRename) {
+            switch (format) {
+              case 'iife':
+                if (!bundle.moduleName) {
+                  bundle.moduleName = toJsProp(bundle.name);
+                }
+                break;
+              case 'cjs':
+                dest = bundle.dest.replace('.js', '-node.js');
+                break;
+              case 'es':
+              case 'amd':
+                dest = bundle.dest.replace('.js', '-' + format + '.js');
+                break;
+              default:
+                break;
+              // do nothing
+            }
+          }
+          resolve({ bundle: bundle, dest: dest, format: format });
+        } catch (err) {
+          reject(err);
+        }
+      });
+    }
+  }, {
+    key: 'forBundles',
+    value: function forBundles(bundles, cb) {
+      var _iteratorNormalCompletion4 = true;
+      var _didIteratorError4 = false;
+      var _iteratorError4 = undefined;
+
+      try {
+        for (var _iterator4 = bundles[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+          var bundle = _step4.value;
+
+          cb(bundle);
+        }
+      } catch (err) {
+        _didIteratorError4 = true;
+        _iteratorError4 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion4 && _iterator4.return) {
+            _iterator4.return();
+          }
+        } finally {
+          if (_didIteratorError4) {
+            throw _iteratorError4;
+          }
+        }
+      }
+    }
+
+    /**
+     * Checks if another bundle has the same destintation, when true,
+     * checks if the formats are the same
+     * @param {array} bundles
+     *
+     * @example
+     * [{
+     *    dest: 'dist/index.js',
+     *    format: 'es'
+     *  }, {
+     *    dest: 'dist/index.js',
+     *    format: 'es'
+     *  }]
+     * // would result in true
+     */
+
+  }, {
+    key: 'compareBundles',
+    value: function compareBundles(bundles, cb) {
+      this.forBundles(bundles, function (bundle) {
+        // itterate trough the bundles
+        var _iteratorNormalCompletion5 = true;
+        var _didIteratorError5 = false;
+        var _iteratorError5 = undefined;
+
+        try {
+          for (var _iterator5 = bundles[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+            var i = _step5.value;
+
+            // ensure we are not comaring against the same bundle
+            if (bundles.indexOf(i) !== bundles.indexOf(bundle)) {
+              // compare destination between the current bundle & other bundles;
+              if (i.dest === bundle.dest) {
+                // compare the format
+                if (i.format !== bundle.format) {
+                  // rename dest so we don't conflict with other bundles
+                  bundle.shouldRename = true;
+                  return cb(bundle);
+                }
+              }
+            }
+          }
+        } catch (err) {
+          _didIteratorError5 = true;
+          _iteratorError5 = err;
+        } finally {
+          try {
+            if (!_iteratorNormalCompletion5 && _iterator5.return) {
+              _iterator5.return();
+            }
+          } finally {
+            if (_didIteratorError5) {
+              throw _iteratorError5;
+            }
+          }
+        }
+
+        cb(bundle);
+      });
+    }
+  }, {
+    key: 'promiseBundles',
+    value: function promiseBundles(config) {
+      var _this2 = this;
+
+      return new Promise(function (resolve, reject) {
+        var formats = [];
+        var bundles = config.bundles;
+        try {
+          _this2.compareBundles(bundles, function (bundle) {
+            bundle.name = bundle.name || config.name;
+            bundle.babel = bundle.babel || config.babel;
+            bundle.sourceMap = bundle.sourceMap || config.sourceMap;
+            if (config.format && typeof config.format !== 'string' && !bundle.format) {
+              var _iteratorNormalCompletion6 = true;
+              var _didIteratorError6 = false;
+              var _iteratorError6 = undefined;
+
+              try {
+                for (var _iterator6 = config.format[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+                  var format = _step6.value;
+
+                  bundle.format = format;
+                  formats.push(_this2.handleFormats(bundle));
+                }
+              } catch (err) {
+                _didIteratorError6 = true;
+                _iteratorError6 = err;
+              } finally {
+                try {
+                  if (!_iteratorNormalCompletion6 && _iterator6.return) {
+                    _iterator6.return();
+                  }
+                } finally {
+                  if (_didIteratorError6) {
+                    throw _iteratorError6;
+                  }
+                }
+              }
+            } else {
+              formats.push(_this2.handleFormats(bundle));
+            }
+          });
+          Promise.all(formats).then(function (bundles) {
+            resolve(bundles);
+          });
+        } catch (err) {
+          reject(err);
+        }
+      });
+    }
+
+    /**
+     * @param {object} config
+     * @param {string} config.src path/to/js
+     * @param {string} config.dest destination to write to
+     * @param {string} config.format format to build ['es', 'iife', 'amd', 'cjs']
+     * @param {string} config.name the name of your element/app
+     * @param {string} config.moduleName the moduleName for your element/app (not needed for es & cjs)
+     * @param {boolean} config.sourceMap Wether or not to build sourceMaps defaults to 'true'
+     * @param {object} config.plugins rollup plugins to use [see](https://github.com/rollup/rollup/wiki/Plugins)
+     */
+
+  }, {
+    key: 'bundle',
+    value: function bundle() {
+      var config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { src: null, dest: 'bundle.js', format: 'iife', name: null, plugins: [], moduleName: null, sourceMap: true, external: [] };
+
+      return new Promise(function (resolve, reject) {
+        var plugins = [];
+        var requiredPlugins = {};
+
+        var _iteratorNormalCompletion7 = true;
+        var _didIteratorError7 = false;
+        var _iteratorError7 = undefined;
+
+        try {
+          for (var _iterator7 = Object.keys(config.plugins)[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+            var plugin = _step7.value;
+
+            var required = void 0;
+            try {
+              required = require('rollup-plugin-' + plugin);
+            } catch (error) {
+              try {
+                required = require(path$1.join(process.cwd(), '/node_modules/rollup-plugin-' + plugin));
+              } catch (error) {
+                reject(error);
+              }
+            }
+            var conf = config.plugins[plugin];
+            var name = toJsProp(plugin);
+            requiredPlugins[name] = required;
+
+            plugins.push(requiredPlugins[name](conf));
+          }
+        } catch (err) {
+          _didIteratorError7 = true;
+          _iteratorError7 = err;
+        } finally {
+          try {
+            if (!_iteratorNormalCompletion7 && _iterator7.return) {
+              _iterator7.return();
+            }
+          } finally {
+            if (_didIteratorError7) {
+              throw _iteratorError7;
+            }
+          }
+        }
+
+        rollup({
+          entry: process.cwd() + '/' + config.src,
+          plugins: plugins,
+          external: config.external,
+          cache: cache,
+          // Use the previous bundle as starting point.
+          onwarn: function onwarn(warning) {
+            warnings.push(warning);
+          }
+        }).then(function (bundle) {
+          cache = bundle;
+          bundle.write({
+            // output format - 'amd', 'cjs', 'es', 'iife', 'umd'
+            format: config.format,
+            moduleName: config.moduleName,
+            sourceMap: config.sourceMap,
+            dest: process.cwd() + '/' + config.dest
+          });
+          setTimeout(function () {
+            logWorker.send(logger$1._chalk(config.name + '::build finished', 'cyan'));
+            logWorker.send('done');
+            logWorker.on('message', function () {
+              resolve(bundle);
+            });
+          }, 100);
+        }).catch(function (err) {
+          var code = err.code;
+          logWorker.send('pauze');
+          logger$1.error(err);
+          if (code === 'PLUGIN_ERROR' || code === 'UNRESOLVED_ENTRY') {
+            logWorker.kill('SIGINT');
+          } else {
+            logger$1.warn('trying to resume the build ...');
+            logWorker.send('resume');
+          }
+          reject(err);
+        });
+      });
+    }
+  }]);
+
+  return Builder;
+}();
+
 var builder = new Builder();
 
-const express = require('express');
-const http = require('http');
-const reload = require('reload');
-const glob = require('glob');
+var express = require('express');
+var http = require('http');
+var reload = require('reload');
+var glob = require('glob');
 
-const app = express();
-const server = http.createServer(app);
-const reloadServer = reload(server, app);
+var app = express();
+var server = http.createServer(app);
+var reloadServer = reload(server, app);
+var logger$2 = require('backed-logger');
+
 /**
  * glob file path
  * @param {string} string
  */
-const src = string => {
-  return new Promise((resolve, reject) => {
-    glob(string, (error, files) => {
+var src = function src(string) {
+  return new Promise(function (resolve, reject) {
+    glob(string, function (error, files) {
       if (error) {
         reject(error);
       }
@@ -479,245 +835,359 @@ const src = string => {
   });
 };
 
-class Server {
+var Server = function () {
+  function Server() {
+    _classCallCheck(this, Server);
+  }
 
-/**
- * @param {object} config - configuration
- * @param {string} config.entry path to where your build is located
- * @param {string} config.docs path to where your docs are located
- * @param {string} config.bowerPath path to bower_components
- * @param {string} config.nodeModulesPath path to node_modules
- * @param {string} config.demo path to the demo
- * @param {string} config.index path to your index.html file we serve a helper/docs index by default (not support for now)
- * @param {array} config.use static files to include [{path: some/path, static: some//path}] when static is undefined path will be used.
- */
-  serve(config = {
-    entry: '/',
-    demo: 'demo',
-    docs: 'docs',
-    use: [{path: null, static: null}],
-    bowerPath: 'bower_components',
-    nodeModulesPath: 'node_modules',
-    index: null}) {
-    if (config) {
-      this.handleOldOptions(config);
-      if (config.use) {
-        for (let use of config.use) {
-          app.use(use.path, express.static(this.appLocation(use.static || use.path)));
+  _createClass(Server, [{
+    key: 'serve',
+
+
+    /**
+     * @param {object} config - configuration
+     * @param {string} config.entry path to where your build is located
+     * @param {string} config.docs path to where your docs are located
+     * @param {string} config.bowerPath path to bower_components
+     * @param {string} config.nodeModulesPath path to node_modules
+     * @param {string} config.demo path to the demo
+     * @param {string} config.index path to your index.html file we serve a helper/docs index by default (not support for now)
+     * @param {array} config.use static files to include [{path: some/path, static: some//path}] when static is undefined path will be used.
+     */
+    value: function serve() {
+      var config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {
+        entry: '/',
+        demo: 'demo',
+        docs: 'docs',
+        use: [{ path: null, static: null }],
+        bowerPath: 'bower_components',
+        nodeModulesPath: 'node_modules',
+        index: null };
+
+      if (config) {
+        this.handleOldOptions(config);
+        if (config.use) {
+          var _iteratorNormalCompletion = true;
+          var _didIteratorError = false;
+          var _iteratorError = undefined;
+
+          try {
+            for (var _iterator = config.use[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+              var use = _step.value;
+
+              app.use(use.path, express.static(this.appLocation(use.static || use.path)));
+            }
+          } catch (err) {
+            _didIteratorError = true;
+            _iteratorError = err;
+          } finally {
+            try {
+              if (!_iteratorNormalCompletion && _iterator.return) {
+                _iterator.return();
+              }
+            } finally {
+              if (_didIteratorError) {
+                throw _iteratorError;
+              }
+            }
+          }
         }
+
+        app.use('/', express.static(this.appLocation(config.entry)));
+
+        app.use('/bower_components', express.static(this.appLocation(config.bowerPath, 'bower_components')));
+
+        app.use('/node_modules', express.static(this.appLocation(config.nodeModulesPath, 'node_modules')));
+
+        app.use('/demo/node_modules', express.static(this.appLocation(config.nodeModulesPath, 'node_modules')));
+
+        app.use('/demo', express.static(this.appLocation(config.demo, 'demo')));
+
+        app.use('/docs', express.static(this.appLocation(config.docs, 'docs')));
+
+        app.use('/package.json', express.static(this.appLocation('package.json')));
+
+        // serve backed-cli documentation
+        app.use('/backed-cli/docs', express.static(__dirname.replace('bin', 'docs')));
+
+        // serve backed documentation
+        app.use('/backed/docs', express.static(this.appLocation('node_modules/backed/docs')));
+
+        // TODO: Add option to override index
+        app.use('/', express.static(__dirname.replace('bin', 'node_modules\\backed-client\\dist')));
+
+        // TODO: implement copyrighted by package author & package name if no file is found
+        src(process.cwd() + '/license.*').then(function (files) {
+          app.use('/license', express.static(files[0]));
+        });
+
+        server.listen(3000, function (error) {
+          if (error) {
+            return logger$2.warn(error);
+          }
+          logger$2.log(global.config.name + '::serving app from http://localhost:' + config.port + '/' + config.entry.replace('/', ''));
+        });
+      } else {
+        return logger$2.warn(global.config.name + '::server config not found [example](https://raw.githubusercontent.com/VandeurenGlenn/backed-cli/master/config/backed.json)');
       }
-
-      app.use('/', express.static(
-        this.appLocation(config.entry)));
-
-      app.use('/bower_components', express.static(
-        this.appLocation(config.bowerPath, 'bower_components')));
-
-      app.use('/node_modules', express.static(
-        this.appLocation(config.nodeModulesPath, 'node_modules')));
-
-      app.use('/demo/node_modules', express.static(
-        this.appLocation(config.nodeModulesPath, 'node_modules')));
-
-      app.use('/demo', express.static(
-        this.appLocation(config.demo, 'demo')));
-
-      app.use('/docs', express.static(
-        this.appLocation(config.docs, 'docs')));
-
-      app.use('/package.json', express.static(
-        this.appLocation('package.json')
-      ));
-
-      // serve backed-cli documentation
-      app.use('/backed-cli/docs', express.static(
-        __dirname.replace('bin', 'docs')));
-
-      // serve backed documentation
-      app.use('/backed/docs', express.static(
-        this.appLocation('node_modules/backed/docs')));
-
-      // TODO: Add option to override index
-      app.use('/', express.static(__dirname.replace('bin', 'node_modules\\backed-client\\dist')));
-
-      // TODO: implement copyrighted by package author & package name if no file is found
-      src(process.cwd() + '/license.*').then(files => {
-        app.use('/license', express.static(files[0]));
-      });
-
-      server.listen(3000, error => {
-        if (error) {
-          return logger.warn(error);
-        }
-        logger.log(`${global.config.name}::serving app from http://localhost:${config.port}/${config.entry.replace('/', '')}`);
-      });
-    } else {
-      return logger.warn(`${global.config.name}::server config not found [example](https://raw.githubusercontent.com/VandeurenGlenn/backed-cli/master/config/backed.json)`);
     }
-  }
 
-  /**
-   * @param {string} path - location of the file
-   * @param {string} alternate - returns when path is undefined
-   * @param {string} disableAlternate - current working directory is ignored when true, defaults to false
-   */
-  appLocation(path, alternate, disableAlternate = false) {
-    let root = process.cwd();
-    if (!path && !disableAlternate) {
-      path = alternate;
-    } else if (!path && disableAlternate) {
-      // when we disable alternate we return the value of alternate
-      return alternate;
+    /**
+     * @param {string} path - location of the file
+     * @param {string} alternate - returns when path is undefined
+     * @param {string} disableAlternate - current working directory is ignored when true, defaults to false
+     */
+
+  }, {
+    key: 'appLocation',
+    value: function appLocation(path, alternate) {
+      var disableAlternate = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+
+      var root = process.cwd();
+      if (!path && !disableAlternate) {
+        path = alternate;
+      } else if (!path && disableAlternate) {
+        // when we disable alternate we return the value of alternate
+        return alternate;
+      }
+      root += '\\' + path;
+      return root;
     }
-    root += `\\${path}`;
-    return root;
-  }
-
-  handleOldOptions(options) {
-    if (options.path || options.elementLocation) {
-      logger.warn(`${options.path ? 'server.path' : 'server.elementLocation'} is no longer supported, [visit](https://github.com/vandeurenglenn/backed-cli#serve) to learn more'`);
-    } else if (options.bowerPath) {
-      logger.warn('server.bowerPath::deprecated: removal planned @1.0.0+');
+  }, {
+    key: 'handleOldOptions',
+    value: function handleOldOptions(options) {
+      if (options.path || options.elementLocation) {
+        logger$2.warn((options.path ? 'server.path' : 'server.elementLocation') + ' is no longer supported, [visit](https://github.com/vandeurenglenn/backed-cli#serve) to learn more\'');
+      } else if (options.bowerPath) {
+        logger$2.warn('server.bowerPath::deprecated: removal planned @1.0.0+');
+      }
     }
-  }
+  }, {
+    key: 'reload',
+    value: function reload() {
+      reloadServer.reload();
+    }
+  }]);
 
-  reload() {
-    reloadServer.reload();
-  }
-}
+  return Server;
+}();
+
 var server$1 = new Server();
 
-const {fork: fork$1} = require('child_process');
-const chokidar = require('chokidar');
-const path$2 = require('path');
-const EventEmitter = require('events');
-const {readFileSync: readFileSync$1, writeFileSync} = require('fs');
+var _require$3 = require('child_process');
+var fork$1 = _require$3.fork;
+
+var chokidar = require('chokidar');
+var path$2 = require('path');
+var EventEmitter = require('events');
+
+var _require2$2 = require('fs');
+var readFileSync$1 = _require2$2.readFileSync;
+var writeFileSync = _require2$2.writeFileSync;
 // const {merge} = require('lodash');
-const time = () => {
+
+
+var logger$3 = require('backed-logger');
+var time = function time() {
   return new Date().toLocaleTimeString();
 };
 
 /**
  * @extends EventEmitter
  */
-class Watcher extends EventEmitter {
 
-  /**
-   * @param {object} config {@link Config}
-   */
-  watch(config) {
-    return new Promise((resolve, reject) => {
-      if (!config.watch) {
-        logger.warn('nothing to watch');
-        reject('nothing to watch');
-        return process.kill(process.pid, 'SIGINT');
-      }
-      this.server = config.server;
-      this.configureDemo(this.server);
+var Watcher = function (_EventEmitter) {
+  _inherits(Watcher, _EventEmitter);
 
-      logger.log(`[${time()}] ${logger._chalk('Starting initial build', 'cyan')}`);
-      this.runWorker(config);
+  function Watcher() {
+    _classCallCheck(this, Watcher);
 
-      logger.log(`[${time()}] ${logger._chalk('Watching files for changes', 'cyan')}`);
-
-      let watchers = {};
-      for (let watch of config.watch) {
-        watchers[watch.task] = chokidar.watch(watch.src, watch.options);
-        watchers[watch.task].on('change', () => {
-          this.runWorker(watch.task, config);
-        });
-      }
-      resolve();
-    });
+    return _possibleConstructorReturn(this, (Watcher.__proto__ || Object.getPrototypeOf(Watcher)).apply(this, arguments));
   }
 
-  configureDemo(server) {
-    logger.log(`[${time()}] ${logger._chalk('Configuring demo', 'cyan')}`);
+  _createClass(Watcher, [{
+    key: 'watch',
 
-    if (server) {
-      let demoPath = path$2.join(process.cwd(), server.demo);
 
-      if (!demoPath.includes('index.html')) {
-        demoPath = path$2.join(demoPath, 'index.html');
-      }
-      let demo = readFileSync$1(demoPath, 'utf-8');
-      if (!demo.includes('/reload/reload.js')) {
-        demo = demo.replace('</body>', '\t<script src="/reload/reload.js"></script>\n</body>');
-        writeFileSync(demoPath, demo);
+    /**
+     * @param {object} config {@link Config}
+     */
+    value: function watch(config) {
+      var _this2 = this;
+
+      return new Promise(function (resolve, reject) {
+        if (!config.watch) {
+          logger$3.warn('nothing to watch');
+          reject('nothing to watch');
+          return process.kill(process.pid, 'SIGINT');
+        }
+        _this2.server = config.server;
+        _this2.configureDemo(_this2.server);
+
+        logger$3.log('[' + time() + '] ' + logger$3._chalk('Starting initial build', 'cyan'));
+        _this2.runWorker(config);
+
+        logger$3.log('[' + time() + '] ' + logger$3._chalk('Watching files for changes', 'cyan'));
+
+        var watchers = {};
+        var _iteratorNormalCompletion = true;
+        var _didIteratorError = false;
+        var _iteratorError = undefined;
+
+        try {
+          var _loop = function _loop() {
+            var watch = _step.value;
+
+            watchers[watch.task] = chokidar.watch(watch.src, watch.options);
+            watchers[watch.task].on('change', function () {
+              _this2.runWorker(watch.task, config);
+            });
+          };
+
+          for (var _iterator = config.watch[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+            _loop();
+          }
+        } catch (err) {
+          _didIteratorError = true;
+          _iteratorError = err;
+        } finally {
+          try {
+            if (!_iteratorNormalCompletion && _iterator.return) {
+              _iterator.return();
+            }
+          } finally {
+            if (_didIteratorError) {
+              throw _iteratorError;
+            }
+          }
+        }
+
+        resolve();
+      });
+    }
+  }, {
+    key: 'configureDemo',
+    value: function configureDemo(server) {
+      logger$3.log('[' + time() + '] ' + logger$3._chalk('Configuring demo', 'cyan'));
+
+      if (server) {
+        var demoPath = path$2.join(process.cwd(), server.demo);
+
+        if (!demoPath.includes('index.html')) {
+          demoPath = path$2.join(demoPath, 'index.html');
+        }
+        var demo = readFileSync$1(demoPath, 'utf-8');
+        if (!demo.includes('/reload/reload.js')) {
+          demo = demo.replace('</body>', '\t<script src="/reload/reload.js"></script>\n</body>');
+          writeFileSync(demoPath, demo);
+        }
       }
     }
-  }
+  }, {
+    key: 'runWorker',
+    value: function runWorker(task, config) {
+      var _this3 = this;
 
-  runWorker(task, config) {
-    let worker;
-    worker = fork$1(path$2.join(__dirname, 'workers/watcher-worker.js'));
-    worker.on('message', message => {
-      if (message === 'done') {
-        this.configureDemo(this.server);
-        message = 'reload';
-      }
-      logger.log(`[${time()}] ${logger._chalk('Reloading browser', 'cyan')}`);
-      this.emit(message);
-    });
-    worker.send({task: task, config: config});
-  }
+      var worker = void 0;
+      worker = fork$1(path$2.join(__dirname, 'workers/watcher-worker.js'));
+      worker.on('message', function (message) {
+        if (message === 'done') {
+          _this3.configureDemo(_this3.server);
+          message = 'reload';
+        }
+        logger$3.log('[' + time() + '] ' + logger$3._chalk('Reloading browser', 'cyan'));
+        _this3.emit(message);
+      });
+      worker.send({ task: task, config: config });
+    }
 
-  // on(event, fn) {
-  //   this.on(event, fn);
-  // }
+    // on(event, fn) {
+    //   this.on(event, fn);
+    // }
 
     // this.watcher = chokidar.watch(config.watchers, config.options);
     // this.watcher.on('change', path => logger.log(`File ${path} has been changed`));
-}
+
+  }]);
+
+  return Watcher;
+}(EventEmitter);
+
 var watcher = new Watcher();
 
 process.title = 'backed';
-const commander = require('commander');
-const {version} = require('./../package.json');
-const fs = require('backed-fs');
+var commander = require('commander');
 
-commander
-  .version(version)
-  .option('-w, --watch', 'watch for file changes & rebuild on change')
-  .option('-b, --build', 'build your app/component')
-  .option('-s, --serve', 'serve your app/component')
-  .option('-c, --copy', 'copy files from your app/component src folder to it distribution folder')
-  .option('-d, --debug', 'show all warnings')
-  .parse(process.argv);
+var _require = require('./../package.json');
+var version = _require.version;
 
-let watch = commander.watch;
-let build = commander.build;
-let copy = commander.build || commander.copy;
-let serve = commander.serve;
+var fs = require('backed-fs');
+
+commander.version(version).option('-w, --watch', 'watch for file changes & rebuild on change').option('-b, --build', 'build your app/component').option('-s, --serve', 'serve your app/component').option('-c, --copy', 'copy files from your app/component src folder to it distribution folder').option('-d, --debug', 'show all warnings').parse(process.argv);
+
+var watch = commander.watch;
+var build = commander.build;
+var copy = commander.build || commander.copy;
+var serve = commander.serve;
 global.debug = commander.debug;
 /**
  * @param {object} config {@link Config}
  */
-function  run(config) {return __asyncGen(function*(){
-  if (build) {
-    yield{__await: builder.build(config)};
-  }
+function run(config) {
+  return __asyncGen(_regeneratorRuntime.mark(function _callee() {
+    return _regeneratorRuntime.wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            if (!build) {
+              _context.next = 3;
+              break;
+            }
 
-  if (copy) {
-    yield{__await: fs.copySources(config.sources)};
-  }
+            _context.next = 3;
+            return { __await: builder.build(config) };
 
-  if (watch) {
-    watcher.on('reload', () => {
-      server$1.reload();
-    });
-    yield{__await: watcher.watch(config)};
-  }
+          case 3:
+            if (!copy) {
+              _context.next = 6;
+              break;
+            }
 
-  if (serve) {
-    yield{__await: server$1.serve(config.server)};
-  }
-}())}
+            _context.next = 6;
+            return { __await: fs.copySources(config.sources) };
 
-new Config().then(config => {
+          case 6:
+            if (!watch) {
+              _context.next = 10;
+              break;
+            }
+
+            watcher.on('reload', function () {
+              server$1.reload();
+            });
+            _context.next = 10;
+            return { __await: watcher.watch(config) };
+
+          case 10:
+            if (!serve) {
+              _context.next = 13;
+              break;
+            }
+
+            _context.next = 13;
+            return { __await: server$1.serve(config.server) };
+
+          case 13:
+          case 'end':
+            return _context.stop();
+        }
+      }
+    }, _callee, this);
+  })());
+}
+
+new Config().then(function (config) {
   global.debug = commander.debug || config.debug;
-  let it = run(config);
+  var it = run(config);
   it.next();
 });
-
-}());

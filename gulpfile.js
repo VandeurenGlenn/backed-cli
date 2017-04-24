@@ -110,7 +110,21 @@ task('clean', cb => {
 });
 
 task('copy', () => {
-  return src('src/workers/*.js').pipe(dest('bin/workers'));
+  const workers = src('src/workers/*.js').pipe(dest('bin/workers'));
+
+  const asycRuntimeHelpers = src([
+    'node_modules/babel-runtime/helpers/{classCallCheck,createClass,regenerator,asyncGenerator}.js'
+  ]).pipe(dest('bin/node_modules/babel-runtime/helpers'));
+
+  const asyncRegenerator = src([
+    'node_modules/babel-runtime/regenerator/*.js'
+  ]).pipe(dest('bin/node_modules/babel-runtime/regenerator'));
+
+  const asyncRuntimeCore = src([
+    'node_modules/babel-runtime/core-js/object/define-property.js'
+  ]).pipe(dest('bin/node_modules/babel-runtime/core-js/object'));
+
+  return merge(workers, asycRuntimeHelpers, asyncRegenerator, asyncRuntimeCore);
 });
 
 task('watch', () => {
