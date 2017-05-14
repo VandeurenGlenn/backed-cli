@@ -9,6 +9,7 @@ const logger = require('backed-logger');
 const time = () => {
   return new Date().toLocaleTimeString();
 };
+let worker;
 
 /**
  * @extends EventEmitter
@@ -62,7 +63,11 @@ class Watcher extends EventEmitter {
   }
 
   runWorker(task, config) {
-    let worker;
+    if (this.busy) {
+      worker.kill();
+      this.busy = false;
+    }
+    this.busy = true;
     worker = fork(path.join(__dirname, 'workers/watcher-worker.js'));
     worker.on('message', message => {
       if (message === 'done') {
@@ -71,6 +76,8 @@ class Watcher extends EventEmitter {
       }
       logger.log(`[${time()}] ${logger._chalk('Reloading browser', 'cyan')}`);
       this.emit(message);
+      worker.kill();
+      this.busy = false;
     });
     worker.send({task: task, config: config});
   }
