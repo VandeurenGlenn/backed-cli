@@ -1297,7 +1297,7 @@
     "__docId__": 44,
     "kind": "file",
     "name": "src/watcher.js",
-    "content": "'use strict';\nconst {fork} = require('child_process');\nconst chokidar = require('chokidar');\nconst path = require('path');\nconst EventEmitter = require('events');\nconst {readFileSync, writeFileSync} = require('fs');\n// const {merge} = require('lodash');\nconst logger = require('backed-logger');\nconst time = () => {\n  return new Date().toLocaleTimeString();\n};\n\n/**\n * @extends EventEmitter\n */\nclass Watcher extends EventEmitter {\n\n  /**\n   * @param {object} config {@link Config}\n   */\n  watch(config) {\n    return new Promise((resolve, reject) => {\n      if (!config.watch) {\n        logger.warn('nothing to watch');\n        reject('nothing to watch');\n        return process.kill(process.pid, 'SIGINT');\n      }\n      this.server = config.server;\n      this.configureDemo(this.server);\n\n      logger.log(`[${time()}] ${logger._chalk('Starting initial build', 'cyan')}`);\n      this.runWorker(config);\n\n      logger.log(`[${time()}] ${logger._chalk('Watching files for changes', 'cyan')}`);\n\n      let watchers = {};\n      for (let watch of config.watch) {\n        watchers[watch.task] = chokidar.watch(watch.src, watch.options);\n        watchers[watch.task].on('change', () => {\n          this.runWorker(watch.task, config);\n        });\n      }\n      resolve();\n    });\n  }\n\n  configureDemo(server) {\n    logger.log(`[${time()}] ${logger._chalk('Configuring demo', 'cyan')}`);\n\n    if (server) {\n      let demoPath = path.join(process.cwd(), server.demo);\n\n      if (!demoPath.includes('index.html')) {\n        demoPath = path.join(demoPath, 'index.html');\n      }\n      let demo = readFileSync(demoPath, 'utf-8');\n      if (!demo.includes('/reload/reload.js')) {\n        demo = demo.replace('</body>', '\\t<script src=\"/reload/reload.js\"></script>\\n</body>');\n        writeFileSync(demoPath, demo);\n      }\n    }\n  }\n\n  runWorker(task, config) {\n    let worker;\n    worker = fork(path.join(__dirname, 'workers/watcher-worker.js'));\n    worker.on('message', message => {\n      if (message === 'done') {\n        this.configureDemo(this.server);\n        message = 'reload';\n      }\n      logger.log(`[${time()}] ${logger._chalk('Reloading browser', 'cyan')}`);\n      this.emit(message);\n    });\n    worker.send({task: task, config: config});\n  }\n\n  // on(event, fn) {\n  //   this.on(event, fn);\n  // }\n\n    // this.watcher = chokidar.watch(config.watchers, config.options);\n    // this.watcher.on('change', path => logger.log(`File ${path} has been changed`));\n}\nexport default new Watcher();\n",
+    "content": "'use strict';\nconst {fork} = require('child_process');\nconst chokidar = require('chokidar');\nconst path = require('path');\nconst EventEmitter = require('events');\nconst {readFileSync, writeFileSync} = require('fs');\n// const {merge} = require('lodash');\nconst logger = require('backed-logger');\nconst time = () => {\n  return new Date().toLocaleTimeString();\n};\nlet worker;\n\n/**\n * @extends EventEmitter\n */\nclass Watcher extends EventEmitter {\n\n  /**\n   * @param {object} config {@link Config}\n   */\n  watch(config) {\n    return new Promise((resolve, reject) => {\n      if (!config.watch) {\n        logger.warn('nothing to watch');\n        reject('nothing to watch');\n        return process.kill(process.pid, 'SIGINT');\n      }\n      this.server = config.server;\n      this.configureDemo(this.server);\n\n      logger.log(`[${time()}] ${logger._chalk('Starting initial build', 'cyan')}`);\n      this.runWorker(config);\n\n      logger.log(`[${time()}] ${logger._chalk('Watching files for changes', 'cyan')}`);\n\n      let watchers = {};\n      for (let watch of config.watch) {\n        watchers[watch.task] = chokidar.watch(watch.src, watch.options);\n        watchers[watch.task].on('change', () => {\n          this.runWorker(watch.task, config);\n        });\n      }\n      resolve();\n    });\n  }\n\n  configureDemo(server) {\n    logger.log(`[${time()}] ${logger._chalk('Configuring demo', 'cyan')}`);\n\n    if (server) {\n      let demoPath = path.join(process.cwd(), server.demo);\n\n      if (!demoPath.includes('index.html')) {\n        demoPath = path.join(demoPath, 'index.html');\n      }\n      let demo = readFileSync(demoPath, 'utf-8');\n      if (!demo.includes('/reload/reload.js')) {\n        demo = demo.replace('</body>', '\\t<script src=\"/reload/reload.js\"></script>\\n</body>');\n        writeFileSync(demoPath, demo);\n      }\n    }\n  }\n\n  runWorker(task, config) {\n    if (this.busy) {\n      worker.kill();\n      this.busy = false;\n    }\n    this.busy = true;\n    worker = fork(path.join(__dirname, 'workers/watcher-worker.js'));\n    worker.on('message', message => {\n      if (message === 'done') {\n        this.configureDemo(this.server);\n        message = 'reload';\n      }\n      logger.log(`[${time()}] ${logger._chalk('Reloading browser', 'cyan')}`);\n      this.emit(message);\n      worker.kill();\n      this.busy = false;\n    });\n    worker.send({task: task, config: config});\n  }\n\n  // on(event, fn) {\n  //   this.on(event, fn);\n  // }\n\n    // this.watcher = chokidar.watch(config.watchers, config.options);\n    // this.watcher.on('change', path => logger.log(`File ${path} has been changed`));\n}\nexport default new Watcher();\n",
     "static": true,
     "longname": "src/watcher.js",
     "access": null,
@@ -1501,7 +1501,7 @@
     "importPath": "backed-cli/src/watcher.js",
     "importStyle": null,
     "description": "",
-    "lineNumber": 16,
+    "lineNumber": 17,
     "pseudoExport": true,
     "interface": false,
     "extends": [
@@ -1519,7 +1519,7 @@
     "longname": "src/watcher.js~Watcher#watch",
     "access": null,
     "description": "",
-    "lineNumber": 21,
+    "lineNumber": 22,
     "params": [
       {
         "nullable": null,
@@ -1547,7 +1547,7 @@
     "longname": "src/watcher.js~Watcher#server",
     "access": null,
     "description": null,
-    "lineNumber": 28,
+    "lineNumber": 29,
     "undocument": true,
     "unknown": [
       {
@@ -1572,7 +1572,7 @@
     "longname": "src/watcher.js~Watcher#configureDemo",
     "access": null,
     "description": null,
-    "lineNumber": 47,
+    "lineNumber": 48,
     "undocument": true,
     "unknown": [
       {
@@ -1600,7 +1600,7 @@
     "longname": "src/watcher.js~Watcher#runWorker",
     "access": null,
     "description": null,
-    "lineNumber": 64,
+    "lineNumber": 65,
     "undocument": true,
     "unknown": [
       {
@@ -1625,6 +1625,75 @@
   },
   {
     "__docId__": 57,
+    "kind": "member",
+    "name": "busy",
+    "memberof": "src/watcher.js~Watcher",
+    "static": false,
+    "longname": "src/watcher.js~Watcher#busy",
+    "access": null,
+    "description": null,
+    "lineNumber": 68,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "boolean"
+      ]
+    }
+  },
+  {
+    "__docId__": 58,
+    "kind": "member",
+    "name": "busy",
+    "memberof": "src/watcher.js~Watcher",
+    "static": false,
+    "longname": "src/watcher.js~Watcher#busy",
+    "access": null,
+    "description": null,
+    "lineNumber": 70,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "boolean"
+      ]
+    }
+  },
+  {
+    "__docId__": 59,
+    "kind": "member",
+    "name": "busy",
+    "memberof": "src/watcher.js~Watcher",
+    "static": false,
+    "longname": "src/watcher.js~Watcher#busy",
+    "access": null,
+    "description": null,
+    "lineNumber": 80,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "boolean"
+      ]
+    }
+  },
+  {
+    "__docId__": 60,
     "kind": "variable",
     "name": "watcher",
     "memberof": "src/watcher.js",
@@ -1635,7 +1704,7 @@
     "importPath": "backed-cli/src/watcher.js",
     "importStyle": "watcher",
     "description": null,
-    "lineNumber": 85,
+    "lineNumber": 92,
     "undocument": true,
     "unknown": [
       {
@@ -1650,7 +1719,7 @@
     }
   },
   {
-    "__docId__": 58,
+    "__docId__": 61,
     "kind": "file",
     "name": "src/workers/log-worker.js",
     "content": "'use strict';\nconst elegantSpinner = require('elegant-spinner');\nconst logUpdate = require('log-update');\nconst chalk = require('chalk');\nlet frame = elegantSpinner();\nlet text = 'Building';\nlet done = false;\nlet running = false;\nlet startTime;\n\nconst time = () => {\n  return new Date().toLocaleTimeString();\n};\n\nconst now = () => {\n  return Date.now();\n};\n\nlet interval = () => {\n  setInterval(() => {\n    if (running) {\n      logUpdate(`[${time()}] ${text} ${frame()}`);\n      if (done) {\n        process.send('done');\n      }\n    }\n  }, 50);\n};\nprocess.on('message', message => {\n  if (message === 'start') {\n    running = true;\n    startTime = now();\n    interval();\n  } else if (message === 'pauze') {\n    running = false;\n  } else if (message === 'resume') {\n    running = true;\n  } else if (message.includes('finished')) {\n    frame = () => {\n      return '';\n    };\n    let period = now() - startTime;\n    period /= 1000;\n    text = `${message} after: ${chalk.magenta(period + ' sec')}`;\n  } else if (message === 'done') {\n    done = true;\n  } else {\n    text = message;\n  }\n});\n",
@@ -1661,7 +1730,7 @@
     "lineNumber": 1
   },
   {
-    "__docId__": 59,
+    "__docId__": 62,
     "kind": "variable",
     "name": "elegantSpinner",
     "memberof": "src/workers/log-worker.js",
@@ -1687,7 +1756,7 @@
     }
   },
   {
-    "__docId__": 60,
+    "__docId__": 63,
     "kind": "variable",
     "name": "logUpdate",
     "memberof": "src/workers/log-worker.js",
@@ -1713,7 +1782,7 @@
     }
   },
   {
-    "__docId__": 61,
+    "__docId__": 64,
     "kind": "variable",
     "name": "chalk",
     "memberof": "src/workers/log-worker.js",
@@ -1739,7 +1808,7 @@
     }
   },
   {
-    "__docId__": 62,
+    "__docId__": 65,
     "kind": "variable",
     "name": "frame",
     "memberof": "src/workers/log-worker.js",
@@ -1765,7 +1834,7 @@
     }
   },
   {
-    "__docId__": 63,
+    "__docId__": 66,
     "kind": "variable",
     "name": "text",
     "memberof": "src/workers/log-worker.js",
@@ -1791,7 +1860,7 @@
     }
   },
   {
-    "__docId__": 64,
+    "__docId__": 67,
     "kind": "variable",
     "name": "done",
     "memberof": "src/workers/log-worker.js",
@@ -1817,7 +1886,7 @@
     }
   },
   {
-    "__docId__": 65,
+    "__docId__": 68,
     "kind": "variable",
     "name": "running",
     "memberof": "src/workers/log-worker.js",
@@ -1843,7 +1912,7 @@
     }
   },
   {
-    "__docId__": 66,
+    "__docId__": 69,
     "kind": "function",
     "name": "time",
     "memberof": "src/workers/log-worker.js",
@@ -1872,7 +1941,7 @@
     }
   },
   {
-    "__docId__": 67,
+    "__docId__": 70,
     "kind": "function",
     "name": "now",
     "memberof": "src/workers/log-worker.js",
@@ -1901,7 +1970,7 @@
     }
   },
   {
-    "__docId__": 68,
+    "__docId__": 71,
     "kind": "function",
     "name": "interval",
     "memberof": "src/workers/log-worker.js",
@@ -1925,7 +1994,7 @@
     "params": []
   },
   {
-    "__docId__": 69,
+    "__docId__": 72,
     "kind": "file",
     "name": "src/workers/watcher-worker.js",
     "content": "\nconst builder = require('backed-builder');\nconst fs = require('backed-fs');\nconst logger = require('backed-logger');\n\nprocess.on('message', message => {\n  const config = message.config;\n  const task = message.task;\n  switch (task) {\n    case 'build':\n      builder.build(config).then(() => {\n        process.send('reload');\n      });\n      break;\n    case 'copy':\n    case 'sources':\n      fs.copySources(config.sources).then(() => {\n        logger.succes(`${config.name}::copy finished`);\n        process.send('done');\n      });\n      break;\n  }\n});\n",
@@ -1936,7 +2005,7 @@
     "lineNumber": 1
   },
   {
-    "__docId__": 70,
+    "__docId__": 73,
     "kind": "variable",
     "name": "builder",
     "memberof": "src/workers/watcher-worker.js",
@@ -1962,7 +2031,7 @@
     }
   },
   {
-    "__docId__": 71,
+    "__docId__": 74,
     "kind": "variable",
     "name": "fs",
     "memberof": "src/workers/watcher-worker.js",
@@ -1988,7 +2057,7 @@
     }
   },
   {
-    "__docId__": 72,
+    "__docId__": 75,
     "kind": "variable",
     "name": "logger",
     "memberof": "src/workers/watcher-worker.js",
@@ -2014,7 +2083,7 @@
     }
   },
   {
-    "__docId__": 74,
+    "__docId__": 77,
     "kind": "external",
     "name": "Infinity",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Infinity",
@@ -2026,7 +2095,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 75,
+    "__docId__": 78,
     "kind": "external",
     "name": "NaN",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NaN",
@@ -2038,7 +2107,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 76,
+    "__docId__": 79,
     "kind": "external",
     "name": "undefined",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined",
@@ -2050,7 +2119,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 77,
+    "__docId__": 80,
     "kind": "external",
     "name": "null",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/null",
@@ -2062,7 +2131,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 78,
+    "__docId__": 81,
     "kind": "external",
     "name": "Object",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
@@ -2074,7 +2143,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 79,
+    "__docId__": 82,
     "kind": "external",
     "name": "object",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
@@ -2086,7 +2155,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 80,
+    "__docId__": 83,
     "kind": "external",
     "name": "Function",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function",
@@ -2098,7 +2167,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 81,
+    "__docId__": 84,
     "kind": "external",
     "name": "function",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function",
@@ -2110,7 +2179,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 82,
+    "__docId__": 85,
     "kind": "external",
     "name": "Boolean",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean",
@@ -2122,7 +2191,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 83,
+    "__docId__": 86,
     "kind": "external",
     "name": "boolean",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean",
@@ -2134,7 +2203,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 84,
+    "__docId__": 87,
     "kind": "external",
     "name": "Symbol",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol",
@@ -2146,7 +2215,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 85,
+    "__docId__": 88,
     "kind": "external",
     "name": "Error",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error",
@@ -2158,7 +2227,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 86,
+    "__docId__": 89,
     "kind": "external",
     "name": "EvalError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/EvalError",
@@ -2170,7 +2239,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 87,
+    "__docId__": 90,
     "kind": "external",
     "name": "InternalError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/InternalError",
@@ -2182,7 +2251,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 88,
+    "__docId__": 91,
     "kind": "external",
     "name": "RangeError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RangeError",
@@ -2194,7 +2263,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 89,
+    "__docId__": 92,
     "kind": "external",
     "name": "ReferenceError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ReferenceError",
@@ -2206,7 +2275,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 90,
+    "__docId__": 93,
     "kind": "external",
     "name": "SyntaxError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError",
@@ -2218,7 +2287,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 91,
+    "__docId__": 94,
     "kind": "external",
     "name": "TypeError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError",
@@ -2230,7 +2299,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 92,
+    "__docId__": 95,
     "kind": "external",
     "name": "URIError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/URIError",
@@ -2242,7 +2311,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 93,
+    "__docId__": 96,
     "kind": "external",
     "name": "Number",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number",
@@ -2254,7 +2323,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 94,
+    "__docId__": 97,
     "kind": "external",
     "name": "number",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number",
@@ -2266,7 +2335,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 95,
+    "__docId__": 98,
     "kind": "external",
     "name": "Date",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date",
@@ -2278,7 +2347,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 96,
+    "__docId__": 99,
     "kind": "external",
     "name": "String",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String",
@@ -2290,7 +2359,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 97,
+    "__docId__": 100,
     "kind": "external",
     "name": "string",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String",
@@ -2302,7 +2371,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 98,
+    "__docId__": 101,
     "kind": "external",
     "name": "RegExp",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp",
@@ -2314,7 +2383,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 99,
+    "__docId__": 102,
     "kind": "external",
     "name": "Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array",
@@ -2326,7 +2395,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 100,
+    "__docId__": 103,
     "kind": "external",
     "name": "Int8Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int8Array",
@@ -2338,7 +2407,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 101,
+    "__docId__": 104,
     "kind": "external",
     "name": "Uint8Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array",
@@ -2350,7 +2419,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 102,
+    "__docId__": 105,
     "kind": "external",
     "name": "Uint8ClampedArray",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8ClampedArray",
@@ -2362,7 +2431,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 103,
+    "__docId__": 106,
     "kind": "external",
     "name": "Int16Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int16Array",
@@ -2374,7 +2443,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 104,
+    "__docId__": 107,
     "kind": "external",
     "name": "Uint16Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint16Array",
@@ -2386,7 +2455,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 105,
+    "__docId__": 108,
     "kind": "external",
     "name": "Int32Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int32Array",
@@ -2398,7 +2467,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 106,
+    "__docId__": 109,
     "kind": "external",
     "name": "Uint32Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint32Array",
@@ -2410,7 +2479,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 107,
+    "__docId__": 110,
     "kind": "external",
     "name": "Float32Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float32Array",
@@ -2422,7 +2491,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 108,
+    "__docId__": 111,
     "kind": "external",
     "name": "Float64Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float64Array",
@@ -2434,7 +2503,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 109,
+    "__docId__": 112,
     "kind": "external",
     "name": "Map",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map",
@@ -2446,7 +2515,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 110,
+    "__docId__": 113,
     "kind": "external",
     "name": "Set",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set",
@@ -2458,7 +2527,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 111,
+    "__docId__": 114,
     "kind": "external",
     "name": "WeakMap",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap",
@@ -2470,7 +2539,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 112,
+    "__docId__": 115,
     "kind": "external",
     "name": "WeakSet",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet",
@@ -2482,7 +2551,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 113,
+    "__docId__": 116,
     "kind": "external",
     "name": "ArrayBuffer",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer",
@@ -2494,7 +2563,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 114,
+    "__docId__": 117,
     "kind": "external",
     "name": "DataView",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView",
@@ -2506,7 +2575,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 115,
+    "__docId__": 118,
     "kind": "external",
     "name": "JSON",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON",
@@ -2518,7 +2587,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 116,
+    "__docId__": 119,
     "kind": "external",
     "name": "Promise",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise",
@@ -2530,7 +2599,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 117,
+    "__docId__": 120,
     "kind": "external",
     "name": "Generator",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator",
@@ -2542,7 +2611,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 118,
+    "__docId__": 121,
     "kind": "external",
     "name": "GeneratorFunction",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/GeneratorFunction",
@@ -2554,7 +2623,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 119,
+    "__docId__": 122,
     "kind": "external",
     "name": "Reflect",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect",
@@ -2566,7 +2635,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 120,
+    "__docId__": 123,
     "kind": "external",
     "name": "Proxy",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy",
@@ -2579,7 +2648,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 122,
+    "__docId__": 125,
     "kind": "external",
     "name": "CanvasRenderingContext2D",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D",
@@ -2591,7 +2660,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 123,
+    "__docId__": 126,
     "kind": "external",
     "name": "DocumentFragment",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/DocumentFragment",
@@ -2603,7 +2672,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 124,
+    "__docId__": 127,
     "kind": "external",
     "name": "Element",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Element",
@@ -2615,7 +2684,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 125,
+    "__docId__": 128,
     "kind": "external",
     "name": "Event",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Event",
@@ -2627,7 +2696,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 126,
+    "__docId__": 129,
     "kind": "external",
     "name": "Node",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Node",
@@ -2639,7 +2708,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 127,
+    "__docId__": 130,
     "kind": "external",
     "name": "NodeList",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/NodeList",
@@ -2651,7 +2720,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 128,
+    "__docId__": 131,
     "kind": "external",
     "name": "XMLHttpRequest",
     "externalLink": "https://developer.mozilla.org/en/docs/Web/API/XMLHttpRequest",
@@ -2663,7 +2732,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 129,
+    "__docId__": 132,
     "kind": "external",
     "name": "AudioContext",
     "externalLink": "https://developer.mozilla.org/en/docs/Web/API/AudioContext",

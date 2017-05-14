@@ -991,6 +991,7 @@ var logger$3 = require('backed-logger');
 var time = function time() {
   return new Date().toLocaleTimeString();
 };
+var worker = void 0;
 
 /**
  * @extends EventEmitter
@@ -1088,7 +1089,11 @@ var Watcher = function (_EventEmitter) {
     value: function runWorker(task, config) {
       var _this3 = this;
 
-      var worker = void 0;
+      if (this.busy) {
+        worker.kill();
+        this.busy = false;
+      }
+      this.busy = true;
       worker = fork$1(path$2.join(__dirname, 'workers/watcher-worker.js'));
       worker.on('message', function (message) {
         if (message === 'done') {
@@ -1097,6 +1102,8 @@ var Watcher = function (_EventEmitter) {
         }
         logger$3.log('[' + time() + '] ' + logger$3._chalk('Reloading browser', 'cyan'));
         _this3.emit(message);
+        worker.kill();
+        _this3.busy = false;
       });
       worker.send({ task: task, config: config });
     }

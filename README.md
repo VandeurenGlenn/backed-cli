@@ -141,15 +141,16 @@ Serve your component/app documentation & demo
 - [ ] Handle errors
 - [ ] Run tests with [Travis CI](https://travis-ci.org/) & [SAUCELABS](https://saucelabs.com/)
 
-
 ## Projects using Backed CLI
 
 ### components
 - [custom-marked](https://github.com/VandeurenGlenn/custom-marked)
-- [reef-controller](https://github.com/Reeflight/reef-controller) RPI reeflight controller
 
 ### frameworks
 - [Backed](https://github.com/VandeurenGlenn/backed) - Small web framework for quick app & component development
+
+## Organizations using Backed CLI
+- [reeflight](https://github.com/reeflight)
 
 ## License
 

@@ -81,7 +81,7 @@ task('rollup:run', () => {
   }).then(bundle => {
     var result = bundle.generate({
       format: 'cjs',
-      moduleName: 'backed'
+      moduleName: 'Backed'
     });
      // Cache our bundle for later use (optional)
     cache = bundle;

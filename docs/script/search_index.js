@@ -486,6 +486,12 @@ window.esdocSearchIndex = [
     "file"
   ],
   [
+    "src/watcher.js~watcher#busy",
+    "class/src/watcher.js~Watcher.html#instance-member-busy",
+    "src/watcher.js~Watcher#busy",
+    "member"
+  ],
+  [
     "src/watcher.js~watcher#configuredemo",
     "class/src/watcher.js~Watcher.html#instance-method-configureDemo",
     "src/watcher.js~Watcher#configureDemo",

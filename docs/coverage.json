@@ -1,6 +1,6 @@
 {
-  "coverage": "38.46%",
-  "expectCount": 26,
+  "coverage": "37.03%",
+  "expectCount": 27,
   "actualCount": 10,
   "files": {
     "src/config.js": {
@@ -28,13 +28,14 @@
       ]
     },
     "src/watcher.js": {
-      "expectCount": 6,
+      "expectCount": 7,
       "actualCount": 2,
       "undocumentLines": [
-        47,
-        64,
-        28,
-        85
+        68,
+        48,
+        65,
+        29,
+        92
       ]
     }
   }
