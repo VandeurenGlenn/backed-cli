@@ -3,7 +3,7 @@
     "__docId__": 0,
     "kind": "file",
     "name": "src/backed.js",
-    "content": "'use strict';\nprocess.title = 'backed';\nconst commander = require('commander');\nconst {version} = require('./../package.json');\nconst fs = require('backed-fs');\n\nimport Config from './config.js';\nimport builder from './../node_modules/backed-builder/src/builder.js';\nimport server from './server.js';\nimport watcher from './watcher.js';\n\n\ncommander\n  .version(version)\n  .option('-w, --watch', 'watch for file changes & rebuild on change')\n  .option('-b, --build', 'build your app/component')\n  .option('-s, --serve', 'serve your app/component')\n  .option('-c, --copy', 'copy files from your app/component src folder to it distribution folder')\n  .option('-d, --debug', 'show all warnings')\n  .parse(process.argv);\n\nlet watch = commander.watch;\nlet build = commander.build;\nlet copy = commander.build || commander.copy;\nlet serve = commander.serve;\nglobal.debug = commander.debug\n/**\n * @param {object} config {@link Config}\n */\nasync function * run(config) {\n  if (build) {\n    await builder.build(config);\n  }\n\n  if (copy) {\n    await fs.copySources(config.sources);\n  }\n\n  if (watch) {\n    watcher.on('reload', () => {\n      server.reload();\n    });\n    await watcher.watch(config);\n  }\n\n  if (serve) {\n    await server.serve(config.server);\n  }\n}\n\nnew Config().then(config => {\n  global.debug = commander.debug || config.debug;\n  let it = run(config);\n  it.next();\n});\n",
+    "content": "'use strict';\nprocess.title = 'backed';\nconst commander = require('commander');\nconst {version} = require('./../package.json');\nconst webup = require('webup');\nconst logger = require('backed-logger');\n\nimport Config from './config.js';\nimport tasks from './tasks.js';\n\ncommander\n  .version(version)\n  .option('-w, --watch', 'watch for file changes & rebuild on change')\n  .option('-b, --build', 'build your app/component')\n  .option('-s, --serve', 'serve your app/component')\n  .option('-c, --copy', 'copy files from your app/component src folder to it distribution folder')\n  .option('-d, --debug', 'show all warnings')\n  .option('-v, --version', 'current version')\n  .parse(process.argv);\n\nconst commands = {\n  build: Boolean(commander.build),\n  watch: Boolean(commander.watch),\n  copy: Boolean(commander.build) || Boolean(commander.copy),\n  serve: Boolean(commander.serve)\n};\n\nglobal.debug = commander.debug;\n\n/**\n * @param {object} config {@link Config}\n */\nnew Config().then(config => {\n  async function run(config) {\n    for (const task of Object.entries(commands)) {\n      const name = task[0];\n      const enabled = task[1];\n      if (enabled) {\n        try {\n          const done = await tasks[name](config);\n        } catch (e) {\n          logger.warn(`task::function ${name} is undefined`);\n        }\n      }\n    }\n    process.exit(0);\n  }\n  run(config);\n});\n",
     "static": true,
     "longname": "src/backed.js",
     "access": null,
@@ -65,10 +65,10 @@
   {
     "__docId__": 3,
     "kind": "variable",
-    "name": "fs",
+    "name": "webup",
     "memberof": "src/backed.js",
     "static": true,
-    "longname": "src/backed.js~fs",
+    "longname": "src/backed.js~webup",
     "access": null,
     "export": false,
     "importPath": "backed-cli/src/backed.js",
@@ -91,16 +91,16 @@
   {
     "__docId__": 4,
     "kind": "variable",
-    "name": "watch",
+    "name": "logger",
     "memberof": "src/backed.js",
     "static": true,
-    "longname": "src/backed.js~watch",
+    "longname": "src/backed.js~logger",
     "access": null,
     "export": false,
     "importPath": "backed-cli/src/backed.js",
     "importStyle": null,
     "description": null,
-    "lineNumber": 22,
+    "lineNumber": 6,
     "undocument": true,
     "unknown": [
       {
@@ -117,16 +117,16 @@
   {
     "__docId__": 5,
     "kind": "variable",
-    "name": "build",
+    "name": "commands",
     "memberof": "src/backed.js",
     "static": true,
-    "longname": "src/backed.js~build",
+    "longname": "src/backed.js~commands",
     "access": null,
     "export": false,
     "importPath": "backed-cli/src/backed.js",
     "importStyle": null,
     "description": null,
-    "lineNumber": 23,
+    "lineNumber": 21,
     "undocument": true,
     "unknown": [
       {
@@ -136,95 +136,15 @@
     ],
     "type": {
       "types": [
-        "*"
+        "{\"build\": *, \"watch\": *, \"copy\": *, \"serve\": *}"
       ]
     }
   },
   {
     "__docId__": 6,
-    "kind": "variable",
-    "name": "copy",
-    "memberof": "src/backed.js",
-    "static": true,
-    "longname": "src/backed.js~copy",
-    "access": null,
-    "export": false,
-    "importPath": "backed-cli/src/backed.js",
-    "importStyle": null,
-    "description": null,
-    "lineNumber": 24,
-    "undocument": true,
-    "unknown": [
-      {
-        "tagName": "@_undocument",
-        "tagValue": ""
-      }
-    ],
-    "type": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 7,
-    "kind": "variable",
-    "name": "serve",
-    "memberof": "src/backed.js",
-    "static": true,
-    "longname": "src/backed.js~serve",
-    "access": null,
-    "export": false,
-    "importPath": "backed-cli/src/backed.js",
-    "importStyle": null,
-    "description": null,
-    "lineNumber": 25,
-    "undocument": true,
-    "unknown": [
-      {
-        "tagName": "@_undocument",
-        "tagValue": ""
-      }
-    ],
-    "type": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 8,
-    "kind": "function",
-    "name": "run",
-    "memberof": "src/backed.js",
-    "generator": true,
-    "async": true,
-    "static": true,
-    "longname": "src/backed.js~run",
-    "access": null,
-    "export": false,
-    "importPath": "backed-cli/src/backed.js",
-    "importStyle": null,
-    "description": "",
-    "lineNumber": 30,
-    "params": [
-      {
-        "nullable": null,
-        "types": [
-          "object"
-        ],
-        "spread": false,
-        "optional": false,
-        "name": "config",
-        "description": "{@link Config}"
-      }
-    ]
-  },
-  {
-    "__docId__": 9,
     "kind": "file",
     "name": "src/config.js",
-    "content": "'use strict';\nconst {readFileSync} = require('fs');\nconst path = require('path');\nconst {merge} = require('lodash');\nconst logger = require('backed-logger');\n\n/**\n * @param {string} config.name name off your project\n * @param {string} config.server.entry path to where your build is located\n * @param {string} config.server.entry path to where your build is located\n * @param {string} config.server.docs path to where your docs are located\n * @param {string} config.server.bowerPath path to bower_components\n * @param {string} config.server.nodeModulesPath path to node_modules\n * @param {string} config.server.demo path to the demo\n * @param {string} config.server.index path to your index.html file we serve a helper/docs index by default (not support for now)\n * @param {array} config.server.use static files to include [{path: some/path, static: some//path}] when static is undefined path will be used.\n */\nexport default class Config {\n  constructor() {\n    return new Promise((resolve, reject) => {\n      this.importConfig().then(config => {\n        this.name = config.name;\n        this.cleanup = config.cleanup || true;\n        this.babel = config.babel || true;\n        if (config.bundles) {\n          for (let bundle of config.bundles) {\n            bundle.plugins = this.setupPlugins(bundle.plugins);\n          }\n        }\n        resolve(this.updateConfig(config));\n      });\n    });\n  }\n\n  setupPlugins(plugins={}) {\n    const defaults = ['babel', 'cleanup'];\n    for (let key of defaults) {\n      if (this[key] && !plugins[key]) {\n        plugins[key] = {};\n      }\n    }\n    return plugins;\n  }\n\n  get bundles() {\n    return [\n      {\n        src: `src/${this.name}.js`,\n        dest: `dist/${this.name}.js`,\n        format: 'es'\n      }\n    ]\n  }\n\n  get server() {\n    return {\n      port: 3000,\n      entry: '/',\n      demo: 'demo',\n      docs: 'docs',\n      bowerPath: 'bower_components',\n      nodeModulesPath: 'node_modules',\n      index: null};\n  }\n\n  get watch() {\n    return [{\n      task: 'build',\n      src: ['./src'],\n      options: {}\n    }];\n  }\n\n  /**\n   * wrapper around cjs require\n   * try's to read file from current working directory\n   * @param {string} path path to file/module\n   * @return {object|array|function|class} module or file\n   */\n  require(path) {\n    return new Promise((resolve, reject) => {\n      let root = process.cwd();\n      root += `/${path}`;\n      try {\n        let required = require(root);\n        resolve(required);\n      } catch (error) {\n        reject(error);\n      }\n    });\n  }\n\n  /**\n   * @return {object} value of 'backed.json'\n   */\n  importConfig() {\n    return new Promise((resolve, reject) => {\n      async function * generator(fn) {\n        const pkg = await fn('package.json').catch(error => {\n          if (global.debug) {\n            logger.error(error)\n          }\n        });\n        const config = await fn('backed.json').catch(error => {\n          if (global.debug) {\n            logger.warn('backed.json::not found, ignore this when using backed in package.json')\n          }\n        });\n        if (!config && !pkg) {\n          logger.warn('No backed.json or backed section in package.json, using default options.');\n          return resolve({name: process.cwd()});\n        }\n        if (config) {\n          let name = config.name;\n          if (!name && pkg && pkg.name && !pkg.backed) {\n            return resolve(merge(config, {name: pkg.name}));\n          } else if (!name && !pkg) {\n            return resolve(merge(config, {name: process.cwd()}))\n          }\n        }\n        if(pkg && pkg.backed) {\n          return resolve(merge(pkg.backed, {name: pkg.name}));\n        }\n      }\n      const it = generator(this.require);\n      it.next();\n    });\n  }\n\n  /**\n   * @return {string} name from 'package.json'\n   */\n  importPackageName() {\n    try {\n      return JSON.parse(readFileSync(`${process.cwd()}/package.json`)).name;\n    } catch (e) {\n      if (global.debug) {\n        logger.warn('no package.json found');\n      }\n    }\n    return undefined;\n  }\n\n  /**\n   * @return {string} name from 'bower.json'\n   */\n  importBowerName() {\n    try {\n      return JSON.parse(readFileSync(`${process.cwd()}/bower.json`)).name;\n    } catch (e) {\n      if (global.debug) {\n        logger.warn('no bower.json found');\n      }\n    }\n    return undefined;\n  }\n\n  /**\n   * @param {object} config - the config to be updated\n   * @param {string} name - the name of the element, component, etc\n   *\n   * @example\n    * config.updateConfig({\n   *   bundles: [{\n   *     src: 'src',\n   *     dest: 'dist'\n   *   }]\n   * });\n   *\n   * @todo create method for building atom app with atom-builder\n   * @todo implement element, app & atom-app config\n   * @todo handle sourceMap at bundle level\n   */\n  updateConfig(config, name) {\n    config.sourceMap = config.sourceMap || true;\n    config.bundles = merge(this.bundles, config.bundles);\n    config.server = merge(this.server, config.server);\n    config.watch = merge(this.watch, config.watch);\n    global.config = config;\n    return config;\n  }\n}\n",
+    "content": "'use strict';\nconst {readFileSync} = require('fs');\nconst path = require('path');\nconst {merge} = require('lodash');\nconst logger = require('backed-logger');\n\n/**\n * @param {string} config.name name off your project\n * @param {string} config.server.entry path to where your build is located\n * @param {string} config.server.entry path to where your build is located\n * @param {string} config.server.docs path to where your docs are located\n * @param {string} config.server.bowerPath path to bower_components\n * @param {string} config.server.nodeModulesPath path to node_modules\n * @param {string} config.server.demo path to the demo\n * @param {string} config.server.index path to your index.html file we serve a helper/docs index by default (not support for now)\n * @param {array} config.server.use static files to include [{path: some/path, static: some//path}] when static is undefined path will be used.\n */\nexport default class Config {\n  constructor() {\n    return new Promise((resolve, reject) => {\n      this.importConfig().then(config => {\n        this.name = config.name;\n        this.cleanup = config.cleanup || true;\n        this.babel = config.babel || true;\n        if (config.bundles) {\n          for (let bundle of config.bundles) {\n            bundle.plugins = this.defaultPlugins(bundle.plugins);\n          }\n        }\n        return resolve(this.updateConfig(config));\n      });\n    });\n  }\n\n  /**\n   * @param {array} plugins\n   */\n  defaultPlugins(plugins = {}) {\n    const defaults = ['babel', 'cleanup'];\n    for (let key of defaults) {\n      if (this[key] && !plugins[key]) {\n        plugins[key] = {};\n      }\n    }\n    return plugins;\n  }\n\n  /**\n   *  Default bundles config\n   *\n   * @return {array} [{src: `src/${name}.js`, dest: `dist/${name}.js`, format: 'es'}\n   */\n  get bundles() {\n    return [\n      {\n        src: `src/${this.name}.js`,\n        dest: `dist/${this.name}.js`,\n        format: 'es'\n      }\n    ];\n  }\n\n  /**\n   *  Default server config\n   *\n   * @return {object} {\n   *                    port: 3000,\n   *                    entry: '/',\n   *                    demo: 'demo',\n   *                    docs: 'docs',\n   *                    bowerPath: 'bower_components',\n   *                    nodeModulesPath: 'node_modules',\n   *                    index: null\n   *                  }\n   */\n  get server() {\n    return {\n      port: 3000,\n      entry: '/',\n      demo: 'demo',\n      docs: 'docs',\n      bowerPath: 'bower_components',\n      nodeModulesPath: 'node_modules',\n      index: null};\n  }\n\n  /**\n   *  Default watcher config\n   *\n   * @return {array} [{task: 'build', src: ['./src'], options: {}}\n   */\n  get watch() {\n    return [{\n      task: 'build',\n      src: ['./src'],\n      options: {}\n    }];\n  }\n\n  /**\n   * wrapper around cjs require\n   * try's to read file from current working directory\n   * @param {string} path path to file/module\n   * @return {object|array|function|class} module or file\n   */\n  require(path) {\n    return new Promise((resolve, reject) => {\n      let root = process.cwd();\n      root += `/${path}`;\n      try {\n        let required = require(root);\n        resolve(required);\n      } catch (error) {\n        reject(error);\n      }\n    });\n  }\n\n  /**\n   * @return {object} value of 'backed.json'\n   */\n  importConfig() {\n    return new Promise((resolve, reject) => {\n      async function generator(fn) {\n        const pkg = await fn('package.json').catch(error => {\n          if (global.debug) {\n            logger.error(error);\n          }\n        });\n        const config = await fn('backed.json').catch(error => {\n          if (global.debug) {\n            logger.warn('backed.json::not found, ignore this when using backed in package.json');\n          }\n        });\n        if (!config && !pkg) {\n          logger.warn('No backed.json or backed section in package.json, using default options.');\n          return resolve({name: process.cwd()});\n        }\n        if (config) {\n          let name = config.name;\n          if (!name && pkg && pkg.name && !pkg.backed) {\n            return resolve(merge(config, {name: pkg.name}));\n          } else if (!name && !pkg) {\n            return resolve(merge(config, {name: process.cwd()}));\n          }\n        }\n        if (pkg && pkg.backed) {\n          return resolve(merge(pkg.backed, {name: pkg.name}));\n        }\n      }\n      generator(this.require);\n    });\n  }\n\n  /**\n   * @return {string} name from 'package.json'\n   */\n  importPackageName() {\n    try {\n      return JSON.parse(readFileSync(`${process.cwd()}/package.json`)).name;\n    } catch (e) {\n      if (global.debug) {\n        logger.warn('no package.json found');\n      }\n    }\n    return undefined;\n  }\n\n  /**\n   * @return {string} name from 'bower.json'\n   */\n  importBowerName() {\n    try {\n      return JSON.parse(readFileSync(`${process.cwd()}/bower.json`)).name;\n    } catch (e) {\n      if (global.debug) {\n        logger.warn('no bower.json found');\n      }\n    }\n    return undefined;\n  }\n\n  /**\n   * @param {object} config - the config to be updated\n   * @param {string} name - the name of the element, component, etc\n   *\n   * @example\n    * config.updateConfig({\n   *   bundles: [{\n   *     src: 'src',\n   *     dest: 'dist'\n   *   }]\n   * });\n   *\n   * @todo create method for building atom app with atom-builder\n   * @todo implement element, app & atom-app config\n   * @todo handle sourceMap at bundle level\n   */\n  updateConfig(config, name) {\n    config.sourceMap = config.sourceMap || true;\n    if (config.entry && config.sources) {\n      delete config.bundles;\n    } else {\n      config.bundles = merge(this.bundles, config.bundles);\n    }\n    config.server = merge(this.server, config.server);\n    config.watch = merge(this.watch, config.watch);\n    global.config = config;\n    return config;\n  }\n}\n",
     "static": true,
     "longname": "src/config.js",
     "access": null,
@@ -232,7 +152,7 @@
     "lineNumber": 1
   },
   {
-    "__docId__": 10,
+    "__docId__": 7,
     "kind": "variable",
     "name": "readFileSync",
     "memberof": "src/config.js",
@@ -258,7 +178,7 @@
     }
   },
   {
-    "__docId__": 11,
+    "__docId__": 8,
     "kind": "variable",
     "name": "path",
     "memberof": "src/config.js",
@@ -284,7 +204,7 @@
     }
   },
   {
-    "__docId__": 12,
+    "__docId__": 9,
     "kind": "variable",
     "name": "merge",
     "memberof": "src/config.js",
@@ -310,7 +230,7 @@
     }
   },
   {
-    "__docId__": 13,
+    "__docId__": 10,
     "kind": "variable",
     "name": "logger",
     "memberof": "src/config.js",
@@ -336,7 +256,7 @@
     }
   },
   {
-    "__docId__": 14,
+    "__docId__": 11,
     "kind": "class",
     "name": "Config",
     "memberof": "src/config.js",
@@ -443,7 +363,7 @@
     "interface": false
   },
   {
-    "__docId__": 15,
+    "__docId__": 12,
     "kind": "constructor",
     "name": "constructor",
     "memberof": "src/config.js~Config",
@@ -464,7 +384,7 @@
     "params": []
   },
   {
-    "__docId__": 16,
+    "__docId__": 13,
     "kind": "member",
     "name": "name",
     "memberof": "src/config.js~Config",
@@ -487,7 +407,7 @@
     }
   },
   {
-    "__docId__": 17,
+    "__docId__": 14,
     "kind": "member",
     "name": "cleanup",
     "memberof": "src/config.js~Config",
@@ -510,7 +430,7 @@
     }
   },
   {
-    "__docId__": 18,
+    "__docId__": 15,
     "kind": "member",
     "name": "babel",
     "memberof": "src/config.js~Config",
@@ -533,33 +453,27 @@
     }
   },
   {
-    "__docId__": 19,
+    "__docId__": 16,
     "kind": "method",
-    "name": "setupPlugins",
+    "name": "defaultPlugins",
     "memberof": "src/config.js~Config",
     "generator": false,
     "async": false,
     "static": false,
-    "longname": "src/config.js~Config#setupPlugins",
+    "longname": "src/config.js~Config#defaultPlugins",
     "access": null,
-    "description": null,
-    "lineNumber": 35,
-    "undocument": true,
-    "unknown": [
-      {
-        "tagName": "@_undocument",
-        "tagValue": ""
-      }
-    ],
+    "description": "",
+    "lineNumber": 38,
     "params": [
       {
-        "name": "plugins",
-        "optional": true,
+        "nullable": null,
         "types": [
-          "{}"
+          "array"
         ],
-        "defaultRaw": {},
-        "defaultValue": "{}"
+        "spread": false,
+        "optional": false,
+        "name": "plugins",
+        "description": ""
       }
     ],
     "return": {
@@ -569,7 +483,7 @@
     }
   },
   {
-    "__docId__": 20,
+    "__docId__": 17,
     "kind": "get",
     "name": "bundles",
     "memberof": "src/config.js~Config",
@@ -578,15 +492,16 @@
     "static": false,
     "longname": "src/config.js~Config#bundles",
     "access": null,
-    "description": null,
-    "lineNumber": 45,
-    "undocument": true,
-    "unknown": [
-      {
-        "tagName": "@_undocument",
-        "tagValue": ""
-      }
-    ],
+    "description": " Default bundles config",
+    "lineNumber": 53,
+    "return": {
+      "nullable": null,
+      "types": [
+        "array"
+      ],
+      "spread": false,
+      "description": "[{src: `src/${name}.js`, dest: `dist/${name}.js`, format: 'es'}"
+    },
     "type": {
       "types": [
         "undefined[]"
@@ -594,7 +509,7 @@
     }
   },
   {
-    "__docId__": 21,
+    "__docId__": 18,
     "kind": "get",
     "name": "server",
     "memberof": "src/config.js~Config",
@@ -603,15 +518,16 @@
     "static": false,
     "longname": "src/config.js~Config#server",
     "access": null,
-    "description": null,
-    "lineNumber": 55,
-    "undocument": true,
-    "unknown": [
-      {
-        "tagName": "@_undocument",
-        "tagValue": ""
-      }
-    ],
+    "description": " Default server config",
+    "lineNumber": 76,
+    "return": {
+      "nullable": null,
+      "types": [
+        "object"
+      ],
+      "spread": false,
+      "description": "{\n                   port: 3000,\n                   entry: '/',\n                   demo: 'demo',\n                   docs: 'docs',\n                   bowerPath: 'bower_components',\n                   nodeModulesPath: 'node_modules',\n                   index: null\n                 }"
+    },
     "type": {
       "types": [
         "{\"port\": number, \"entry\": string, \"demo\": string, \"docs\": string, \"bowerPath\": string, \"nodeModulesPath\": string, \"index\": *}"
@@ -619,7 +535,7 @@
     }
   },
   {
-    "__docId__": 22,
+    "__docId__": 19,
     "kind": "get",
     "name": "watch",
     "memberof": "src/config.js~Config",
@@ -628,15 +544,16 @@
     "static": false,
     "longname": "src/config.js~Config#watch",
     "access": null,
-    "description": null,
-    "lineNumber": 66,
-    "undocument": true,
-    "unknown": [
-      {
-        "tagName": "@_undocument",
-        "tagValue": ""
-      }
-    ],
+    "description": " Default watcher config",
+    "lineNumber": 92,
+    "return": {
+      "nullable": null,
+      "types": [
+        "array"
+      ],
+      "spread": false,
+      "description": "[{task: 'build', src: ['./src'], options: {}}"
+    },
     "type": {
       "types": [
         "undefined[]"
@@ -644,7 +561,7 @@
     }
   },
   {
-    "__docId__": 23,
+    "__docId__": 20,
     "kind": "method",
     "name": "require",
     "memberof": "src/config.js~Config",
@@ -654,7 +571,7 @@
     "longname": "src/config.js~Config#require",
     "access": null,
     "description": "wrapper around cjs require\ntry's to read file from current working directory",
-    "lineNumber": 80,
+    "lineNumber": 106,
     "params": [
       {
         "nullable": null,
@@ -680,7 +597,7 @@
     }
   },
   {
-    "__docId__": 24,
+    "__docId__": 21,
     "kind": "method",
     "name": "importConfig",
     "memberof": "src/config.js~Config",
@@ -690,7 +607,7 @@
     "longname": "src/config.js~Config#importConfig",
     "access": null,
     "description": "",
-    "lineNumber": 96,
+    "lineNumber": 122,
     "params": [],
     "return": {
       "nullable": null,
@@ -702,7 +619,7 @@
     }
   },
   {
-    "__docId__": 25,
+    "__docId__": 22,
     "kind": "method",
     "name": "importPackageName",
     "memberof": "src/config.js~Config",
@@ -712,7 +629,7 @@
     "longname": "src/config.js~Config#importPackageName",
     "access": null,
     "description": "",
-    "lineNumber": 133,
+    "lineNumber": 158,
     "params": [],
     "return": {
       "nullable": null,
@@ -724,7 +641,7 @@
     }
   },
   {
-    "__docId__": 26,
+    "__docId__": 23,
     "kind": "method",
     "name": "importBowerName",
     "memberof": "src/config.js~Config",
@@ -734,7 +651,7 @@
     "longname": "src/config.js~Config#importBowerName",
     "access": null,
     "description": "",
-    "lineNumber": 147,
+    "lineNumber": 172,
     "params": [],
     "return": {
       "nullable": null,
@@ -746,7 +663,7 @@
     }
   },
   {
-    "__docId__": 27,
+    "__docId__": 24,
     "kind": "method",
     "name": "updateConfig",
     "memberof": "src/config.js~Config",
@@ -759,7 +676,7 @@
     "examples": [
       "config.updateConfig({\n  bundles: [{\n    src: 'src',\n    dest: 'dist'\n  }]\n});"
     ],
-    "lineNumber": 174,
+    "lineNumber": 199,
     "todo": [
       "create method for building atom app with atom-builder",
       "implement element, app & atom-app config",
@@ -794,7 +711,7 @@
     }
   },
   {
-    "__docId__": 28,
+    "__docId__": 25,
     "kind": "file",
     "name": "src/server.js",
     "content": "'use strict';\nconst express = require('express');\nconst http = require('http');\nconst reload = require('reload');\nconst glob = require('glob');\n\nconst app = express();\nconst server = http.createServer(app);\nconst reloadServer = reload(server, app);\nconst logger = require('backed-logger');\n\n/**\n * glob file path\n * @param {string} string\n */\nconst src = string => {\n  return new Promise((resolve, reject) => {\n    glob(string, (error, files) => {\n      if (error) {\n        reject(error);\n      }\n      if (files.length > 0) {\n        resolve(files);\n      }\n    });\n  });\n};\n\nclass Server {\n\n/**\n * @param {object} config - configuration\n * @param {string} config.entry path to where your build is located\n * @param {string} config.docs path to where your docs are located\n * @param {string} config.bowerPath path to bower_components\n * @param {string} config.nodeModulesPath path to node_modules\n * @param {string} config.demo path to the demo\n * @param {string} config.index path to your index.html file we serve a helper/docs index by default (not support for now)\n * @param {array} config.use static files to include [{path: some/path, static: some//path}] when static is undefined path will be used.\n */\n  serve(config = {\n    entry: '/',\n    demo: 'demo',\n    docs: 'docs',\n    use: [{path: null, static: null}],\n    bowerPath: 'bower_components',\n    nodeModulesPath: 'node_modules',\n    index: null}) {\n    if (config) {\n      this.handleOldOptions(config);\n      if (config.use) {\n        for (let use of config.use) {\n          app.use(use.path, express.static(this.appLocation(use.static || use.path)));\n        }\n      }\n\n      app.use('/', express.static(\n        this.appLocation(config.entry)));\n\n      app.use('/bower_components', express.static(\n        this.appLocation(config.bowerPath, 'bower_components')));\n\n      app.use('/node_modules', express.static(\n        this.appLocation(config.nodeModulesPath, 'node_modules')));\n\n      app.use('/demo/node_modules', express.static(\n        this.appLocation(config.nodeModulesPath, 'node_modules')));\n\n      app.use('/demo', express.static(\n        this.appLocation(config.demo, 'demo')));\n\n      app.use('/docs', express.static(\n        this.appLocation(config.docs, 'docs')));\n\n      app.use('/package.json', express.static(\n        this.appLocation('package.json')\n      ));\n\n      // serve backed-cli documentation\n      app.use('/backed-cli/docs', express.static(\n        __dirname.replace('bin', 'docs')));\n\n      // serve backed documentation\n      app.use('/backed/docs', express.static(\n        this.appLocation('node_modules/backed/docs')));\n\n      // TODO: Add option to override index\n      app.use('/', express.static(__dirname.replace('bin', 'node_modules\\\\backed-client\\\\dist')));\n\n      // TODO: implement copyrighted by package author & package name if no file is found\n      src(process.cwd() + '/license.*').then(files => {\n        app.use('/license', express.static(files[0]));\n      });\n\n      server.listen(3000, error => {\n        if (error) {\n          return logger.warn(error);\n        }\n        logger.log(`${global.config.name}::serving app from http://localhost:${config.port}/${config.entry.replace('/', '')}`);\n      });\n    } else {\n      return logger.warn(`${global.config.name}::server config not found [example](https://raw.githubusercontent.com/VandeurenGlenn/backed-cli/master/config/backed.json)`);\n    }\n  }\n\n  /**\n   * @param {string} path - location of the file\n   * @param {string} alternate - returns when path is undefined\n   * @param {string} disableAlternate - current working directory is ignored when true, defaults to false\n   */\n  appLocation(path, alternate, disableAlternate = false) {\n    let root = process.cwd();\n    if (!path && !disableAlternate) {\n      path = alternate;\n    } else if (!path && disableAlternate) {\n      // when we disable alternate we return the value of alternate\n      return alternate;\n    }\n    root += `\\\\${path}`;\n    return root;\n  }\n\n  handleOldOptions(options) {\n    if (options.path || options.elementLocation) {\n      logger.warn(`${options.path ? 'server.path' : 'server.elementLocation'} is no longer supported, [visit](https://github.com/vandeurenglenn/backed-cli#serve) to learn more'`);\n    } else if (options.bowerPath) {\n      logger.warn('server.bowerPath::deprecated: removal planned @1.0.0+');\n    }\n  }\n\n  reload() {\n    reloadServer.reload();\n  }\n}\nexport default new Server();\n",
@@ -805,7 +722,7 @@
     "lineNumber": 1
   },
   {
-    "__docId__": 29,
+    "__docId__": 26,
     "kind": "variable",
     "name": "express",
     "memberof": "src/server.js",
@@ -831,7 +748,7 @@
     }
   },
   {
-    "__docId__": 30,
+    "__docId__": 27,
     "kind": "variable",
     "name": "http",
     "memberof": "src/server.js",
@@ -857,7 +774,7 @@
     }
   },
   {
-    "__docId__": 31,
+    "__docId__": 28,
     "kind": "variable",
     "name": "reload",
     "memberof": "src/server.js",
@@ -883,7 +800,7 @@
     }
   },
   {
-    "__docId__": 32,
+    "__docId__": 29,
     "kind": "variable",
     "name": "glob",
     "memberof": "src/server.js",
@@ -909,7 +826,7 @@
     }
   },
   {
-    "__docId__": 33,
+    "__docId__": 30,
     "kind": "variable",
     "name": "app",
     "memberof": "src/server.js",
@@ -935,7 +852,7 @@
     }
   },
   {
-    "__docId__": 34,
+    "__docId__": 31,
     "kind": "variable",
     "name": "server",
     "memberof": "src/server.js",
@@ -961,7 +878,7 @@
     }
   },
   {
-    "__docId__": 35,
+    "__docId__": 32,
     "kind": "variable",
     "name": "reloadServer",
     "memberof": "src/server.js",
@@ -987,7 +904,7 @@
     }
   },
   {
-    "__docId__": 36,
+    "__docId__": 33,
     "kind": "variable",
     "name": "logger",
     "memberof": "src/server.js",
@@ -1013,7 +930,7 @@
     }
   },
   {
-    "__docId__": 37,
+    "__docId__": 34,
     "kind": "function",
     "name": "src",
     "memberof": "src/server.js",
@@ -1046,7 +963,7 @@
     }
   },
   {
-    "__docId__": 38,
+    "__docId__": 35,
     "kind": "class",
     "name": "Server",
     "memberof": "src/server.js",
@@ -1069,7 +986,7 @@
     "interface": false
   },
   {
-    "__docId__": 39,
+    "__docId__": 36,
     "kind": "method",
     "name": "serve",
     "memberof": "src/server.js~Server",
@@ -1169,7 +1086,7 @@
     }
   },
   {
-    "__docId__": 40,
+    "__docId__": 37,
     "kind": "method",
     "name": "appLocation",
     "memberof": "src/server.js~Server",
@@ -1219,7 +1136,7 @@
     }
   },
   {
-    "__docId__": 41,
+    "__docId__": 38,
     "kind": "method",
     "name": "handleOldOptions",
     "memberof": "src/server.js~Server",
@@ -1247,7 +1164,7 @@
     ]
   },
   {
-    "__docId__": 42,
+    "__docId__": 39,
     "kind": "method",
     "name": "reload",
     "memberof": "src/server.js~Server",
@@ -1268,7 +1185,7 @@
     "params": []
   },
   {
-    "__docId__": 43,
+    "__docId__": 40,
     "kind": "variable",
     "name": "server",
     "memberof": "src/server.js",
@@ -1294,7 +1211,214 @@
     }
   },
   {
+    "__docId__": 41,
+    "kind": "file",
+    "name": "src/tasks.js",
+    "content": "'use strict';\nconst fs = require('backed-fs');\nconst webup = require('webup');\nimport builder from './../node_modules/backed-builder/src/builder.js';\nimport server from './server.js';\nimport watcher from './watcher.js';\n\nconst build = config => {\n  return new Promise((resolve, reject) => {\n    if (config.entry && config.sources) {\n      return webup(config).then(() => {\n        return resolve();\n      });\n    }\n    builder.build(config).then(() => resolve());\n  });\n};\n\nconst copy = config => {\n  return new Promise((resolve, reject) => {\n    return fs.copySources(config.copy).then(() => {\n      return resolve();\n    });\n  });\n};\n\nconst serve = config => {\n  return server.serve(config.server);\n};\n\nconst watch = config => {\n  watcher.on('reload', () => {\n    server.reload();\n  });\n  return watcher.watch(config);\n};\n\nexport default {\n  build,\n  copy,\n  serve,\n  watch\n};\n",
+    "static": true,
+    "longname": "src/tasks.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1
+  },
+  {
+    "__docId__": 42,
+    "kind": "variable",
+    "name": "fs",
+    "memberof": "src/tasks.js",
+    "static": true,
+    "longname": "src/tasks.js~fs",
+    "access": null,
+    "export": false,
+    "importPath": "backed-cli/src/tasks.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 2,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 43,
+    "kind": "variable",
+    "name": "webup",
+    "memberof": "src/tasks.js",
+    "static": true,
+    "longname": "src/tasks.js~webup",
+    "access": null,
+    "export": false,
+    "importPath": "backed-cli/src/tasks.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 3,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
     "__docId__": 44,
+    "kind": "function",
+    "name": "build",
+    "memberof": "src/tasks.js",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "src/tasks.js~build",
+    "access": null,
+    "export": false,
+    "importPath": "backed-cli/src/tasks.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 8,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "config",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 45,
+    "kind": "function",
+    "name": "copy",
+    "memberof": "src/tasks.js",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "src/tasks.js~copy",
+    "access": null,
+    "export": false,
+    "importPath": "backed-cli/src/tasks.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 19,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "config",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 46,
+    "kind": "function",
+    "name": "serve",
+    "memberof": "src/tasks.js",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "src/tasks.js~serve",
+    "access": null,
+    "export": false,
+    "importPath": "backed-cli/src/tasks.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 27,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "config",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 47,
+    "kind": "function",
+    "name": "watch",
+    "memberof": "src/tasks.js",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "src/tasks.js~watch",
+    "access": null,
+    "export": false,
+    "importPath": "backed-cli/src/tasks.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 31,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "config",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 48,
     "kind": "file",
     "name": "src/watcher.js",
     "content": "'use strict';\nconst {fork} = require('child_process');\nconst chokidar = require('chokidar');\nconst path = require('path');\nconst EventEmitter = require('events');\nconst {readFileSync, writeFileSync} = require('fs');\n// const {merge} = require('lodash');\nconst logger = require('backed-logger');\nconst time = () => {\n  return new Date().toLocaleTimeString();\n};\nlet worker;\n\n/**\n * @extends EventEmitter\n */\nclass Watcher extends EventEmitter {\n\n  /**\n   * @param {object} config {@link Config}\n   */\n  watch(config) {\n    return new Promise((resolve, reject) => {\n      if (!config.watch) {\n        logger.warn('nothing to watch');\n        reject('nothing to watch');\n        return process.kill(process.pid, 'SIGINT');\n      }\n      this.server = config.server;\n      this.configureDemo(this.server);\n\n      logger.log(`[${time()}] ${logger._chalk('Starting initial build', 'cyan')}`);\n      this.runWorker(config);\n\n      logger.log(`[${time()}] ${logger._chalk('Watching files for changes', 'cyan')}`);\n\n      let watchers = {};\n      for (let watch of config.watch) {\n        watchers[watch.task] = chokidar.watch(watch.src, watch.options);\n        watchers[watch.task].on('change', () => {\n          this.runWorker(watch.task, config);\n        });\n      }\n      resolve();\n    });\n  }\n\n  configureDemo(server) {\n    logger.log(`[${time()}] ${logger._chalk('Configuring demo', 'cyan')}`);\n\n    if (server) {\n      let demoPath = path.join(process.cwd(), server.demo);\n\n      if (!demoPath.includes('index.html')) {\n        demoPath = path.join(demoPath, 'index.html');\n      }\n      let demo = readFileSync(demoPath, 'utf-8');\n      if (!demo.includes('/reload/reload.js')) {\n        demo = demo.replace('</body>', '\\t<script src=\"/reload/reload.js\"></script>\\n</body>');\n        writeFileSync(demoPath, demo);\n      }\n    }\n  }\n\n  runWorker(task, config) {\n    if (this.busy) {\n      worker.kill();\n      this.busy = false;\n    }\n    this.busy = true;\n    worker = fork(path.join(__dirname, 'workers/watcher-worker.js'));\n    worker.on('message', message => {\n      if (message === 'done') {\n        this.configureDemo(this.server);\n        message = 'reload';\n      }\n      logger.log(`[${time()}] ${logger._chalk('Reloading browser', 'cyan')}`);\n      this.emit(message);\n      worker.kill();\n      this.busy = false;\n    });\n    worker.send({task: task, config: config});\n  }\n\n  // on(event, fn) {\n  //   this.on(event, fn);\n  // }\n\n    // this.watcher = chokidar.watch(config.watchers, config.options);\n    // this.watcher.on('change', path => logger.log(`File ${path} has been changed`));\n}\nexport default new Watcher();\n",
@@ -1305,7 +1429,7 @@
     "lineNumber": 1
   },
   {
-    "__docId__": 45,
+    "__docId__": 49,
     "kind": "variable",
     "name": "fork",
     "memberof": "src/watcher.js",
@@ -1331,7 +1455,7 @@
     }
   },
   {
-    "__docId__": 46,
+    "__docId__": 50,
     "kind": "variable",
     "name": "chokidar",
     "memberof": "src/watcher.js",
@@ -1357,7 +1481,7 @@
     }
   },
   {
-    "__docId__": 47,
+    "__docId__": 51,
     "kind": "variable",
     "name": "path",
     "memberof": "src/watcher.js",
@@ -1383,7 +1507,7 @@
     }
   },
   {
-    "__docId__": 48,
+    "__docId__": 52,
     "kind": "variable",
     "name": "EventEmitter",
     "memberof": "src/watcher.js",
@@ -1409,7 +1533,7 @@
     }
   },
   {
-    "__docId__": 49,
+    "__docId__": 53,
     "kind": "variable",
     "name": "readFileSync",
     "memberof": "src/watcher.js",
@@ -1435,7 +1559,7 @@
     }
   },
   {
-    "__docId__": 50,
+    "__docId__": 54,
     "kind": "variable",
     "name": "logger",
     "memberof": "src/watcher.js",
@@ -1461,7 +1585,7 @@
     }
   },
   {
-    "__docId__": 51,
+    "__docId__": 55,
     "kind": "function",
     "name": "time",
     "memberof": "src/watcher.js",
@@ -1490,7 +1614,7 @@
     }
   },
   {
-    "__docId__": 52,
+    "__docId__": 56,
     "kind": "class",
     "name": "Watcher",
     "memberof": "src/watcher.js",
@@ -1509,7 +1633,7 @@
     ]
   },
   {
-    "__docId__": 53,
+    "__docId__": 57,
     "kind": "method",
     "name": "watch",
     "memberof": "src/watcher.js~Watcher",
@@ -1539,7 +1663,7 @@
     }
   },
   {
-    "__docId__": 54,
+    "__docId__": 58,
     "kind": "member",
     "name": "server",
     "memberof": "src/watcher.js~Watcher",
@@ -1562,7 +1686,7 @@
     }
   },
   {
-    "__docId__": 55,
+    "__docId__": 59,
     "kind": "method",
     "name": "configureDemo",
     "memberof": "src/watcher.js~Watcher",
@@ -1590,7 +1714,7 @@
     ]
   },
   {
-    "__docId__": 56,
+    "__docId__": 60,
     "kind": "method",
     "name": "runWorker",
     "memberof": "src/watcher.js~Watcher",
@@ -1624,7 +1748,7 @@
     ]
   },
   {
-    "__docId__": 57,
+    "__docId__": 61,
     "kind": "member",
     "name": "busy",
     "memberof": "src/watcher.js~Watcher",
@@ -1647,7 +1771,7 @@
     }
   },
   {
-    "__docId__": 58,
+    "__docId__": 62,
     "kind": "member",
     "name": "busy",
     "memberof": "src/watcher.js~Watcher",
@@ -1670,7 +1794,7 @@
     }
   },
   {
-    "__docId__": 59,
+    "__docId__": 63,
     "kind": "member",
     "name": "busy",
     "memberof": "src/watcher.js~Watcher",
@@ -1693,7 +1817,7 @@
     }
   },
   {
-    "__docId__": 60,
+    "__docId__": 64,
     "kind": "variable",
     "name": "watcher",
     "memberof": "src/watcher.js",
@@ -1719,7 +1843,7 @@
     }
   },
   {
-    "__docId__": 61,
+    "__docId__": 65,
     "kind": "file",
     "name": "src/workers/log-worker.js",
     "content": "'use strict';\nconst elegantSpinner = require('elegant-spinner');\nconst logUpdate = require('log-update');\nconst chalk = require('chalk');\nlet frame = elegantSpinner();\nlet text = 'Building';\nlet done = false;\nlet running = false;\nlet startTime;\n\nconst time = () => {\n  return new Date().toLocaleTimeString();\n};\n\nconst now = () => {\n  return Date.now();\n};\n\nlet interval = () => {\n  setInterval(() => {\n    if (running) {\n      logUpdate(`[${time()}] ${text} ${frame()}`);\n      if (done) {\n        process.send('done');\n      }\n    }\n  }, 50);\n};\nprocess.on('message', message => {\n  if (message === 'start') {\n    running = true;\n    startTime = now();\n    interval();\n  } else if (message === 'pauze') {\n    running = false;\n  } else if (message === 'resume') {\n    running = true;\n  } else if (message.includes('finished')) {\n    frame = () => {\n      return '';\n    };\n    let period = now() - startTime;\n    period /= 1000;\n    text = `${message} after: ${chalk.magenta(period + ' sec')}`;\n  } else if (message === 'done') {\n    done = true;\n  } else {\n    text = message;\n  }\n});\n",
@@ -1730,7 +1854,7 @@
     "lineNumber": 1
   },
   {
-    "__docId__": 62,
+    "__docId__": 66,
     "kind": "variable",
     "name": "elegantSpinner",
     "memberof": "src/workers/log-worker.js",
@@ -1756,7 +1880,7 @@
     }
   },
   {
-    "__docId__": 63,
+    "__docId__": 67,
     "kind": "variable",
     "name": "logUpdate",
     "memberof": "src/workers/log-worker.js",
@@ -1782,7 +1906,7 @@
     }
   },
   {
-    "__docId__": 64,
+    "__docId__": 68,
     "kind": "variable",
     "name": "chalk",
     "memberof": "src/workers/log-worker.js",
@@ -1808,7 +1932,7 @@
     }
   },
   {
-    "__docId__": 65,
+    "__docId__": 69,
     "kind": "variable",
     "name": "frame",
     "memberof": "src/workers/log-worker.js",
@@ -1834,7 +1958,7 @@
     }
   },
   {
-    "__docId__": 66,
+    "__docId__": 70,
     "kind": "variable",
     "name": "text",
     "memberof": "src/workers/log-worker.js",
@@ -1860,7 +1984,7 @@
     }
   },
   {
-    "__docId__": 67,
+    "__docId__": 71,
     "kind": "variable",
     "name": "done",
     "memberof": "src/workers/log-worker.js",
@@ -1886,7 +2010,7 @@
     }
   },
   {
-    "__docId__": 68,
+    "__docId__": 72,
     "kind": "variable",
     "name": "running",
     "memberof": "src/workers/log-worker.js",
@@ -1912,7 +2036,7 @@
     }
   },
   {
-    "__docId__": 69,
+    "__docId__": 73,
     "kind": "function",
     "name": "time",
     "memberof": "src/workers/log-worker.js",
@@ -1941,7 +2065,7 @@
     }
   },
   {
-    "__docId__": 70,
+    "__docId__": 74,
     "kind": "function",
     "name": "now",
     "memberof": "src/workers/log-worker.js",
@@ -1970,7 +2094,7 @@
     }
   },
   {
-    "__docId__": 71,
+    "__docId__": 75,
     "kind": "function",
     "name": "interval",
     "memberof": "src/workers/log-worker.js",
@@ -1994,10 +2118,10 @@
     "params": []
   },
   {
-    "__docId__": 72,
+    "__docId__": 76,
     "kind": "file",
     "name": "src/workers/watcher-worker.js",
-    "content": "\nconst builder = require('backed-builder');\nconst fs = require('backed-fs');\nconst logger = require('backed-logger');\n\nprocess.on('message', message => {\n  const config = message.config;\n  const task = message.task;\n  switch (task) {\n    case 'build':\n      builder.build(config).then(() => {\n        process.send('reload');\n      });\n      break;\n    case 'copy':\n    case 'sources':\n      fs.copySources(config.sources).then(() => {\n        logger.succes(`${config.name}::copy finished`);\n        process.send('done');\n      });\n      break;\n  }\n});\n",
+    "content": "'use strict';\nconst webup = require('webup');\nconst builder = require('backed-builder');\nconst fs = require('backed-fs');\nconst logger = require('backed-logger');\n\nprocess.on('message', message => {\n  const config = message.config;\n  const task = message.task;\n  switch (task) {\n    case 'build':\n      if (config.fragments) {\n        webup(config).then(() => {\n          process.send('reload');\n        });\n      } else {\n        builder.build(config).then(() => {\n          process.send('reload');\n        });\n      }\n      break;\n    case 'copy':\n      fs.copySources(config.copy).then(() => {\n        logger.succes(`${config.name}::copy finished`);\n        process.send('done');\n      });\n      break;\n  }\n});\n",
     "static": true,
     "longname": "src/workers/watcher-worker.js",
     "access": null,
@@ -2005,12 +2129,12 @@
     "lineNumber": 1
   },
   {
-    "__docId__": 73,
+    "__docId__": 77,
     "kind": "variable",
-    "name": "builder",
+    "name": "webup",
     "memberof": "src/workers/watcher-worker.js",
     "static": true,
-    "longname": "src/workers/watcher-worker.js~builder",
+    "longname": "src/workers/watcher-worker.js~webup",
     "access": null,
     "export": false,
     "importPath": "backed-cli/src/workers/watcher-worker.js",
@@ -2031,12 +2155,12 @@
     }
   },
   {
-    "__docId__": 74,
+    "__docId__": 78,
     "kind": "variable",
-    "name": "fs",
+    "name": "builder",
     "memberof": "src/workers/watcher-worker.js",
     "static": true,
-    "longname": "src/workers/watcher-worker.js~fs",
+    "longname": "src/workers/watcher-worker.js~builder",
     "access": null,
     "export": false,
     "importPath": "backed-cli/src/workers/watcher-worker.js",
@@ -2057,12 +2181,12 @@
     }
   },
   {
-    "__docId__": 75,
+    "__docId__": 79,
     "kind": "variable",
-    "name": "logger",
+    "name": "fs",
     "memberof": "src/workers/watcher-worker.js",
     "static": true,
-    "longname": "src/workers/watcher-worker.js~logger",
+    "longname": "src/workers/watcher-worker.js~fs",
     "access": null,
     "export": false,
     "importPath": "backed-cli/src/workers/watcher-worker.js",
@@ -2083,7 +2207,33 @@
     }
   },
   {
-    "__docId__": 77,
+    "__docId__": 80,
+    "kind": "variable",
+    "name": "logger",
+    "memberof": "src/workers/watcher-worker.js",
+    "static": true,
+    "longname": "src/workers/watcher-worker.js~logger",
+    "access": null,
+    "export": false,
+    "importPath": "backed-cli/src/workers/watcher-worker.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 5,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 82,
     "kind": "external",
     "name": "Infinity",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Infinity",
@@ -2095,7 +2245,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 78,
+    "__docId__": 83,
     "kind": "external",
     "name": "NaN",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NaN",
@@ -2107,7 +2257,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 79,
+    "__docId__": 84,
     "kind": "external",
     "name": "undefined",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined",
@@ -2119,7 +2269,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 80,
+    "__docId__": 85,
     "kind": "external",
     "name": "null",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/null",
@@ -2131,7 +2281,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 81,
+    "__docId__": 86,
     "kind": "external",
     "name": "Object",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
@@ -2143,7 +2293,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 82,
+    "__docId__": 87,
     "kind": "external",
     "name": "object",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
@@ -2155,7 +2305,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 83,
+    "__docId__": 88,
     "kind": "external",
     "name": "Function",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function",
@@ -2167,7 +2317,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 84,
+    "__docId__": 89,
     "kind": "external",
     "name": "function",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function",
@@ -2179,7 +2329,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 85,
+    "__docId__": 90,
     "kind": "external",
     "name": "Boolean",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean",
@@ -2191,7 +2341,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 86,
+    "__docId__": 91,
     "kind": "external",
     "name": "boolean",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean",
@@ -2203,7 +2353,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 87,
+    "__docId__": 92,
     "kind": "external",
     "name": "Symbol",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol",
@@ -2215,7 +2365,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 88,
+    "__docId__": 93,
     "kind": "external",
     "name": "Error",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error",
@@ -2227,7 +2377,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 89,
+    "__docId__": 94,
     "kind": "external",
     "name": "EvalError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/EvalError",
@@ -2239,7 +2389,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 90,
+    "__docId__": 95,
     "kind": "external",
     "name": "InternalError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/InternalError",
@@ -2251,7 +2401,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 91,
+    "__docId__": 96,
     "kind": "external",
     "name": "RangeError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RangeError",
@@ -2263,7 +2413,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 92,
+    "__docId__": 97,
     "kind": "external",
     "name": "ReferenceError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ReferenceError",
@@ -2275,7 +2425,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 93,
+    "__docId__": 98,
     "kind": "external",
     "name": "SyntaxError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError",
@@ -2287,7 +2437,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 94,
+    "__docId__": 99,
     "kind": "external",
     "name": "TypeError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError",
@@ -2299,7 +2449,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 95,
+    "__docId__": 100,
     "kind": "external",
     "name": "URIError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/URIError",
@@ -2311,7 +2461,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 96,
+    "__docId__": 101,
     "kind": "external",
     "name": "Number",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number",
@@ -2323,7 +2473,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 97,
+    "__docId__": 102,
     "kind": "external",
     "name": "number",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number",
@@ -2335,7 +2485,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 98,
+    "__docId__": 103,
     "kind": "external",
     "name": "Date",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date",
@@ -2347,7 +2497,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 99,
+    "__docId__": 104,
     "kind": "external",
     "name": "String",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String",
@@ -2359,7 +2509,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 100,
+    "__docId__": 105,
     "kind": "external",
     "name": "string",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String",
@@ -2371,7 +2521,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 101,
+    "__docId__": 106,
     "kind": "external",
     "name": "RegExp",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp",
@@ -2383,7 +2533,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 102,
+    "__docId__": 107,
     "kind": "external",
     "name": "Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array",
@@ -2395,7 +2545,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 103,
+    "__docId__": 108,
     "kind": "external",
     "name": "Int8Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int8Array",
@@ -2407,7 +2557,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 104,
+    "__docId__": 109,
     "kind": "external",
     "name": "Uint8Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array",
@@ -2419,7 +2569,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 105,
+    "__docId__": 110,
     "kind": "external",
     "name": "Uint8ClampedArray",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8ClampedArray",
@@ -2431,7 +2581,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 106,
+    "__docId__": 111,
     "kind": "external",
     "name": "Int16Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int16Array",
@@ -2443,7 +2593,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 107,
+    "__docId__": 112,
     "kind": "external",
     "name": "Uint16Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint16Array",
@@ -2455,7 +2605,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 108,
+    "__docId__": 113,
     "kind": "external",
     "name": "Int32Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int32Array",
@@ -2467,7 +2617,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 109,
+    "__docId__": 114,
     "kind": "external",
     "name": "Uint32Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint32Array",
@@ -2479,7 +2629,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 110,
+    "__docId__": 115,
     "kind": "external",
     "name": "Float32Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float32Array",
@@ -2491,7 +2641,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 111,
+    "__docId__": 116,
     "kind": "external",
     "name": "Float64Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float64Array",
@@ -2503,7 +2653,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 112,
+    "__docId__": 117,
     "kind": "external",
     "name": "Map",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map",
@@ -2515,7 +2665,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 113,
+    "__docId__": 118,
     "kind": "external",
     "name": "Set",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set",
@@ -2527,7 +2677,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 114,
+    "__docId__": 119,
     "kind": "external",
     "name": "WeakMap",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap",
@@ -2539,7 +2689,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 115,
+    "__docId__": 120,
     "kind": "external",
     "name": "WeakSet",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet",
@@ -2551,7 +2701,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 116,
+    "__docId__": 121,
     "kind": "external",
     "name": "ArrayBuffer",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer",
@@ -2563,7 +2713,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 117,
+    "__docId__": 122,
     "kind": "external",
     "name": "DataView",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView",
@@ -2575,7 +2725,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 118,
+    "__docId__": 123,
     "kind": "external",
     "name": "JSON",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON",
@@ -2587,7 +2737,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 119,
+    "__docId__": 124,
     "kind": "external",
     "name": "Promise",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise",
@@ -2599,7 +2749,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 120,
+    "__docId__": 125,
     "kind": "external",
     "name": "Generator",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator",
@@ -2611,7 +2761,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 121,
+    "__docId__": 126,
     "kind": "external",
     "name": "GeneratorFunction",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/GeneratorFunction",
@@ -2623,7 +2773,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 122,
+    "__docId__": 127,
     "kind": "external",
     "name": "Reflect",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect",
@@ -2635,7 +2785,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 123,
+    "__docId__": 128,
     "kind": "external",
     "name": "Proxy",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy",
@@ -2648,7 +2798,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 125,
+    "__docId__": 130,
     "kind": "external",
     "name": "CanvasRenderingContext2D",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D",
@@ -2660,7 +2810,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 126,
+    "__docId__": 131,
     "kind": "external",
     "name": "DocumentFragment",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/DocumentFragment",
@@ -2672,7 +2822,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 127,
+    "__docId__": 132,
     "kind": "external",
     "name": "Element",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Element",
@@ -2684,7 +2834,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 128,
+    "__docId__": 133,
     "kind": "external",
     "name": "Event",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Event",
@@ -2696,7 +2846,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 129,
+    "__docId__": 134,
     "kind": "external",
     "name": "Node",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Node",
@@ -2708,7 +2858,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 130,
+    "__docId__": 135,
     "kind": "external",
     "name": "NodeList",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/NodeList",
@@ -2720,7 +2870,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 131,
+    "__docId__": 136,
     "kind": "external",
     "name": "XMLHttpRequest",
     "externalLink": "https://developer.mozilla.org/en/docs/Web/API/XMLHttpRequest",
@@ -2732,7 +2882,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 132,
+    "__docId__": 137,
     "kind": "external",
     "name": "AudioContext",
     "externalLink": "https://developer.mozilla.org/en/docs/Web/API/AudioContext",

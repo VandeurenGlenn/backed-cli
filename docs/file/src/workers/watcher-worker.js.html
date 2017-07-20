@@ -42,7 +42,8 @@
 </nav>
 
 <div class="content" data-ice="content"><h1 data-ice="title">src/workers/watcher-worker.js</h1>
-<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">&apos;use strict&apos;;
+const webup = require(&apos;webup&apos;);
 const builder = require(&apos;backed-builder&apos;);
 const fs = require(&apos;backed-fs&apos;);
 const logger = require(&apos;backed-logger&apos;);
@@ -52,13 +53,18 @@ process.on(&apos;message&apos;, message =&gt; {
   const task = message.task;
   switch (task) {
     case &apos;build&apos;:
-      builder.build(config).then(() =&gt; {
-        process.send(&apos;reload&apos;);
-      });
+      if (config.fragments) {
+        webup(config).then(() =&gt; {
+          process.send(&apos;reload&apos;);
+        });
+      } else {
+        builder.build(config).then(() =&gt; {
+          process.send(&apos;reload&apos;);
+        });
+      }
       break;
     case &apos;copy&apos;:
-    case &apos;sources&apos;:
-      fs.copySources(config.sources).then(() =&gt; {
+      fs.copySources(config.copy).then(() =&gt; {
         logger.succes(`${config.name}::copy finished`);
         process.send(&apos;done&apos;);
       });

@@ -39,7 +39,7 @@
       }
     }
   ],
-  "sources": [{
+  "copy": [{
     "src": ["node_modules/babel-runtime/helpers/{classCallCheck,createClass,regenerator,asyncGenerator}*.js", "node_modules/babel-runtime/regenerator/*.js"],
     "dest": "dist/node_modules"
   }, {

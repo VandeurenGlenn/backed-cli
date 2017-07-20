@@ -396,6 +396,12 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/config.js~config#defaultplugins",
+    "class/src/config.js~Config.html#instance-method-defaultPlugins",
+    "src/config.js~Config#defaultPlugins",
+    "method"
+  ],
+  [
     "src/config.js~config#importbowername",
     "class/src/config.js~Config.html#instance-method-importBowerName",
     "src/config.js~Config#importBowerName",
@@ -430,12 +436,6 @@ window.esdocSearchIndex = [
     "class/src/config.js~Config.html#instance-get-server",
     "src/config.js~Config#server",
     "member"
-  ],
-  [
-    "src/config.js~config#setupplugins",
-    "class/src/config.js~Config.html#instance-method-setupPlugins",
-    "src/config.js~Config#setupPlugins",
-    "method"
   ],
   [
     "src/config.js~config#updateconfig",
@@ -478,6 +478,12 @@ window.esdocSearchIndex = [
     "class/src/server.js~Server.html#instance-method-serve",
     "src/server.js~Server#serve",
     "method"
+  ],
+  [
+    "src/tasks.js",
+    "file/src/tasks.js.html",
+    "src/tasks.js",
+    "file"
   ],
   [
     "src/watcher.js",

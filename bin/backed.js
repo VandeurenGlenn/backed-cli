@@ -8,6 +8,19 @@ var _createClass = _interopDefault(require('babel-runtime/helpers/createClass'))
 var _possibleConstructorReturn = _interopDefault(require('babel-runtime/helpers/possibleConstructorReturn'));
 var _inherits = _interopDefault(require('babel-runtime/helpers/inherits'));
 
+function __async(g) {
+  return new Promise(function (s, j) {
+    function c(a, x) {
+      try {
+        var r = g[x ? "throw" : "next"](a);
+      } catch (e) {
+        j(e);return;
+      }r.done ? s(r.value) : Promise.resolve(r.value).then(c, d);
+    }function d(e) {
+      c(e, 1);
+    }c();
+  });
+}
 function __asyncGen(g) {
   var q = [],
       T = ["next", "throw", "return"],
@@ -41,7 +54,7 @@ var path = require('path');
 var _require2 = require('lodash');
 var merge = _require2.merge;
 
-var logger = require('backed-logger');
+var logger$1 = require('backed-logger');
 
 /**
  * @param {string} config.name name off your project
@@ -75,7 +88,7 @@ var Config = function () {
             for (var _iterator = config.bundles[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
               var bundle = _step.value;
 
-              bundle.plugins = _this.setupPlugins(bundle.plugins);
+              bundle.plugins = _this.defaultPlugins(bundle.plugins);
             }
           } catch (err) {
             _didIteratorError = true;
@@ -92,14 +105,19 @@ var Config = function () {
             }
           }
         }
-        resolve(_this.updateConfig(config));
+        return resolve(_this.updateConfig(config));
       });
     });
   }
 
+  /**
+   * @param {array} plugins
+   */
+
+
   _createClass(Config, [{
-    key: 'setupPlugins',
-    value: function setupPlugins() {
+    key: 'defaultPlugins',
+    value: function defaultPlugins() {
       var plugins = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
       var defaults = ['babel', 'cleanup'];
@@ -132,6 +150,13 @@ var Config = function () {
 
       return plugins;
     }
+
+    /**
+     *  Default bundles config
+     *
+     * @return {array} [{src: `src/${name}.js`, dest: `dist/${name}.js`, format: 'es'}
+     */
+
   }, {
     key: 'require',
 
@@ -176,27 +201,27 @@ var Config = function () {
 
       return new Promise(function (resolve, reject) {
         function generator(fn) {
-          return __asyncGen(_regeneratorRuntime.mark(function _callee() {
+          return __async(_regeneratorRuntime.mark(function _callee() {
             var pkg, config, name;
             return _regeneratorRuntime.wrap(function _callee$(_context) {
               while (1) {
                 switch (_context.prev = _context.next) {
                   case 0:
                     _context.next = 2;
-                    return { __await: fn('package.json').catch(function (error) {
-                        if (global.debug) {
-                          logger.error(error);
-                        }
-                      }) };
+                    return fn('package.json').catch(function (error) {
+                      if (global.debug) {
+                        logger$1.error(error);
+                      }
+                    });
 
                   case 2:
                     pkg = _context.sent;
                     _context.next = 5;
-                    return { __await: fn('backed.json').catch(function (error) {
-                        if (global.debug) {
-                          logger.warn('backed.json::not found, ignore this when using backed in package.json');
-                        }
-                      }) };
+                    return fn('backed.json').catch(function (error) {
+                      if (global.debug) {
+                        logger$1.warn('backed.json::not found, ignore this when using backed in package.json');
+                      }
+                    });
 
                   case 5:
                     config = _context.sent;
@@ -206,7 +231,7 @@ var Config = function () {
                       break;
                     }
 
-                    logger.warn('No backed.json or backed section in package.json, using default options.');
+                    logger$1.warn('No backed.json or backed section in package.json, using default options.');
                     return _context.abrupt('return', resolve({ name: process.cwd() }));
 
                   case 9:
@@ -248,8 +273,7 @@ var Config = function () {
             }, _callee, this);
           })());
         }
-        var it = generator(_this2.require);
-        it.next();
+        generator(_this2.require);
       });
     }
 
@@ -264,7 +288,7 @@ var Config = function () {
         return JSON.parse(readFileSync(process.cwd() + '/package.json')).name;
       } catch (e) {
         if (global.debug) {
-          logger.warn('no package.json found');
+          logger$1.warn('no package.json found');
         }
       }
       return undefined;
@@ -281,7 +305,7 @@ var Config = function () {
         return JSON.parse(readFileSync(process.cwd() + '/bower.json')).name;
       } catch (e) {
         if (global.debug) {
-          logger.warn('no bower.json found');
+          logger$1.warn('no bower.json found');
         }
       }
       return undefined;
@@ -308,7 +332,11 @@ var Config = function () {
     key: 'updateConfig',
     value: function updateConfig(config, name) {
       config.sourceMap = config.sourceMap || true;
-      config.bundles = merge(this.bundles, config.bundles);
+      if (config.entry && config.sources) {
+        delete config.bundles;
+      } else {
+        config.bundles = merge(this.bundles, config.bundles);
+      }
       config.server = merge(this.server, config.server);
       config.watch = merge(this.watch, config.watch);
       global.config = config;
@@ -323,6 +351,21 @@ var Config = function () {
         format: 'es'
       }];
     }
+
+    /**
+     *  Default server config
+     *
+     * @return {object} {
+     *                    port: 3000,
+     *                    entry: '/',
+     *                    demo: 'demo',
+     *                    docs: 'docs',
+     *                    bowerPath: 'bower_components',
+     *                    nodeModulesPath: 'node_modules',
+     *                    index: null
+     *                  }
+     */
+
   }, {
     key: 'server',
     get: function get() {
@@ -335,6 +378,13 @@ var Config = function () {
         nodeModulesPath: 'node_modules',
         index: null };
     }
+
+    /**
+     *  Default watcher config
+     *
+     * @return {array} [{task: 'build', src: ['./src'], options: {}}
+     */
+
   }, {
     key: 'watch',
     get: function get() {
@@ -352,17 +402,20 @@ var Config = function () {
 var _require$2 = require('rollup');
 var rollup = _require$2.rollup;
 
-var path$1 = require('path');
+var _require2$1 = require('path');
+var join = _require2$1.join;
+var dirname = _require2$1.dirname;
+var basename = _require2$1.basename;
 
-var _require2$1 = require('child_process');
-var fork = _require2$1.fork;
+var _require3 = require('child_process');
+var fork = _require3.fork;
 
-var logger$1 = require('backed-logger');
+var logger$2 = require('backed-logger');
 var iterator = void 0;
 var cache = void 0;
 var warnings = [];
 
-var logWorker = fork(path$1.join(__dirname, 'workers/log-worker.js'));
+var logWorker = fork(join(__dirname, 'workers/log-worker.js'));
 /**
  * convert hyphen to a javascript property srting
  */
@@ -472,7 +525,7 @@ function bundler(bundles, fn, cb) {
                     for (var _iterator3 = warnings[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
                       var warning = _step3.value;
 
-                      logger$1.warn(warning);
+                      logger$2.warn(warning);
                     }
                   } catch (err) {
                     _didIteratorError3 = true;
@@ -492,7 +545,7 @@ function bundler(bundles, fn, cb) {
                 cb(bundles);
               }).catch(function (error) {
                 logWorker.kill('SIGINT');
-                logger$1.error(error);
+                logger$2.error(error);
               }) };
 
           case 22:
@@ -516,14 +569,14 @@ var Builder = function () {
 
       return new Promise(function (resolve, reject) {
         logWorker.send('start');
-        logWorker.send(logger$1._chalk('building', 'cyan'));
+        logWorker.send(logger$2._chalk('building', 'cyan'));
         _this.promiseBundles(config).then(function (bundles) {
           iterator = bundler(bundles, _this.bundle, function (bundles) {
             resolve(bundles);
           });
           iterator.next();
         }).catch(function (error) {
-          logger$1.warn(error);
+          logger$2.warn(error);
           reject(error);
         });
       });
@@ -652,6 +705,36 @@ var Builder = function () {
       });
     }
   }, {
+    key: 'handleViews',
+    value: function handleViews(views, cb) {
+      if (views) {
+        var _iteratorNormalCompletion6 = true;
+        var _didIteratorError6 = false;
+        var _iteratorError6 = undefined;
+
+        try {
+          for (var _iterator6 = views[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+            var view = _step6.value;
+
+            cb(view);
+          }
+        } catch (err) {
+          _didIteratorError6 = true;
+          _iteratorError6 = err;
+        } finally {
+          try {
+            if (!_iteratorNormalCompletion6 && _iterator6.return) {
+              _iterator6.return();
+            }
+          } finally {
+            if (_didIteratorError6) {
+              throw _iteratorError6;
+            }
+          }
+        }
+      }
+    }
+  }, {
     key: 'promiseBundles',
     value: function promiseBundles(config) {
       var _this2 = this;
@@ -664,34 +747,52 @@ var Builder = function () {
             bundle.name = bundle.name || config.name;
             bundle.babel = bundle.babel || config.babel;
             bundle.sourceMap = bundle.sourceMap || config.sourceMap;
-            if (config.format && typeof config.format !== 'string' && !bundle.format) {
-              var _iteratorNormalCompletion6 = true;
-              var _didIteratorError6 = false;
-              var _iteratorError6 = undefined;
+
+            var views = bundle.views || config.views;
+            var format = bundle.format || config.format;
+
+            if (format && typeof format !== 'string') {
+              var _iteratorNormalCompletion7 = true;
+              var _didIteratorError7 = false;
+              var _iteratorError7 = undefined;
 
               try {
-                for (var _iterator6 = config.format[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-                  var format = _step6.value;
+                for (var _iterator7 = config.format[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+                  var _format = _step7.value;
 
-                  bundle.format = format;
+                  bundle.format = _format;
                   formats.push(_this2.handleFormats(bundle));
+
+                  _this2.handleViews(views, function (view) {
+                    bundle.src = view;
+                    bundle.dest = join(dirname(bundle.dest), basename(view));
+                    bundle.moduleName = view.moduleName || toJsProp(basename(view, '.html'));
+                    formats.push(_this2.handleFormats(bundle));
+                  });
                 }
               } catch (err) {
-                _didIteratorError6 = true;
-                _iteratorError6 = err;
+                _didIteratorError7 = true;
+                _iteratorError7 = err;
               } finally {
                 try {
-                  if (!_iteratorNormalCompletion6 && _iterator6.return) {
-                    _iterator6.return();
+                  if (!_iteratorNormalCompletion7 && _iterator7.return) {
+                    _iterator7.return();
                   }
                 } finally {
-                  if (_didIteratorError6) {
-                    throw _iteratorError6;
+                  if (_didIteratorError7) {
+                    throw _iteratorError7;
                   }
                 }
               }
             } else {
               formats.push(_this2.handleFormats(bundle));
+
+              _this2.handleViews(views, function (view) {
+                bundle.src = view;
+                bundle.dest = join(dirname(bundle.dest), basename(view));
+                bundle.moduleName = view.moduleName || toJsProp(basename(view, '.html'));
+                formats.push(_this2.handleFormats(bundle));
+              });
             }
           });
           Promise.all(formats).then(function (bundles) {
@@ -723,20 +824,20 @@ var Builder = function () {
         var plugins = [];
         var requiredPlugins = {};
 
-        var _iteratorNormalCompletion7 = true;
-        var _didIteratorError7 = false;
-        var _iteratorError7 = undefined;
+        var _iteratorNormalCompletion8 = true;
+        var _didIteratorError8 = false;
+        var _iteratorError8 = undefined;
 
         try {
-          for (var _iterator7 = Object.keys(config.plugins)[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-            var plugin = _step7.value;
+          for (var _iterator8 = Object.keys(config.plugins)[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+            var plugin = _step8.value;
 
             var required = void 0;
             try {
               required = require('rollup-plugin-' + plugin);
             } catch (error) {
               try {
-                required = require(path$1.join(process.cwd(), '/node_modules/rollup-plugin-' + plugin));
+                required = require(join(process.cwd(), '/node_modules/rollup-plugin-' + plugin));
               } catch (error) {
                 reject(error);
               }
@@ -748,16 +849,16 @@ var Builder = function () {
             plugins.push(requiredPlugins[name](conf));
           }
         } catch (err) {
-          _didIteratorError7 = true;
-          _iteratorError7 = err;
+          _didIteratorError8 = true;
+          _iteratorError8 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion7 && _iterator7.return) {
-              _iterator7.return();
+            if (!_iteratorNormalCompletion8 && _iterator8.return) {
+              _iterator8.return();
             }
           } finally {
-            if (_didIteratorError7) {
-              throw _iteratorError7;
+            if (_didIteratorError8) {
+              throw _iteratorError8;
             }
           }
         }
@@ -781,7 +882,7 @@ var Builder = function () {
             dest: process.cwd() + '/' + config.dest
           });
           setTimeout(function () {
-            logWorker.send(logger$1._chalk(config.name + '::build finished', 'cyan'));
+            logWorker.send(logger$2._chalk(config.name + '::build finished', 'cyan'));
             logWorker.send('done');
             logWorker.on('message', function () {
               resolve(bundle);
@@ -790,11 +891,11 @@ var Builder = function () {
         }).catch(function (err) {
           var code = err.code;
           logWorker.send('pauze');
-          logger$1.error(err);
+          logger$2.error(err);
           if (code === 'PLUGIN_ERROR' || code === 'UNRESOLVED_ENTRY') {
             logWorker.kill('SIGINT');
           } else {
-            logger$1.warn('trying to resume the build ...');
+            logger$2.warn('trying to resume the build ...');
             logWorker.send('resume');
           }
           reject(err);
@@ -816,7 +917,7 @@ var glob = require('glob');
 var app = express();
 var server = http.createServer(app);
 var reloadServer = reload(server, app);
-var logger$2 = require('backed-logger');
+var logger$3 = require('backed-logger');
 
 /**
  * glob file path
@@ -923,12 +1024,12 @@ var Server = function () {
 
         server.listen(3000, function (error) {
           if (error) {
-            return logger$2.warn(error);
+            return logger$3.warn(error);
           }
-          logger$2.log(global.config.name + '::serving app from http://localhost:' + config.port + '/' + config.entry.replace('/', ''));
+          logger$3.log(global.config.name + '::serving app from http://localhost:' + config.port + '/' + config.entry.replace('/', ''));
         });
       } else {
-        return logger$2.warn(global.config.name + '::server config not found [example](https://raw.githubusercontent.com/VandeurenGlenn/backed-cli/master/config/backed.json)');
+        return logger$3.warn(global.config.name + '::server config not found [example](https://raw.githubusercontent.com/VandeurenGlenn/backed-cli/master/config/backed.json)');
       }
     }
 
@@ -957,9 +1058,9 @@ var Server = function () {
     key: 'handleOldOptions',
     value: function handleOldOptions(options) {
       if (options.path || options.elementLocation) {
-        logger$2.warn((options.path ? 'server.path' : 'server.elementLocation') + ' is no longer supported, [visit](https://github.com/vandeurenglenn/backed-cli#serve) to learn more\'');
+        logger$3.warn((options.path ? 'server.path' : 'server.elementLocation') + ' is no longer supported, [visit](https://github.com/vandeurenglenn/backed-cli#serve) to learn more\'');
       } else if (options.bowerPath) {
-        logger$2.warn('server.bowerPath::deprecated: removal planned @1.0.0+');
+        logger$3.warn('server.bowerPath::deprecated: removal planned @1.0.0+');
       }
     }
   }, {
@@ -978,7 +1079,7 @@ var _require$3 = require('child_process');
 var fork$1 = _require$3.fork;
 
 var chokidar = require('chokidar');
-var path$2 = require('path');
+var path$1 = require('path');
 var EventEmitter = require('events');
 
 var _require2$2 = require('fs');
@@ -987,7 +1088,7 @@ var writeFileSync = _require2$2.writeFileSync;
 // const {merge} = require('lodash');
 
 
-var logger$3 = require('backed-logger');
+var logger$4 = require('backed-logger');
 var time = function time() {
   return new Date().toLocaleTimeString();
 };
@@ -1018,17 +1119,17 @@ var Watcher = function (_EventEmitter) {
 
       return new Promise(function (resolve, reject) {
         if (!config.watch) {
-          logger$3.warn('nothing to watch');
+          logger$4.warn('nothing to watch');
           reject('nothing to watch');
           return process.kill(process.pid, 'SIGINT');
         }
         _this2.server = config.server;
         _this2.configureDemo(_this2.server);
 
-        logger$3.log('[' + time() + '] ' + logger$3._chalk('Starting initial build', 'cyan'));
+        logger$4.log('[' + time() + '] ' + logger$4._chalk('Starting initial build', 'cyan'));
         _this2.runWorker(config);
 
-        logger$3.log('[' + time() + '] ' + logger$3._chalk('Watching files for changes', 'cyan'));
+        logger$4.log('[' + time() + '] ' + logger$4._chalk('Watching files for changes', 'cyan'));
 
         var watchers = {};
         var _iteratorNormalCompletion = true;
@@ -1069,13 +1170,13 @@ var Watcher = function (_EventEmitter) {
   }, {
     key: 'configureDemo',
     value: function configureDemo(server) {
-      logger$3.log('[' + time() + '] ' + logger$3._chalk('Configuring demo', 'cyan'));
+      logger$4.log('[' + time() + '] ' + logger$4._chalk('Configuring demo', 'cyan'));
 
       if (server) {
-        var demoPath = path$2.join(process.cwd(), server.demo);
+        var demoPath = path$1.join(process.cwd(), server.demo);
 
         if (!demoPath.includes('index.html')) {
-          demoPath = path$2.join(demoPath, 'index.html');
+          demoPath = path$1.join(demoPath, 'index.html');
         }
         var demo = readFileSync$1(demoPath, 'utf-8');
         if (!demo.includes('/reload/reload.js')) {
@@ -1094,13 +1195,13 @@ var Watcher = function (_EventEmitter) {
         this.busy = false;
       }
       this.busy = true;
-      worker = fork$1(path$2.join(__dirname, 'workers/watcher-worker.js'));
+      worker = fork$1(path$1.join(__dirname, 'workers/watcher-worker.js'));
       worker.on('message', function (message) {
         if (message === 'done') {
           _this3.configureDemo(_this3.server);
           message = 'reload';
         }
-        logger$3.log('[' + time() + '] ' + logger$3._chalk('Reloading browser', 'cyan'));
+        logger$4.log('[' + time() + '] ' + logger$4._chalk('Reloading browser', 'cyan'));
         _this3.emit(message);
         worker.kill();
         _this3.busy = false;
@@ -1122,79 +1223,165 @@ var Watcher = function (_EventEmitter) {
 
 var watcher = new Watcher();
 
+var fs = require('backed-fs');
+var webup$1 = require('webup');
+var build = function build(config) {
+  return new Promise(function (resolve, reject) {
+    if (config.entry && config.sources) {
+      return webup$1(config).then(function () {
+        return resolve();
+      });
+    }
+    builder.build(config).then(function () {
+      return resolve();
+    });
+  });
+};
+
+var copy = function copy(config) {
+  return new Promise(function (resolve, reject) {
+    return fs.copySources(config.copy).then(function () {
+      return resolve();
+    });
+  });
+};
+
+var serve = function serve(config) {
+  return server$1.serve(config.server);
+};
+
+var watch = function watch(config) {
+  watcher.on('reload', function () {
+    server$1.reload();
+  });
+  return watcher.watch(config);
+};
+
+var tasks = {
+  build: build,
+  copy: copy,
+  serve: serve,
+  watch: watch
+};
+
 process.title = 'backed';
 var commander = require('commander');
 
 var _require = require('./../package.json');
 var version = _require.version;
 
-var fs = require('backed-fs');
+var webup = require('webup');
+var logger = require('backed-logger');
 
-commander.version(version).option('-w, --watch', 'watch for file changes & rebuild on change').option('-b, --build', 'build your app/component').option('-s, --serve', 'serve your app/component').option('-c, --copy', 'copy files from your app/component src folder to it distribution folder').option('-d, --debug', 'show all warnings').parse(process.argv);
+commander.version(version).option('-w, --watch', 'watch for file changes & rebuild on change').option('-b, --build', 'build your app/component').option('-s, --serve', 'serve your app/component').option('-c, --copy', 'copy files from your app/component src folder to it distribution folder').option('-d, --debug', 'show all warnings').option('-v, --version', 'current version').parse(process.argv);
 
-var watch = commander.watch;
-var build = commander.build;
-var copy = commander.build || commander.copy;
-var serve = commander.serve;
+var commands = {
+  build: Boolean(commander.build),
+  watch: Boolean(commander.watch),
+  copy: Boolean(commander.build) || Boolean(commander.copy),
+  serve: Boolean(commander.serve)
+};
+
 global.debug = commander.debug;
+
 /**
  * @param {object} config {@link Config}
  */
-function run(config) {
-  return __asyncGen(_regeneratorRuntime.mark(function _callee() {
-    return _regeneratorRuntime.wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            if (!build) {
-              _context.next = 3;
-              break;
-            }
-
-            _context.next = 3;
-            return { __await: builder.build(config) };
-
-          case 3:
-            if (!copy) {
-              _context.next = 6;
-              break;
-            }
-
-            _context.next = 6;
-            return { __await: fs.copySources(config.sources) };
-
-          case 6:
-            if (!watch) {
-              _context.next = 10;
-              break;
-            }
-
-            watcher.on('reload', function () {
-              server$1.reload();
-            });
-            _context.next = 10;
-            return { __await: watcher.watch(config) };
-
-          case 10:
-            if (!serve) {
-              _context.next = 13;
-              break;
-            }
-
-            _context.next = 13;
-            return { __await: server$1.serve(config.server) };
-
-          case 13:
-          case 'end':
-            return _context.stop();
-        }
-      }
-    }, _callee, this);
-  })());
-}
-
 new Config().then(function (config) {
-  global.debug = commander.debug || config.debug;
-  var it = run(config);
-  it.next();
+  function run(config) {
+    return __async(_regeneratorRuntime.mark(function _callee() {
+      var _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, task, name, enabled, done;
+
+      return _regeneratorRuntime.wrap(function _callee$(_context) {
+        while (1) {
+          switch (_context.prev = _context.next) {
+            case 0:
+              _iteratorNormalCompletion = true;
+              _didIteratorError = false;
+              _iteratorError = undefined;
+              _context.prev = 3;
+              _iterator = Object.entries(commands)[Symbol.iterator]();
+
+            case 5:
+              if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
+                _context.next = 22;
+                break;
+              }
+
+              task = _step.value;
+              name = task[0];
+              enabled = task[1];
+
+              if (!enabled) {
+                _context.next = 19;
+                break;
+              }
+
+              _context.prev = 10;
+              _context.next = 13;
+              return tasks[name](config);
+
+            case 13:
+              done = _context.sent;
+              _context.next = 19;
+              break;
+
+            case 16:
+              _context.prev = 16;
+              _context.t0 = _context['catch'](10);
+
+              logger.warn('task::function ' + name + ' is undefined');
+
+            case 19:
+              _iteratorNormalCompletion = true;
+              _context.next = 5;
+              break;
+
+            case 22:
+              _context.next = 28;
+              break;
+
+            case 24:
+              _context.prev = 24;
+              _context.t1 = _context['catch'](3);
+              _didIteratorError = true;
+              _iteratorError = _context.t1;
+
+            case 28:
+              _context.prev = 28;
+              _context.prev = 29;
+
+              if (!_iteratorNormalCompletion && _iterator.return) {
+                _iterator.return();
+              }
+
+            case 31:
+              _context.prev = 31;
+
+              if (!_didIteratorError) {
+                _context.next = 34;
+                break;
+              }
+
+              throw _iteratorError;
+
+            case 34:
+              return _context.finish(31);
+
+            case 35:
+              return _context.finish(28);
+
+            case 36:
+              process.exit(0);
+              // process.kill(process.pid, 'SIGINT');
+
+            case 37:
+            case 'end':
+              return _context.stop();
+          }
+        }
+      }, _callee, this, [[3, 24, 28, 36], [10, 16], [29,, 31, 35]]);
+    })());
+  }
+  run(config);
 });

@@ -68,15 +68,18 @@ export default class Config {
         this.babel = config.babel || true;
         if (config.bundles) {
           for (let bundle of config.bundles) {
-            bundle.plugins = this.setupPlugins(bundle.plugins);
+            bundle.plugins = this.defaultPlugins(bundle.plugins);
           }
         }
-        resolve(this.updateConfig(config));
+        return resolve(this.updateConfig(config));
       });
     });
   }
 
-  setupPlugins(plugins={}) {
+  /**
+   * @param {array} plugins
+   */
+  defaultPlugins(plugins = {}) {
     const defaults = [&apos;babel&apos;, &apos;cleanup&apos;];
     for (let key of defaults) {
       if (this[key] &amp;&amp; !plugins[key]) {
@@ -86,6 +89,11 @@ export default class Config {
     return plugins;
   }
 
+  /**
+   *  Default bundles config
+   *
+   * @return {array} [{src: `src/${name}.js`, dest: `dist/${name}.js`, format: &apos;es&apos;}
+   */
   get bundles() {
     return [
       {
@@ -93,9 +101,22 @@ export default class Config {
         dest: `dist/${this.name}.js`,
         format: &apos;es&apos;
       }
-    ]
+    ];
   }
 
+  /**
+   *  Default server config
+   *
+   * @return {object} {
+   *                    port: 3000,
+   *                    entry: &apos;/&apos;,
+   *                    demo: &apos;demo&apos;,
+   *                    docs: &apos;docs&apos;,
+   *                    bowerPath: &apos;bower_components&apos;,
+   *                    nodeModulesPath: &apos;node_modules&apos;,
+   *                    index: null
+   *                  }
+   */
   get server() {
     return {
       port: 3000,
@@ -107,6 +128,11 @@ export default class Config {
       index: null};
   }
 
+  /**
+   *  Default watcher config
+   *
+   * @return {array} [{task: &apos;build&apos;, src: [&apos;./src&apos;], options: {}}
+   */
   get watch() {
     return [{
       task: &apos;build&apos;,
@@ -139,15 +165,15 @@ export default class Config {
    */
   importConfig() {
     return new Promise((resolve, reject) =&gt; {
-      async function * generator(fn) {
+      async function generator(fn) {
         const pkg = await fn(&apos;package.json&apos;).catch(error =&gt; {
           if (global.debug) {
-            logger.error(error)
+            logger.error(error);
           }
         });
         const config = await fn(&apos;backed.json&apos;).catch(error =&gt; {
           if (global.debug) {
-            logger.warn(&apos;backed.json::not found, ignore this when using backed in package.json&apos;)
+            logger.warn(&apos;backed.json::not found, ignore this when using backed in package.json&apos;);
           }
         });
         if (!config &amp;&amp; !pkg) {
@@ -159,15 +185,14 @@ export default class Config {
           if (!name &amp;&amp; pkg &amp;&amp; pkg.name &amp;&amp; !pkg.backed) {
             return resolve(merge(config, {name: pkg.name}));
           } else if (!name &amp;&amp; !pkg) {
-            return resolve(merge(config, {name: process.cwd()}))
+            return resolve(merge(config, {name: process.cwd()}));
           }
         }
-        if(pkg &amp;&amp; pkg.backed) {
+        if (pkg &amp;&amp; pkg.backed) {
           return resolve(merge(pkg.backed, {name: pkg.name}));
         }
       }
-      const it = generator(this.require);
-      it.next();
+      generator(this.require);
     });
   }
 
@@ -217,7 +242,11 @@ export default class Config {
    */
   updateConfig(config, name) {
     config.sourceMap = config.sourceMap || true;
-    config.bundles = merge(this.bundles, config.bundles);
+    if (config.entry &amp;&amp; config.sources) {
+      delete config.bundles;
+    } else {
+      config.bundles = merge(this.bundles, config.bundles);
+    }
     config.server = merge(this.server, config.server);
     config.watch = merge(this.watch, config.watch);
     global.config = config;

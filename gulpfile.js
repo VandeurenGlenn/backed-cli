@@ -19,7 +19,7 @@ var async = require('rollup-plugin-async');
 let cache;
 
 task('static', () => {
-  return src('**/*.js')
+  return src('src/*.js')
     .pipe(excludeGitignore())
     .pipe(eslint())
     .pipe(eslint.format())
@@ -31,7 +31,7 @@ task('nsp', cb => {
 });
 
 task('pre-test', () => {
-  return src('lib/**/*.js')
+  return src('bin/**/*.js')
     .pipe(excludeGitignore())
     .pipe(istanbul({
       includeUntested: true
@@ -55,7 +55,7 @@ task('test:after', cb => {
 task('test', series('pre-test', 'test:after'));
 
 task('watch', () => {
-  watch(['lib/**/*.js', 'test/**'], ['test']);
+  watch(['bin/**/*.js', 'test/**'], ['test']);
 });
 
 task('coveralls:after', () => {

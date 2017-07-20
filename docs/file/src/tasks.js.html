@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <base data-ice="baseUrl" href="../../">
-  <title data-ice="title">src/backed.js | API Document</title>
+  <title data-ice="title">src/tasks.js | API Document</title>
   <link type="text/css" rel="stylesheet" href="css/style.css">
   <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
   <script src="script/prettify/prettify.js"></script>
@@ -41,56 +41,50 @@
 </div>
 </nav>
 
-<div class="content" data-ice="content"><h1 data-ice="title">src/backed.js</h1>
+<div class="content" data-ice="content"><h1 data-ice="title">src/tasks.js</h1>
 <pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">&apos;use strict&apos;;
-process.title = &apos;backed&apos;;
-const commander = require(&apos;commander&apos;);
-const {version} = require(&apos;./../package.json&apos;);
+const fs = require(&apos;backed-fs&apos;);
 const webup = require(&apos;webup&apos;);
-const logger = require(&apos;backed-logger&apos;);
+import builder from &apos;./../node_modules/backed-builder/src/builder.js&apos;;
+import server from &apos;./server.js&apos;;
+import watcher from &apos;./watcher.js&apos;;
 
-import Config from &apos;./config.js&apos;;
-import tasks from &apos;./tasks.js&apos;;
-
-commander
-  .version(version)
-  .option(&apos;-w, --watch&apos;, &apos;watch for file changes &amp; rebuild on change&apos;)
-  .option(&apos;-b, --build&apos;, &apos;build your app/component&apos;)
-  .option(&apos;-s, --serve&apos;, &apos;serve your app/component&apos;)
-  .option(&apos;-c, --copy&apos;, &apos;copy files from your app/component src folder to it distribution folder&apos;)
-  .option(&apos;-d, --debug&apos;, &apos;show all warnings&apos;)
-  .option(&apos;-v, --version&apos;, &apos;current version&apos;)
-  .parse(process.argv);
-
-const commands = {
-  build: Boolean(commander.build),
-  watch: Boolean(commander.watch),
-  copy: Boolean(commander.build) || Boolean(commander.copy),
-  serve: Boolean(commander.serve)
+const build = config =&gt; {
+  return new Promise((resolve, reject) =&gt; {
+    if (config.entry &amp;&amp; config.sources) {
+      return webup(config).then(() =&gt; {
+        return resolve();
+      });
+    }
+    builder.build(config).then(() =&gt; resolve());
+  });
 };
 
-global.debug = commander.debug;
+const copy = config =&gt; {
+  return new Promise((resolve, reject) =&gt; {
+    return fs.copySources(config.copy).then(() =&gt; {
+      return resolve();
+    });
+  });
+};
 
-/**
- * @param {object} config {@link Config}
- */
-new Config().then(config =&gt; {
-  async function run(config) {
-    for (const task of Object.entries(commands)) {
-      const name = task[0];
-      const enabled = task[1];
-      if (enabled) {
-        try {
-          const done = await tasks[name](config);
-        } catch (e) {
-          logger.warn(`task::function ${name} is undefined`);
-        }
-      }
-    }
-    process.exit(0);
-  }
-  run(config);
-});
+const serve = config =&gt; {
+  return server.serve(config.server);
+};
+
+const watch = config =&gt; {
+  watcher.on(&apos;reload&apos;, () =&gt; {
+    server.reload();
+  });
+  return watcher.watch(config);
+};
+
+export default {
+  build,
+  copy,
+  serve,
+  watch
+};
 </code></pre>
 
 </div>

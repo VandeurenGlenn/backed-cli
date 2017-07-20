@@ -160,13 +160,14 @@
         <p>
           
           
-          <span data-ice="name"><span><a href="class/src/config.js~Config.html#instance-get-bundles">bundles</a></span></span><span data-ice="signature">: <span><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined">undefined</a></span><span>[]</span></span></span>
+          <span data-ice="name"><span><a href="class/src/config.js~Config.html#instance-get-bundles">bundles</a></span></span><span data-ice="signature">: <span>array</span>: <span><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined">undefined</a></span><span>[]</span></span></span>
         </p>
       </div>
       <div>
         
         
-        
+        <div data-ice="description"><p> Default bundles config</p>
+</div>
       </div>
     </td>
     <td>
@@ -241,13 +242,14 @@
         <p>
           
           
-          <span data-ice="name"><span><a href="class/src/config.js~Config.html#instance-get-server">server</a></span></span><span data-ice="signature">: {&quot;port&quot;: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></span>, &quot;entry&quot;: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, &quot;demo&quot;: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, &quot;docs&quot;: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, &quot;bowerPath&quot;: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, &quot;nodeModulesPath&quot;: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, &quot;index&quot;: <span>*</span>}</span>
+          <span data-ice="name"><span><a href="class/src/config.js~Config.html#instance-get-server">server</a></span></span><span data-ice="signature">: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a></span>: {&quot;port&quot;: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></span>, &quot;entry&quot;: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, &quot;demo&quot;: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, &quot;docs&quot;: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, &quot;bowerPath&quot;: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, &quot;nodeModulesPath&quot;: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, &quot;index&quot;: <span>*</span>}</span>
         </p>
       </div>
       <div>
         
         
-        
+        <div data-ice="description"><p> Default server config</p>
+</div>
       </div>
     </td>
     <td>
@@ -268,13 +270,14 @@
         <p>
           
           
-          <span data-ice="name"><span><a href="class/src/config.js~Config.html#instance-get-watch">watch</a></span></span><span data-ice="signature">: <span><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined">undefined</a></span><span>[]</span></span></span>
+          <span data-ice="name"><span><a href="class/src/config.js~Config.html#instance-get-watch">watch</a></span></span><span data-ice="signature">: <span>array</span>: <span><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined">undefined</a></span><span>[]</span></span></span>
         </p>
       </div>
       <div>
         
         
-        
+        <div data-ice="description"><p> Default watcher config</p>
+</div>
       </div>
     </td>
     <td>
@@ -290,6 +293,33 @@
   <tbody>
   
   <tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          <span data-ice="name"><span><a href="class/src/config.js~Config.html#instance-method-defaultPlugins">defaultPlugins</a></span></span><span data-ice="signature">(plugins: <span>array</span>): <span>*</span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
     <td>
       <span class="access" data-ice="access">public</span>
       
@@ -392,33 +422,6 @@
         <div data-ice="description"><p>wrapper around cjs require
 try&apos;s to read file from current working directory</p>
 </div>
-      </div>
-    </td>
-    <td>
-      
-      
-    </td>
-  </tr>
-<tr data-ice="target">
-    <td>
-      <span class="access" data-ice="access">public</span>
-      
-      
-      
-      <span class="override" data-ice="override"></span>
-    </td>
-    <td>
-      <div>
-        <p>
-          
-          
-          <span data-ice="name"><span><a href="class/src/config.js~Config.html#instance-method-setupPlugins">setupPlugins</a></span></span><span data-ice="signature">(plugins: {}): <span>*</span></span>
-        </p>
-      </div>
-      <div>
-        
-        
-        
       </div>
     </td>
     <td>
@@ -560,25 +563,39 @@ try&apos;s to read file from current working directory</p>
     
     
     
-    <span data-ice="name">bundles</span><span data-ice="signature">: <span><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined">undefined</a></span><span>[]</span></span></span>
+    <span data-ice="name">bundles</span><span data-ice="signature">: <span>array</span>: <span><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined">undefined</a></span><span>[]</span></span></span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/config.js.html#lineNumber45">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/config.js.html#lineNumber53">source</a></span></span>
     </span>
   </h3>
 
   
   
   
-  
+  <div data-ice="description"><p> Default bundles config</p>
+</div>
 
   
 
   <div data-ice="properties">
 </div>
 
-  
+  <div class="return-params" data-ice="returnParams">
+    <h4>Return:</h4>
+    <table>
+      <tbody>
+        <tr>
+          <td class="return-type" data-ice="returnType"><span>array</span></td>
+          <td class="return-desc" data-ice="returnDescription"><p>[{src: <code>src/${name}.js</code>, dest: <code>dist/${name}.js</code>, format: &apos;es&apos;}</p>
+</td>
+        </tr>
+      </tbody>
+    </table>
+    <div data-ice="returnProperties">
+</div>
+  </div>
 
   
 
@@ -689,25 +706,47 @@ try&apos;s to read file from current working directory</p>
     
     
     
-    <span data-ice="name">server</span><span data-ice="signature">: {&quot;port&quot;: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></span>, &quot;entry&quot;: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, &quot;demo&quot;: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, &quot;docs&quot;: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, &quot;bowerPath&quot;: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, &quot;nodeModulesPath&quot;: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, &quot;index&quot;: <span>*</span>}</span>
+    <span data-ice="name">server</span><span data-ice="signature">: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a></span>: {&quot;port&quot;: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></span>, &quot;entry&quot;: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, &quot;demo&quot;: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, &quot;docs&quot;: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, &quot;bowerPath&quot;: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, &quot;nodeModulesPath&quot;: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, &quot;index&quot;: <span>*</span>}</span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/config.js.html#lineNumber55">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/config.js.html#lineNumber76">source</a></span></span>
     </span>
   </h3>
 
   
   
   
-  
+  <div data-ice="description"><p> Default server config</p>
+</div>
 
   
 
   <div data-ice="properties">
 </div>
 
-  
+  <div class="return-params" data-ice="returnParams">
+    <h4>Return:</h4>
+    <table>
+      <tbody>
+        <tr>
+          <td class="return-type" data-ice="returnType"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a></span></td>
+          <td class="return-desc" data-ice="returnDescription"><p>{
+                   port: 3000,
+                   entry: &apos;/&apos;,
+                   demo: &apos;demo&apos;,
+                   docs: &apos;docs&apos;,
+                   bowerPath: &apos;bower_components&apos;,
+                   nodeModulesPath: &apos;node_modules&apos;,
+                   index: null
+                 }</p>
+</td>
+        </tr>
+      </tbody>
+    </table>
+    <div data-ice="returnProperties">
+</div>
+  </div>
 
   
 
@@ -732,25 +771,39 @@ try&apos;s to read file from current working directory</p>
     
     
     
-    <span data-ice="name">watch</span><span data-ice="signature">: <span><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined">undefined</a></span><span>[]</span></span></span>
+    <span data-ice="name">watch</span><span data-ice="signature">: <span>array</span>: <span><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined">undefined</a></span><span>[]</span></span></span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/config.js.html#lineNumber66">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/config.js.html#lineNumber92">source</a></span></span>
     </span>
   </h3>
 
   
   
   
-  
+  <div data-ice="description"><p> Default watcher config</p>
+</div>
 
   
 
   <div data-ice="properties">
 </div>
 
-  
+  <div class="return-params" data-ice="returnParams">
+    <h4>Return:</h4>
+    <table>
+      <tbody>
+        <tr>
+          <td class="return-type" data-ice="returnType"><span>array</span></td>
+          <td class="return-desc" data-ice="returnDescription"><p>[{task: &apos;build&apos;, src: [&apos;./src&apos;], options: {}}</p>
+</td>
+        </tr>
+      </tbody>
+    </table>
+    <div data-ice="returnProperties">
+</div>
+  </div>
 
   
 
@@ -771,6 +824,77 @@ try&apos;s to read file from current working directory</p>
 <div data-ice="methodDetails"><h2 data-ice="title">Public Methods</h2>
 
 <div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-method-defaultPlugins">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span data-ice="name">defaultPlugins</span><span data-ice="signature">(plugins: <span>array</span>): <span>*</span></span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/config.js.html#lineNumber38">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  
+
+  
+
+  <div data-ice="properties"><div data-ice="properties">
+  <h4 data-ice="title">Params:</h4>
+  <table class="params">
+    <thead>
+    <tr><td>Name</td><td>Type</td><td>Attribute</td><td>Description</td></tr>
+    </thead>
+    <tbody>
+    
+    <tr data-ice="property" data-depth="0">
+      <td data-ice="name" data-depth="0">plugins</td>
+      <td data-ice="type"><span>array</span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"></td>
+    </tr>
+</tbody>
+  </table>
+</div>
+</div>
+
+  <div class="return-params" data-ice="returnParams">
+    <h4>Return:</h4>
+    <table>
+      <tbody>
+        <tr>
+          <td class="return-type" data-ice="returnType"><span>*</span></td>
+          
+        </tr>
+      </tbody>
+    </table>
+    <div data-ice="returnProperties">
+</div>
+  </div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
   <h3 data-ice="anchor" id="instance-method-importBowerName">
     <span class="access" data-ice="access">public</span>
     
@@ -782,7 +906,7 @@ try&apos;s to read file from current working directory</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/config.js.html#lineNumber147">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/config.js.html#lineNumber172">source</a></span></span>
     </span>
   </h3>
 
@@ -838,7 +962,7 @@ try&apos;s to read file from current working directory</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/config.js.html#lineNumber96">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/config.js.html#lineNumber122">source</a></span></span>
     </span>
   </h3>
 
@@ -894,7 +1018,7 @@ try&apos;s to read file from current working directory</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/config.js.html#lineNumber133">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/config.js.html#lineNumber158">source</a></span></span>
     </span>
   </h3>
 
@@ -950,7 +1074,7 @@ try&apos;s to read file from current working directory</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/config.js.html#lineNumber80">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/config.js.html#lineNumber106">source</a></span></span>
     </span>
   </h3>
 
@@ -1014,78 +1138,6 @@ try&apos;s to read file from current working directory</p>
   
 </div>
 <div class="detail" data-ice="detail">
-  <h3 data-ice="anchor" id="instance-method-setupPlugins">
-    <span class="access" data-ice="access">public</span>
-    
-    
-    
-    
-    
-    <span data-ice="name">setupPlugins</span><span data-ice="signature">(plugins: {}): <span>*</span></span>
-    <span class="right-info">
-      
-      
-      <span data-ice="source"><span><a href="file/src/config.js.html#lineNumber35">source</a></span></span>
-    </span>
-  </h3>
-
-  
-  
-  
-  
-
-  
-
-  <div data-ice="properties"><div data-ice="properties">
-  <h4 data-ice="title">Params:</h4>
-  <table class="params">
-    <thead>
-    <tr><td>Name</td><td>Type</td><td>Attribute</td><td>Description</td></tr>
-    </thead>
-    <tbody>
-    
-    <tr data-ice="property" data-depth="0">
-      <td data-ice="name" data-depth="0">plugins</td>
-      <td data-ice="type">{}</td>
-      <td data-ice="appendix"><ul><li>optional</li>
-<li>default: {}</li></ul></td>
-      <td data-ice="description"></td>
-    </tr>
-</tbody>
-  </table>
-</div>
-</div>
-
-  <div class="return-params" data-ice="returnParams">
-    <h4>Return:</h4>
-    <table>
-      <tbody>
-        <tr>
-          <td class="return-type" data-ice="returnType"><span>*</span></td>
-          
-        </tr>
-      </tbody>
-    </table>
-    <div data-ice="returnProperties">
-</div>
-  </div>
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-  
-</div>
-<div class="detail" data-ice="detail">
   <h3 data-ice="anchor" id="instance-method-updateConfig">
     <span class="access" data-ice="access">public</span>
     
@@ -1097,7 +1149,7 @@ try&apos;s to read file from current working directory</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/config.js.html#lineNumber174">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/config.js.html#lineNumber199">source</a></span></span>
     </span>
   </h3>
 

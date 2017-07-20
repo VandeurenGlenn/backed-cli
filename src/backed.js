@@ -2,13 +2,11 @@
 process.title = 'backed';
 const commander = require('commander');
 const {version} = require('./../package.json');
-const fs = require('backed-fs');
+const webup = require('webup');
+const logger = require('backed-logger');
 
 import Config from './config.js';
-import builder from './../node_modules/backed-builder/src/builder.js';
-import server from './server.js';
-import watcher from './watcher.js';
-
+import tasks from './tasks.js';
 
 commander
   .version(version)
@@ -17,39 +15,35 @@ commander
   .option('-s, --serve', 'serve your app/component')
   .option('-c, --copy', 'copy files from your app/component src folder to it distribution folder')
   .option('-d, --debug', 'show all warnings')
+  .option('-v, --version', 'current version')
   .parse(process.argv);
 
-let watch = commander.watch;
-let build = commander.build;
-let copy = commander.build || commander.copy;
-let serve = commander.serve;
-global.debug = commander.debug
+const commands = {
+  build: Boolean(commander.build),
+  watch: Boolean(commander.watch),
+  copy: Boolean(commander.build) || Boolean(commander.copy),
+  serve: Boolean(commander.serve)
+};
+
+global.debug = commander.debug;
+
 /**
  * @param {object} config {@link Config}
  */
-async function * run(config) {
-  if (build) {
-    await builder.build(config);
-  }
-
-  if (copy) {
-    await fs.copySources(config.sources);
-  }
-
-  if (watch) {
-    watcher.on('reload', () => {
-      server.reload();
-    });
-    await watcher.watch(config);
-  }
-
-  if (serve) {
-    await server.serve(config.server);
-  }
-}
-
 new Config().then(config => {
-  global.debug = commander.debug || config.debug;
-  let it = run(config);
-  it.next();
+  async function run(config) {
+    for (const task of Object.entries(commands)) {
+      const name = task[0];
+      const enabled = task[1];
+      if (enabled) {
+        try {
+          const done = await tasks[name](config);
+        } catch (e) {
+          logger.warn(`task::function ${name} is undefined`);
+        }
+      }
+    }
+    process.exit(0);
+  }
+  run(config);
 });

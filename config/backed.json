@@ -13,7 +13,7 @@
   ],
   "format": "es",
   "sourceMap": true,
-  "sources": {
+  "copy": {
     "src": ["*/templates/*"],
     "dest": "dist/templates"
   },

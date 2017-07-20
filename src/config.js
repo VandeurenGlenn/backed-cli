@@ -24,15 +24,18 @@ export default class Config {
         this.babel = config.babel || true;
         if (config.bundles) {
           for (let bundle of config.bundles) {
-            bundle.plugins = this.setupPlugins(bundle.plugins);
+            bundle.plugins = this.defaultPlugins(bundle.plugins);
           }
         }
-        resolve(this.updateConfig(config));
+        return resolve(this.updateConfig(config));
       });
     });
   }
 
-  setupPlugins(plugins={}) {
+  /**
+   * @param {array} plugins
+   */
+  defaultPlugins(plugins = {}) {
     const defaults = ['babel', 'cleanup'];
     for (let key of defaults) {
       if (this[key] && !plugins[key]) {
@@ -42,6 +45,11 @@ export default class Config {
     return plugins;
   }
 
+  /**
+   *  Default bundles config
+   *
+   * @return {array} [{src: `src/${name}.js`, dest: `dist/${name}.js`, format: 'es'}
+   */
   get bundles() {
     return [
       {
@@ -49,9 +57,22 @@ export default class Config {
         dest: `dist/${this.name}.js`,
         format: 'es'
       }
-    ]
+    ];
   }
 
+  /**
+   *  Default server config
+   *
+   * @return {object} {
+   *                    port: 3000,
+   *                    entry: '/',
+   *                    demo: 'demo',
+   *                    docs: 'docs',
+   *                    bowerPath: 'bower_components',
+   *                    nodeModulesPath: 'node_modules',
+   *                    index: null
+   *                  }
+   */
   get server() {
     return {
       port: 3000,
@@ -63,6 +84,11 @@ export default class Config {
       index: null};
   }
 
+  /**
+   *  Default watcher config
+   *
+   * @return {array} [{task: 'build', src: ['./src'], options: {}}
+   */
   get watch() {
     return [{
       task: 'build',
@@ -95,15 +121,15 @@ export default class Config {
    */
   importConfig() {
     return new Promise((resolve, reject) => {
-      async function * generator(fn) {
+      async function generator(fn) {
         const pkg = await fn('package.json').catch(error => {
           if (global.debug) {
-            logger.error(error)
+            logger.error(error);
           }
         });
         const config = await fn('backed.json').catch(error => {
           if (global.debug) {
-            logger.warn('backed.json::not found, ignore this when using backed in package.json')
+            logger.warn('backed.json::not found, ignore this when using backed in package.json');
           }
         });
         if (!config && !pkg) {
@@ -115,15 +141,14 @@ export default class Config {
           if (!name && pkg && pkg.name && !pkg.backed) {
             return resolve(merge(config, {name: pkg.name}));
           } else if (!name && !pkg) {
-            return resolve(merge(config, {name: process.cwd()}))
+            return resolve(merge(config, {name: process.cwd()}));
           }
         }
-        if(pkg && pkg.backed) {
+        if (pkg && pkg.backed) {
           return resolve(merge(pkg.backed, {name: pkg.name}));
         }
       }
-      const it = generator(this.require);
-      it.next();
+      generator(this.require);
     });
   }
 
@@ -173,7 +198,11 @@ export default class Config {
    */
   updateConfig(config, name) {
     config.sourceMap = config.sourceMap || true;
-    config.bundles = merge(this.bundles, config.bundles);
+    if (config.entry && config.sources) {
+      delete config.bundles;
+    } else {
+      config.bundles = merge(this.bundles, config.bundles);
+    }
     config.server = merge(this.server, config.server);
     config.watch = merge(this.watch, config.watch);
     global.config = config;
