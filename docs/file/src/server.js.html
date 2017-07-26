@@ -90,61 +90,63 @@ class Server {
     bowerPath: &apos;bower_components&apos;,
     nodeModulesPath: &apos;node_modules&apos;,
     index: null}) {
-    if (config) {
-      this.handleOldOptions(config);
-      if (config.use) {
-        for (let use of config.use) {
-          app.use(use.path, express.static(this.appLocation(use.static || use.path)));
+    return new Promise((resolve, reject) =&gt; {
+      if (config) {
+        this.handleOldOptions(config);
+        if (config.use) {
+          for (let use of config.use) {
+            app.use(use.path, express.static(this.appLocation(use.static || use.path)));
+          }
         }
+
+        app.use(&apos;/&apos;, express.static(
+          this.appLocation(config.entry)));
+
+        app.use(&apos;/bower_components&apos;, express.static(
+          this.appLocation(config.bowerPath, &apos;bower_components&apos;)));
+
+        app.use(&apos;/node_modules&apos;, express.static(
+          this.appLocation(config.nodeModulesPath, &apos;node_modules&apos;)));
+
+        app.use(&apos;/demo/node_modules&apos;, express.static(
+          this.appLocation(config.nodeModulesPath, &apos;node_modules&apos;)));
+
+        app.use(&apos;/demo&apos;, express.static(
+          this.appLocation(config.demo, &apos;demo&apos;)));
+
+        app.use(&apos;/docs&apos;, express.static(
+          this.appLocation(config.docs, &apos;docs&apos;)));
+
+        app.use(&apos;/package.json&apos;, express.static(
+          this.appLocation(&apos;package.json&apos;)
+        ));
+
+        // serve backed-cli documentation
+        app.use(&apos;/backed-cli/docs&apos;, express.static(
+          __dirname.replace(&apos;bin&apos;, &apos;docs&apos;)));
+
+        // serve backed documentation
+        app.use(&apos;/backed/docs&apos;, express.static(
+          this.appLocation(&apos;node_modules/backed/docs&apos;)));
+
+        // TODO: Add option to override index
+        app.use(&apos;/&apos;, express.static(__dirname.replace(&apos;bin&apos;, &apos;node_modules\\backed-client\\dist&apos;)));
+
+        // TODO: implement copyrighted by package author &amp; package name if no file is found
+        src(process.cwd() + &apos;/license.*&apos;).then(files =&gt; {
+          app.use(&apos;/license&apos;, express.static(files[0]));
+        });
+
+        server.listen(3000, error =&gt; {
+          if (error) {
+            return logger.warn(error);
+          }
+          logger.log(`${global.config.name}::serving from http://localhost:${config.port}/${config.entry.replace(&apos;/&apos;, &apos;&apos;)}`);
+        });
+      } else {
+        reject(logger.warn(`${global.config.name}::server config not found [example](https://raw.githubusercontent.com/VandeurenGlenn/backed-cli/master/config/backed.json)`));
       }
-
-      app.use(&apos;/&apos;, express.static(
-        this.appLocation(config.entry)));
-
-      app.use(&apos;/bower_components&apos;, express.static(
-        this.appLocation(config.bowerPath, &apos;bower_components&apos;)));
-
-      app.use(&apos;/node_modules&apos;, express.static(
-        this.appLocation(config.nodeModulesPath, &apos;node_modules&apos;)));
-
-      app.use(&apos;/demo/node_modules&apos;, express.static(
-        this.appLocation(config.nodeModulesPath, &apos;node_modules&apos;)));
-
-      app.use(&apos;/demo&apos;, express.static(
-        this.appLocation(config.demo, &apos;demo&apos;)));
-
-      app.use(&apos;/docs&apos;, express.static(
-        this.appLocation(config.docs, &apos;docs&apos;)));
-
-      app.use(&apos;/package.json&apos;, express.static(
-        this.appLocation(&apos;package.json&apos;)
-      ));
-
-      // serve backed-cli documentation
-      app.use(&apos;/backed-cli/docs&apos;, express.static(
-        __dirname.replace(&apos;bin&apos;, &apos;docs&apos;)));
-
-      // serve backed documentation
-      app.use(&apos;/backed/docs&apos;, express.static(
-        this.appLocation(&apos;node_modules/backed/docs&apos;)));
-
-      // TODO: Add option to override index
-      app.use(&apos;/&apos;, express.static(__dirname.replace(&apos;bin&apos;, &apos;node_modules\\backed-client\\dist&apos;)));
-
-      // TODO: implement copyrighted by package author &amp; package name if no file is found
-      src(process.cwd() + &apos;/license.*&apos;).then(files =&gt; {
-        app.use(&apos;/license&apos;, express.static(files[0]));
-      });
-
-      server.listen(3000, error =&gt; {
-        if (error) {
-          return logger.warn(error);
-        }
-        logger.log(`${global.config.name}::serving app from http://localhost:${config.port}/${config.entry.replace(&apos;/&apos;, &apos;&apos;)}`);
-      });
-    } else {
-      return logger.warn(`${global.config.name}::server config not found [example](https://raw.githubusercontent.com/VandeurenGlenn/backed-cli/master/config/backed.json)`);
-    }
+    });
   }
 
   /**

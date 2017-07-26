@@ -41,7 +41,7 @@ class Watcher extends EventEmitter {
           this.runWorker(watch.task, config);
         });
       }
-      resolve();
+      // resolve();
     });
   }
 

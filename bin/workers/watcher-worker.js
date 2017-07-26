@@ -9,7 +9,7 @@ process.on('message', message => {
   const task = message.task;
   switch (task) {
     case 'build':
-      if (config.fragments) {
+      if (config.entry && config.sources) {
         webup(config).then(() => {
           process.send('reload');
         });

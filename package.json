@@ -1,6 +1,6 @@
 {
   "name": "backed-cli",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "The official command line interface for Backed",
   "homepage": "https://github.com/vandeurenglenn/backed-cli",
   "author": {
@@ -76,7 +76,7 @@
     "rollup-plugin-cleanup": "^1.0.0",
     "rollup-plugin-json": "^2.1.0",
     "vinyl-read": "^1.0.0",
-    "webup": "^1.5.0",
+    "webup": "^1.6.2",
     "webup-preset-default": "^1.1.0",
     "webup-preset-element": "^1.0.0"
   },

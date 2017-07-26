@@ -956,6 +956,8 @@ var Server = function () {
      * @param {array} config.use static files to include [{path: some/path, static: some//path}] when static is undefined path will be used.
      */
     value: function serve() {
+      var _this = this;
+
       var config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {
         entry: '/',
         demo: 'demo',
@@ -965,72 +967,74 @@ var Server = function () {
         nodeModulesPath: 'node_modules',
         index: null };
 
-      if (config) {
-        this.handleOldOptions(config);
-        if (config.use) {
-          var _iteratorNormalCompletion = true;
-          var _didIteratorError = false;
-          var _iteratorError = undefined;
+      return new Promise(function (resolve, reject) {
+        if (config) {
+          _this.handleOldOptions(config);
+          if (config.use) {
+            var _iteratorNormalCompletion = true;
+            var _didIteratorError = false;
+            var _iteratorError = undefined;
 
-          try {
-            for (var _iterator = config.use[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-              var use = _step.value;
-
-              app.use(use.path, express.static(this.appLocation(use.static || use.path)));
-            }
-          } catch (err) {
-            _didIteratorError = true;
-            _iteratorError = err;
-          } finally {
             try {
-              if (!_iteratorNormalCompletion && _iterator.return) {
-                _iterator.return();
+              for (var _iterator = config.use[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                var use = _step.value;
+
+                app.use(use.path, express.static(_this.appLocation(use.static || use.path)));
               }
+            } catch (err) {
+              _didIteratorError = true;
+              _iteratorError = err;
             } finally {
-              if (_didIteratorError) {
-                throw _iteratorError;
+              try {
+                if (!_iteratorNormalCompletion && _iterator.return) {
+                  _iterator.return();
+                }
+              } finally {
+                if (_didIteratorError) {
+                  throw _iteratorError;
+                }
               }
             }
           }
+
+          app.use('/', express.static(_this.appLocation(config.entry)));
+
+          app.use('/bower_components', express.static(_this.appLocation(config.bowerPath, 'bower_components')));
+
+          app.use('/node_modules', express.static(_this.appLocation(config.nodeModulesPath, 'node_modules')));
+
+          app.use('/demo/node_modules', express.static(_this.appLocation(config.nodeModulesPath, 'node_modules')));
+
+          app.use('/demo', express.static(_this.appLocation(config.demo, 'demo')));
+
+          app.use('/docs', express.static(_this.appLocation(config.docs, 'docs')));
+
+          app.use('/package.json', express.static(_this.appLocation('package.json')));
+
+          // serve backed-cli documentation
+          app.use('/backed-cli/docs', express.static(__dirname.replace('bin', 'docs')));
+
+          // serve backed documentation
+          app.use('/backed/docs', express.static(_this.appLocation('node_modules/backed/docs')));
+
+          // TODO: Add option to override index
+          app.use('/', express.static(__dirname.replace('bin', 'node_modules\\backed-client\\dist')));
+
+          // TODO: implement copyrighted by package author & package name if no file is found
+          src(process.cwd() + '/license.*').then(function (files) {
+            app.use('/license', express.static(files[0]));
+          });
+
+          server.listen(3000, function (error) {
+            if (error) {
+              return logger$3.warn(error);
+            }
+            logger$3.log(global.config.name + '::serving from http://localhost:' + config.port + '/' + config.entry.replace('/', ''));
+          });
+        } else {
+          reject(logger$3.warn(global.config.name + '::server config not found [example](https://raw.githubusercontent.com/VandeurenGlenn/backed-cli/master/config/backed.json)'));
         }
-
-        app.use('/', express.static(this.appLocation(config.entry)));
-
-        app.use('/bower_components', express.static(this.appLocation(config.bowerPath, 'bower_components')));
-
-        app.use('/node_modules', express.static(this.appLocation(config.nodeModulesPath, 'node_modules')));
-
-        app.use('/demo/node_modules', express.static(this.appLocation(config.nodeModulesPath, 'node_modules')));
-
-        app.use('/demo', express.static(this.appLocation(config.demo, 'demo')));
-
-        app.use('/docs', express.static(this.appLocation(config.docs, 'docs')));
-
-        app.use('/package.json', express.static(this.appLocation('package.json')));
-
-        // serve backed-cli documentation
-        app.use('/backed-cli/docs', express.static(__dirname.replace('bin', 'docs')));
-
-        // serve backed documentation
-        app.use('/backed/docs', express.static(this.appLocation('node_modules/backed/docs')));
-
-        // TODO: Add option to override index
-        app.use('/', express.static(__dirname.replace('bin', 'node_modules\\backed-client\\dist')));
-
-        // TODO: implement copyrighted by package author & package name if no file is found
-        src(process.cwd() + '/license.*').then(function (files) {
-          app.use('/license', express.static(files[0]));
-        });
-
-        server.listen(3000, function (error) {
-          if (error) {
-            return logger$3.warn(error);
-          }
-          logger$3.log(global.config.name + '::serving app from http://localhost:' + config.port + '/' + config.entry.replace('/', ''));
-        });
-      } else {
-        return logger$3.warn(global.config.name + '::server config not found [example](https://raw.githubusercontent.com/VandeurenGlenn/backed-cli/master/config/backed.json)');
-      }
+      });
     }
 
     /**
@@ -1149,6 +1153,7 @@ var Watcher = function (_EventEmitter) {
           for (var _iterator = config.watch[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
             _loop();
           }
+          // resolve();
         } catch (err) {
           _didIteratorError = true;
           _iteratorError = err;
@@ -1163,8 +1168,6 @@ var Watcher = function (_EventEmitter) {
             }
           }
         }
-
-        resolve();
       });
     }
   }, {
@@ -1277,9 +1280,9 @@ commander.version(version).option('-w, --watch', 'watch for file changes & rebui
 
 var commands = {
   build: Boolean(commander.build),
+  serve: Boolean(commander.serve) || Boolean(commander.watch),
   watch: Boolean(commander.watch),
-  copy: Boolean(commander.build) || Boolean(commander.copy),
-  serve: Boolean(commander.serve)
+  copy: Boolean(commander.build) || Boolean(commander.copy)
 };
 
 global.debug = commander.debug;
@@ -1304,7 +1307,7 @@ new Config().then(function (config) {
 
             case 5:
               if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
-                _context.next = 22;
+                _context.next = 26;
                 break;
               }
 
@@ -1313,74 +1316,86 @@ new Config().then(function (config) {
               enabled = task[1];
 
               if (!enabled) {
-                _context.next = 19;
+                _context.next = 23;
                 break;
               }
 
               _context.prev = 10;
-              _context.next = 13;
-              return tasks[name](config);
 
-            case 13:
-              done = _context.sent;
-              _context.next = 19;
+              if (!(name === 'serve' && commands.watch)) {
+                _context.next = 15;
+                break;
+              }
+
+              tasks[name](config);
+              _context.next = 18;
               break;
 
-            case 16:
-              _context.prev = 16;
+            case 15:
+              _context.next = 17;
+              return tasks[name](config);
+
+            case 17:
+              done = _context.sent;
+
+            case 18:
+              _context.next = 23;
+              break;
+
+            case 20:
+              _context.prev = 20;
               _context.t0 = _context['catch'](10);
 
-              logger.warn('task::function ' + name + ' is undefined');
+              logger.warn('task::function ' + name + ' ' + _context.t0);
 
-            case 19:
+            case 23:
               _iteratorNormalCompletion = true;
               _context.next = 5;
               break;
 
-            case 22:
-              _context.next = 28;
+            case 26:
+              _context.next = 32;
               break;
 
-            case 24:
-              _context.prev = 24;
+            case 28:
+              _context.prev = 28;
               _context.t1 = _context['catch'](3);
               _didIteratorError = true;
               _iteratorError = _context.t1;
 
-            case 28:
-              _context.prev = 28;
-              _context.prev = 29;
+            case 32:
+              _context.prev = 32;
+              _context.prev = 33;
 
               if (!_iteratorNormalCompletion && _iterator.return) {
                 _iterator.return();
               }
 
-            case 31:
-              _context.prev = 31;
+            case 35:
+              _context.prev = 35;
 
               if (!_didIteratorError) {
-                _context.next = 34;
+                _context.next = 38;
                 break;
               }
 
               throw _iteratorError;
 
-            case 34:
-              return _context.finish(31);
+            case 38:
+              return _context.finish(35);
 
-            case 35:
-              return _context.finish(28);
+            case 39:
+              return _context.finish(32);
 
-            case 36:
+            case 40:
               process.exit(0);
-              // process.kill(process.pid, 'SIGINT');
 
-            case 37:
+            case 41:
             case 'end':
               return _context.stop();
           }
         }
-      }, _callee, this, [[3, 24, 28, 36], [10, 16], [29,, 31, 35]]);
+      }, _callee, this, [[3, 28, 32, 40], [10, 20], [33,, 35, 39]]);
     })());
   }
   run(config);

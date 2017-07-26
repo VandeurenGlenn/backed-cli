@@ -20,9 +20,9 @@ commander
 
 const commands = {
   build: Boolean(commander.build),
+  serve: Boolean(commander.serve) || Boolean(commander.watch),
   watch: Boolean(commander.watch),
-  copy: Boolean(commander.build) || Boolean(commander.copy),
-  serve: Boolean(commander.serve)
+  copy: Boolean(commander.build) || Boolean(commander.copy)
 };
 
 global.debug = commander.debug;
@@ -37,9 +37,13 @@ new Config().then(config => {
       const enabled = task[1];
       if (enabled) {
         try {
-          const done = await tasks[name](config);
+          if (name === 'serve' && commands.watch) {
+            tasks[name](config);
+          } else {
+            const done = await tasks[name](config);
+          }
         } catch (e) {
-          logger.warn(`task::function ${name} is undefined`);
+          logger.warn(`task::function ${name} ${e}`);
         }
       }
     }
