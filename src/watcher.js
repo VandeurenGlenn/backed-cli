@@ -11,6 +11,16 @@ const time = () => {
 };
 let worker;
 
+const ensureArray = array => {
+  if (Array.isArray(array)) {
+    return array;
+  }
+  if (!array) {
+    return [];
+  }
+  return [array];
+};
+
 /**
  * @extends EventEmitter
  */
@@ -38,6 +48,10 @@ class Watcher extends EventEmitter {
       for (let watch of config.watch) {
         watchers[watch.task] = chokidar.watch(watch.src, watch.options);
         watchers[watch.task].on('change', () => {
+          // allow developers to select wich build they want to rebuild when watching (this results in a quicker browser refresh...)
+          if (watch.options.presets) {
+            config.presets = ensureArray(watch.options.presets);
+          }
           this.runWorker(watch.task, config);
         });
       }

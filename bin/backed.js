@@ -1100,6 +1100,16 @@ var time = function time() {
 };
 var worker = void 0;
 
+var ensureArray = function ensureArray(array) {
+  if (Array.isArray(array)) {
+    return array;
+  }
+  if (!array) {
+    return [];
+  }
+  return [array];
+};
+
 /**
  * @extends EventEmitter
  */
@@ -1148,6 +1158,10 @@ var Watcher = function (_EventEmitter) {
 
             watchers[watch.task] = chokidar.watch(watch.src, watch.options);
             watchers[watch.task].on('change', function () {
+              // allow developers to select wich build they want to rebuild when watching (this results in a quicker browser refresh...)
+              if (watch.options.presets) {
+                config.presets = ensureArray(watch.options.presets);
+              }
               _this2.runWorker(watch.task, config);
             });
           };
