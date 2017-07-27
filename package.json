@@ -76,7 +76,7 @@
     "rollup-plugin-cleanup": "^1.0.0",
     "rollup-plugin-json": "^2.1.0",
     "vinyl-read": "^1.0.0",
-    "webup": "^1.6.2",
+    "webup": "^1.7.0",
     "webup-preset-default": "^1.1.0",
     "webup-preset-element": "^1.0.0"
   },
