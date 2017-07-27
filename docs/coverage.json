@@ -17,10 +17,10 @@
       "expectCount": 6,
       "actualCount": 2,
       "undocumentLines": [
-        29,
-        125,
-        133,
-        137
+        30,
+        127,
+        135,
+        139
       ]
     },
     "src/watcher.js": {

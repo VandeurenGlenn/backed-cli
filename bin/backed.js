@@ -913,6 +913,7 @@ var express = require('express');
 var http = require('http');
 var reload = require('reload');
 var glob = require('glob');
+var opn = require('opn');
 
 var app = express();
 var server = http.createServer(app);
@@ -1030,6 +1031,7 @@ var Server = function () {
               return logger$3.warn(error);
             }
             logger$3.log(global.config.name + '::serving from http://localhost:' + config.port + '/' + config.entry.replace('/', ''));
+            opn('http://localhost:' + config.port + '/' + config.entry.replace('/', ''));
           });
         } else {
           reject(logger$3.warn(global.config.name + '::server config not found [example](https://raw.githubusercontent.com/VandeurenGlenn/backed-cli/master/config/backed.json)'));

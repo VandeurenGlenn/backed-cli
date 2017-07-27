@@ -3,6 +3,7 @@ const express = require('express');
 const http = require('http');
 const reload = require('reload');
 const glob = require('glob');
+const opn = require('opn');
 
 const app = express();
 const server = http.createServer(app);
@@ -98,6 +99,7 @@ class Server {
             return logger.warn(error);
           }
           logger.log(`${global.config.name}::serving from http://localhost:${config.port}/${config.entry.replace('/', '')}`);
+          opn(`http://localhost:${config.port}/${config.entry.replace('/', '')}`);
         });
       } else {
         reject(logger.warn(`${global.config.name}::server config not found [example](https://raw.githubusercontent.com/VandeurenGlenn/backed-cli/master/config/backed.json)`));

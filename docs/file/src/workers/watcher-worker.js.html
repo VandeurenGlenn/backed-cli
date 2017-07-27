@@ -53,7 +53,7 @@ process.on(&apos;message&apos;, message =&gt; {
   const task = message.task;
   switch (task) {
     case &apos;build&apos;:
-      if (config.fragments) {
+      if (config.entry &amp;&amp; config.sources) {
         webup(config).then(() =&gt; {
           process.send(&apos;reload&apos;);
         });
