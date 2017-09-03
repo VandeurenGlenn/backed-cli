@@ -44,7 +44,9 @@
 <div class="content" data-ice="content"><h1 data-ice="title">src/tasks.js</h1>
 <pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">&apos;use strict&apos;;
 const fs = require(&apos;backed-fs&apos;);
+const {readFile} = require(&apos;fs&apos;);
 const webup = require(&apos;webup&apos;);
+const uglifyEs = require(&apos;uglify-es&apos;);
 import builder from &apos;./../node_modules/backed-builder/src/builder.js&apos;;
 import server from &apos;./server.js&apos;;
 import watcher from &apos;./watcher.js&apos;;
@@ -57,6 +59,31 @@ const build = config =&gt; {
       });
     }
     builder.build(config).then(() =&gt; resolve());
+  });
+};
+
+const read = src =&gt; {
+  return new Promise((resolve, reject) =&gt; {
+    readFile(src, &apos;utf-8&apos;, (error, code) =&gt; {
+      if (error) {
+        reject(error);
+      }
+      resolve(code);
+    });
+  });
+};
+
+const uglify = config =&gt; {
+  return new Promise((resolve, reject) =&gt; {
+    async function generator() {
+      for (const bundle of config.bundles) {
+        const file = await read(bundle.dest);
+        const result = uglifyEs.minify(file, {compress: true});
+        const done = await fs.write({contents: result.code}, bundle.dest.replace(&apos;.js&apos;, &apos;.min.js&apos;));
+      }
+      resolve();
+    }
+    generator();
   });
 };
 
@@ -81,6 +108,7 @@ const watch = config =&gt; {
 
 export default {
   build,
+  uglify,
   copy,
   serve,
   watch

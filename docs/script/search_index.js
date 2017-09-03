@@ -462,10 +462,34 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/server.js~server#appname",
+    "class/src/server.js~Server.html#instance-member-appname",
+    "src/server.js~Server#appname",
+    "member"
+  ],
+  [
+    "src/server.js~server#entry",
+    "class/src/server.js~Server.html#instance-member-entry",
+    "src/server.js~Server#entry",
+    "member"
+  ],
+  [
     "src/server.js~server#handleoldoptions",
     "class/src/server.js~Server.html#instance-method-handleOldOptions",
     "src/server.js~Server#handleOldOptions",
     "method"
+  ],
+  [
+    "src/server.js~server#listen",
+    "class/src/server.js~Server.html#instance-method-listen",
+    "src/server.js~Server#listen",
+    "method"
+  ],
+  [
+    "src/server.js~server#port",
+    "class/src/server.js~Server.html#instance-member-port",
+    "src/server.js~Server#port",
+    "member"
   ],
   [
     "src/server.js~server#reload",

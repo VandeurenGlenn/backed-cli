@@ -1,6 +1,6 @@
 {
   "name": "backed-cli",
-  "version": "0.9.1",
+  "version": "0.11.0",
   "description": "The official command line interface for Backed",
   "homepage": "https://github.com/vandeurenglenn/backed-cli",
   "author": {
@@ -39,7 +39,8 @@
     "gulp-nsp": "^2.1.0",
     "gulp-plumber": "^1.0.0",
     "merge-stream": "^1.0.1",
-    "rollup-plugin-uglify": "^1.0.2"
+    "rollup-plugin-uglify": "^1.0.2",
+    "uglify-es": "^3.0.28"
   },
   "eslintConfig": {
     "extends": "xo-space",
