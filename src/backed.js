@@ -11,6 +11,7 @@ import tasks from './tasks.js';
 commander
   .version(version)
   .option('-w, --watch', 'watch for file changes & rebuild on change')
+  .option('-u, --uglify', 'minimize code ouput')
   .option('-b, --build', 'build your app/component')
   .option('-s, --serve', 'serve your app/component')
   .option('-c, --copy', 'copy files from your app/component src folder to it distribution folder')
@@ -20,6 +21,7 @@ commander
 
 const commands = {
   build: Boolean(commander.build),
+  uglify: Boolean(commander.uglify),
   serve: Boolean(commander.serve) || Boolean(commander.watch),
   watch: Boolean(commander.watch),
   copy: Boolean(commander.build) || Boolean(commander.copy)
@@ -32,6 +34,9 @@ global.debug = commander.debug;
  */
 new Config().then(config => {
   async function run(config) {
+    if (config.uglify) {
+      commands.uglify = true;
+    }
     for (const task of Object.entries(commands)) {
       const name = task[0];
       const enabled = task[1];

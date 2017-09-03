@@ -399,8 +399,8 @@ var Config = function () {
   return Config;
 }();
 
-var _require$2 = require('rollup');
-var rollup = _require$2.rollup;
+var _require$3 = require('rollup');
+var rollup = _require$3.rollup;
 
 var _require2$1 = require('path');
 var join = _require2$1.join;
@@ -966,10 +966,14 @@ var Server = function () {
         use: [{ path: null, static: null }],
         bowerPath: 'bower_components',
         nodeModulesPath: 'node_modules',
+        port: 3000,
         index: null };
 
       return new Promise(function (resolve, reject) {
         if (config) {
+          _this.appname = config.name || global.config.name;
+          _this.entry = config.entry || global.config.entry;
+          _this.port = config.port || global.config.port;
           _this.handleOldOptions(config);
           if (config.use) {
             var _iteratorNormalCompletion = true;
@@ -1026,16 +1030,29 @@ var Server = function () {
             app.use('/license', express.static(files[0]));
           });
 
-          server.listen(3000, function (error) {
-            if (error) {
-              return logger$3.warn(error);
-            }
-            logger$3.log(global.config.name + '::serving from http://localhost:' + config.port + '/' + config.entry.replace('/', ''));
-            opn('http://localhost:' + config.port + '/' + config.entry.replace('/', ''));
+          app.get('/', function (request, response) {
+            console.log(request.params);
+          });
+          _this.listen();
+
+          server.on('error', function (error) {
+            logger$3.warn(error);
+            _this.port += 1;
+            return _this.listen();
           });
         } else {
           reject(logger$3.warn(global.config.name + '::server config not found [example](https://raw.githubusercontent.com/VandeurenGlenn/backed-cli/master/config/backed.json)'));
         }
+      });
+    }
+  }, {
+    key: 'listen',
+    value: function listen() {
+      var _this2 = this;
+
+      server.listen(this.port, function () {
+        logger$3.log(_this2.appname + '::serving from http://localhost:' + _this2.port + '/' + _this2.entry.replace('/', ''));
+        opn('http://localhost:' + _this2.port + '/' + _this2.entry.replace('/', ''));
       });
     }
 
@@ -1081,8 +1098,8 @@ var Server = function () {
 
 var server$1 = new Server();
 
-var _require$3 = require('child_process');
-var fork$1 = _require$3.fork;
+var _require$4 = require('child_process');
+var fork$1 = _require$4.fork;
 
 var chokidar = require('chokidar');
 var path$1 = require('path');
@@ -1243,7 +1260,12 @@ var Watcher = function (_EventEmitter) {
 var watcher = new Watcher();
 
 var fs = require('backed-fs');
+
+var _require$2 = require('fs');
+var readFile = _require$2.readFile;
+
 var webup$1 = require('webup');
+var uglifyEs = require('uglify-es');
 var build = function build(config) {
   return new Promise(function (resolve, reject) {
     if (config.entry && config.sources) {
@@ -1254,6 +1276,106 @@ var build = function build(config) {
     builder.build(config).then(function () {
       return resolve();
     });
+  });
+};
+
+var read = function read(src) {
+  return new Promise(function (resolve, reject) {
+    readFile(src, 'utf-8', function (error, code) {
+      if (error) {
+        reject(error);
+      }
+      resolve(code);
+    });
+  });
+};
+
+var uglify = function uglify(config) {
+  return new Promise(function (resolve, reject) {
+    function generator() {
+      return __async(_regeneratorRuntime.mark(function _callee() {
+        var _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, bundle, file, result, done;
+
+        return _regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _iteratorNormalCompletion = true;
+                _didIteratorError = false;
+                _iteratorError = undefined;
+                _context.prev = 3;
+                _iterator = config.bundles[Symbol.iterator]();
+
+              case 5:
+                if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
+                  _context.next = 17;
+                  break;
+                }
+
+                bundle = _step.value;
+                _context.next = 9;
+                return read(bundle.dest);
+
+              case 9:
+                file = _context.sent;
+                result = uglifyEs.minify(file, { compress: true });
+                _context.next = 13;
+                return fs.write({ contents: result.code }, bundle.dest.replace('.js', '.min.js'));
+
+              case 13:
+                done = _context.sent;
+
+              case 14:
+                _iteratorNormalCompletion = true;
+                _context.next = 5;
+                break;
+
+              case 17:
+                _context.next = 23;
+                break;
+
+              case 19:
+                _context.prev = 19;
+                _context.t0 = _context['catch'](3);
+                _didIteratorError = true;
+                _iteratorError = _context.t0;
+
+              case 23:
+                _context.prev = 23;
+                _context.prev = 24;
+
+                if (!_iteratorNormalCompletion && _iterator.return) {
+                  _iterator.return();
+                }
+
+              case 26:
+                _context.prev = 26;
+
+                if (!_didIteratorError) {
+                  _context.next = 29;
+                  break;
+                }
+
+                throw _iteratorError;
+
+              case 29:
+                return _context.finish(26);
+
+              case 30:
+                return _context.finish(23);
+
+              case 31:
+                resolve();
+
+              case 32:
+              case 'end':
+                return _context.stop();
+            }
+          }
+        }, _callee, this, [[3, 19, 23, 31], [24,, 26, 30]]);
+      })());
+    }
+    generator();
   });
 };
 
@@ -1278,6 +1400,7 @@ var watch = function watch(config) {
 
 var tasks = {
   build: build,
+  uglify: uglify,
   copy: copy,
   serve: serve,
   watch: watch
@@ -1292,10 +1415,11 @@ var version = _require.version;
 var webup = require('webup');
 var logger = require('backed-logger');
 
-commander.version(version).option('-w, --watch', 'watch for file changes & rebuild on change').option('-b, --build', 'build your app/component').option('-s, --serve', 'serve your app/component').option('-c, --copy', 'copy files from your app/component src folder to it distribution folder').option('-d, --debug', 'show all warnings').option('-v, --version', 'current version').parse(process.argv);
+commander.version(version).option('-w, --watch', 'watch for file changes & rebuild on change').option('-u, --uglify', 'minimize code ouput').option('-b, --build', 'build your app/component').option('-s, --serve', 'serve your app/component').option('-c, --copy', 'copy files from your app/component src folder to it distribution folder').option('-d, --debug', 'show all warnings').option('-v, --version', 'current version').parse(process.argv);
 
 var commands = {
   build: Boolean(commander.build),
+  uglify: Boolean(commander.uglify),
   serve: Boolean(commander.serve) || Boolean(commander.watch),
   watch: Boolean(commander.watch),
   copy: Boolean(commander.build) || Boolean(commander.copy)
@@ -1315,15 +1439,18 @@ new Config().then(function (config) {
         while (1) {
           switch (_context.prev = _context.next) {
             case 0:
+              if (config.uglify) {
+                commands.uglify = true;
+              }
               _iteratorNormalCompletion = true;
               _didIteratorError = false;
               _iteratorError = undefined;
-              _context.prev = 3;
+              _context.prev = 4;
               _iterator = Object.entries(commands)[Symbol.iterator]();
 
-            case 5:
+            case 6:
               if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
-                _context.next = 26;
+                _context.next = 27;
                 break;
               }
 
@@ -1332,86 +1459,86 @@ new Config().then(function (config) {
               enabled = task[1];
 
               if (!enabled) {
-                _context.next = 23;
+                _context.next = 24;
                 break;
               }
 
-              _context.prev = 10;
+              _context.prev = 11;
 
               if (!(name === 'serve' && commands.watch)) {
-                _context.next = 15;
+                _context.next = 16;
                 break;
               }
 
               tasks[name](config);
-              _context.next = 18;
+              _context.next = 19;
               break;
 
-            case 15:
-              _context.next = 17;
+            case 16:
+              _context.next = 18;
               return tasks[name](config);
 
-            case 17:
+            case 18:
               done = _context.sent;
 
-            case 18:
-              _context.next = 23;
+            case 19:
+              _context.next = 24;
               break;
 
-            case 20:
-              _context.prev = 20;
-              _context.t0 = _context['catch'](10);
+            case 21:
+              _context.prev = 21;
+              _context.t0 = _context['catch'](11);
 
               logger.warn('task::function ' + name + ' ' + _context.t0);
 
-            case 23:
+            case 24:
               _iteratorNormalCompletion = true;
-              _context.next = 5;
+              _context.next = 6;
               break;
 
-            case 26:
-              _context.next = 32;
+            case 27:
+              _context.next = 33;
               break;
 
-            case 28:
-              _context.prev = 28;
-              _context.t1 = _context['catch'](3);
+            case 29:
+              _context.prev = 29;
+              _context.t1 = _context['catch'](4);
               _didIteratorError = true;
               _iteratorError = _context.t1;
 
-            case 32:
-              _context.prev = 32;
+            case 33:
               _context.prev = 33;
+              _context.prev = 34;
 
               if (!_iteratorNormalCompletion && _iterator.return) {
                 _iterator.return();
               }
 
-            case 35:
-              _context.prev = 35;
+            case 36:
+              _context.prev = 36;
 
               if (!_didIteratorError) {
-                _context.next = 38;
+                _context.next = 39;
                 break;
               }
 
               throw _iteratorError;
 
-            case 38:
-              return _context.finish(35);
-
             case 39:
-              return _context.finish(32);
+              return _context.finish(36);
 
             case 40:
-              process.exit(0);
+              return _context.finish(33);
 
             case 41:
+              process.exit(0);
+
+            case 42:
             case 'end':
               return _context.stop();
           }
         }
-      }, _callee, this, [[3, 28, 32, 40], [10, 20], [33,, 35, 39]]);
+      }, _callee, this, [[4, 29, 33, 41], [11, 21], [34,, 36, 40]]);
     })());
   }
   run(config);

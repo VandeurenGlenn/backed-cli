@@ -46,9 +46,13 @@ class Server {
     use: [{path: null, static: null}],
     bowerPath: 'bower_components',
     nodeModulesPath: 'node_modules',
+    port: 3000,
     index: null}) {
     return new Promise((resolve, reject) => {
       if (config) {
+        this.appname = config.name || global.config.name;
+        this.entry = config.entry || global.config.entry;
+        this.port = config.port || global.config.port;
         this.handleOldOptions(config);
         if (config.use) {
           for (let use of config.use) {
@@ -94,16 +98,26 @@ class Server {
           app.use('/license', express.static(files[0]));
         });
 
-        server.listen(3000, error => {
-          if (error) {
-            return logger.warn(error);
-          }
-          logger.log(`${global.config.name}::serving from http://localhost:${config.port}/${config.entry.replace('/', '')}`);
-          opn(`http://localhost:${config.port}/${config.entry.replace('/', '')}`);
+        app.get('/', (request, response) => {
+          console.log(request.params);
+        });
+        this.listen();
+
+        server.on('error', error => {
+          logger.warn(error);
+          this.port += 1;
+          return this.listen();
         });
       } else {
         reject(logger.warn(`${global.config.name}::server config not found [example](https://raw.githubusercontent.com/VandeurenGlenn/backed-cli/master/config/backed.json)`));
       }
+    });
+  }
+
+  listen() {
+    server.listen(this.port, () => {
+      logger.log(`${this.appname}::serving from http://localhost:${this.port}/${this.entry.replace('/', '')}`);
+      opn(`http://localhost:${this.port}/${this.entry.replace('/', '')}`);
     });
   }
 

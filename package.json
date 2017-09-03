@@ -39,7 +39,8 @@
     "gulp-nsp": "^2.1.0",
     "gulp-plumber": "^1.0.0",
     "merge-stream": "^1.0.1",
-    "rollup-plugin-uglify": "^1.0.2"
+    "rollup-plugin-uglify": "^1.0.2",
+    "uglify-es": "^3.0.28"
   },
   "eslintConfig": {
     "extends": "xo-space",
