@@ -64,7 +64,7 @@
     "backed-fs": "^1.0.2",
     "chalk": "^1.1.3",
     "chokidar": "^1.6.1",
-    "commander": "^2.9.0",
+    "commander": "^2.20.3",
     "elegant-spinner": "^1.0.1",
     "express": "^4.14.1",
     "glob": "^7.1.1",
