@@ -71,7 +71,7 @@
     "inject-template": "^0.2.0",
     "log-update": "^1.0.2",
     "opn": "^5.1.0",
-    "reload": "^1.1.1",
+    "reload": "^2.3.0",
     "rollup": "^0.41.4",
     "rollup-plugin-async": "^1.2.0",
     "rollup-plugin-babel": "^2.7.1",
