@@ -51,8 +51,9 @@
   },
   "repository": "https://github.com/VandeurenGlenn/backed-cli",
   "scripts": {
-    "prepublish": "esdoc",
-    "test": "gulp"
+    "prepublish": "yarn run snyk-protect && esdoc",
+    "test": "gulp",
+    "snyk-protect": "snyk-protect"
   },
   "license": "CC-BY-NC-ND-4.0",
   "dependencies": {
@@ -80,7 +81,8 @@
     "vinyl-read": "^1.0.0",
     "webup": "^1.8.0",
     "webup-preset-default": "^1.1.0",
-    "webup-preset-element": "^1.0.0"
+    "webup-preset-element": "^1.0.0",
+    "@snyk/protect": "latest"
   },
   "esdoc": {
     "source": "./src",
@@ -108,5 +110,6 @@
         }
       ]
     ]
-  }
+  },
+  "snyk": true
 }
